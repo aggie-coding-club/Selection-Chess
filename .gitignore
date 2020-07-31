@@ -1,0 +1,15 @@
+*.exe
+*.o
+*.obj
+*.stackdump
+*.gch
+
+# Ignored folders
+old_code/
+
+# Visual Studio Code
+.vscode/
+.vs/
+
+# SCons
+.sconsign.dblite
