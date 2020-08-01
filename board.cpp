@@ -85,13 +85,14 @@ std::string Board::getAsciiBoard(bool showCoords) {
     const short MIN_Y = m_tiles.front()->m_coords.second;
 
     std::vector<std::string> lines; // each element is line of output
-    const unsigned short V_SIZE = 3u;
+    const unsigned short V_SIZE = 1u;
     const std::string H_SEP = "---";
     const std::string V_SEP = "|";
     const std::string CORNER = "+";
 
     const std::string H_FILL = "   ";
     const std::string H_PAD = " ";
+    const std::string H_NON_SEP = "   ";
 
     for (int i = 0; i < 2 + V_SIZE; i++) { // +2 for V_SEP on both sides
         lines.push_back("");
@@ -111,13 +112,17 @@ std::string Board::getAsciiBoard(bool showCoords) {
 
             activeLineCursorPos = 0;
         }
+        size_t lowerLine = activeLineNum + V_SIZE + 1;
 
         // Move along to our X position
         while ((*tilesIter)->m_coords.first != currentX++) {
             for (int i = 1; i <= V_SIZE; i++) {
-                lines[activeLineNum + i] += ((*tilesIter)->HasAdjacent(LEFT) ? "" : "*") + H_FILL;
+                lines[activeLineNum + i] += ((*tilesIter)->HasAdjacent(LEFT) ? "" : " ") + H_FILL;
             }
+            lines[lowerLine] += ((*tilesIter)->HasAdjacent(LEFT) ? "" : " ") + H_NON_SEP;
         }
+
+        // Place our square
         for (int i = 1; i <= V_SIZE; i++) {
             if (i == V_SIZE / 2 + 1) {
                 lines[activeLineNum + i] += ((*tilesIter)->HasAdjacent(LEFT) ? "" : V_SEP) + H_PAD + getCharFromEnum((*tilesIter)->m_contents, '_') + H_PAD + V_SEP;
@@ -125,12 +130,23 @@ std::string Board::getAsciiBoard(bool showCoords) {
                 lines[activeLineNum + i] += ((*tilesIter)->HasAdjacent(LEFT) ? "" : V_SEP) + H_FILL + V_SEP;
             }
         }
+        lines[lowerLine] += ((*tilesIter)->HasAdjacent(LEFT) ? "" : CORNER) + H_SEP + CORNER;
+
+        // Place upper line. This one is tricky bcz it is also the lower line of the previous one.
+        // Fill in the line if needed so we can just run the same replacement
+        for (int i = lines[activeLineNum + 1].size() - lines[activeLineNum].size(); i > 0; i--) {
+            lines[activeLineNum] += " ";
+        }
+
+        size_t square_length = H_SEP.size() + 2;
+        size_t starting = lines[activeLineNum + 1].size() - square_length;
+        lines[activeLineNum].replace(starting, square_length, CORNER + H_SEP + CORNER);
 
     }
 
     std::string result = "";
     for (auto& line : lines) {
-        result += "$" + line + "\n";
+        result += "$  " + line + "\n";
     }
     return result;
 }
