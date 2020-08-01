@@ -5,7 +5,7 @@
 #include "constants.h"
 
 int main() {
-    std::cout << "Yes this is hippo " << ROOK_B_LONG_CASTLE_TO << std::endl;
+    std::cout << "Yes this is hippo " << std::endl;
     return 0;
 }
 
