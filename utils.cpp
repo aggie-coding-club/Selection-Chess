@@ -108,3 +108,35 @@ std::string getUnicodeCharFromEnum(PieceEnum _enumValue, std::string _empty) {
         break;
     }
 }
+
+char getCharFromDirection(DirectionEnum _dir) {
+    switch (_dir) {
+    case LEFT:
+        return 'L';
+        break;
+    case RIGHT:
+        return 'R';
+        break;
+    case UP:
+        return 'U';
+        break;
+    case DOWN:
+        return 'D';
+        break;
+    case DOWN_LEFT:
+        return 'l';
+        break;
+    case DOWN_RIGHT:
+        return 'r';
+        break;
+    case UP_LEFT:
+        return '\\';
+        break;
+    case UP_RIGHT:
+        return '/';
+        break;
+    default:
+        return '?';
+        break;
+    }
+}

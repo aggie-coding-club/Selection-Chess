@@ -13,6 +13,11 @@
 char getCharFromEnum(PieceEnum _enumValue, char _empty=' ');
 
 /**
+ * Gets letter respresentation of direction
+ */
+char getCharFromDirection(DirectionEnum _dir);
+
+/**
  * LEFT to RIGHT, etc.
  */
 DirectionEnum flipDirection(DirectionEnum _dir);

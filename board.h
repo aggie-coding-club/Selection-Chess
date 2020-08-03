@@ -53,24 +53,24 @@ class Board {
          * Note that comparing the hashes is MUCH faster that this, and should be used to compare boards
          * for most practical purposes. Really, this is just here to test if the hash function is working.
          */
-        bool operator==(const Board& other) const;
+        bool operator==(const Board& _other) const;
 
         /** 
          * Update the position oldLocation to be newLocation for type piece.
          * Returns false if it does not find such a piece to update.
          */
-        bool updatePieceInPL(PieceEnum piece, Tile* oldLocation, Tile* newLocation);
+        bool updatePieceInPL(PieceEnum _piece, Tile* _oldLocation, Tile* _newLocation);
 
         /** 
          * Remove the piece at location for type piece.
          * Returns false if it does not find such a piece to remove.
          */
-        bool removePieceFromPL(PieceEnum piece, Tile* location);
+        bool removePieceFromPL(PieceEnum _piece, Tile* _location);
 
         /** 
          * Print the current tiles and pieces in a nice ASCII format, intended for debugging use.
          */
-        std::string getAsciiBoard(bool showCoords = false);
+        std::string getAsciiBoard(bool _showCoords = false, size_t _width = 3, size_t _height = 1, char _tileFillChar = '`');
 
         // class row_iterator { // FIXME: this is really ugly
         //     public:
@@ -105,6 +105,8 @@ class Board {
         //     private:
         //         const Board& m_board;
         // };
+
+        Tile* getTile(std::pair<short, short> _coords);
 
 };
 

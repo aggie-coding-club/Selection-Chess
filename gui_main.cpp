@@ -11,32 +11,43 @@ int main() {
     Board guiBoard = Board();
     guiBoard.m_tiles.push_back(new Tile(EMPTY, std::pair<short, short>(-1,-1)));
     guiBoard.m_tiles.push_back(new Tile(EMPTY, std::pair<short, short>(0,-1)));
-    guiBoard.m_tiles.back()->SetAdjacent(LEFT, guiBoard.m_tiles[guiBoard.m_tiles.size() - 1]);
+    guiBoard.m_tiles.back()->SetAdjacent(LEFT, guiBoard.getTile(std::pair<short, short>(-1,-1)));
 
+    guiBoard.m_tiles.push_back(new Tile(EMPTY, std::pair<short, short>(-2,0)));
     guiBoard.m_tiles.push_back(new Tile(EMPTY, std::pair<short, short>(0,0)));
-    guiBoard.m_tiles.back()->SetAdjacent(DOWN, guiBoard.m_tiles[1]);
+    guiBoard.m_tiles.back()->SetAdjacent(DOWN, guiBoard.getTile(std::pair<short, short>(0,-1)));
     guiBoard.m_tiles.push_back(new Tile(EMPTY, std::pair<short, short>(1,0)));
-    guiBoard.m_tiles.back()->SetAdjacent(LEFT, guiBoard.m_tiles[guiBoard.m_tiles.size() - 1]);
+    guiBoard.m_tiles.back()->SetAdjacent(LEFT, guiBoard.getTile(std::pair<short, short>(0,0)));
 
-    guiBoard.m_tiles.push_back(new Tile(W_KING, std::pair<short, short>(-1,1)));
+    guiBoard.m_tiles.push_back(new Tile(W_KING, std::pair<short, short>(-2,1)));
+    guiBoard.m_tiles.back()->SetAdjacent(DOWN, guiBoard.getTile(std::pair<short, short>(-2,0)));
+    guiBoard.m_tiles.push_back(new Tile(W_PAWN, std::pair<short, short>(-1,1)));
+    guiBoard.m_tiles.back()->SetAdjacent(LEFT, guiBoard.m_tiles[guiBoard.m_tiles.size() - 1]);
     guiBoard.m_tiles.push_back(new Tile(B_KING, std::pair<short, short>(0,1)));
     guiBoard.m_tiles.back()->SetAdjacent(LEFT, guiBoard.m_tiles[guiBoard.m_tiles.size() - 1]);
-    guiBoard.m_tiles.back()->SetAdjacent(DOWN, guiBoard.m_tiles[2]);
+    guiBoard.m_tiles.back()->SetAdjacent(DOWN, guiBoard.getTile(std::pair<short, short>(0,0)));
     guiBoard.m_tiles.push_back(new Tile(EMPTY, std::pair<short, short>(1,1)));
     guiBoard.m_tiles.back()->SetAdjacent(LEFT, guiBoard.m_tiles[guiBoard.m_tiles.size() - 1]);
-    guiBoard.m_tiles.back()->SetAdjacent(DOWN, guiBoard.m_tiles[3]);
+    guiBoard.m_tiles.back()->SetAdjacent(DOWN, guiBoard.getTile(std::pair<short, short>(1,0)));
     guiBoard.m_tiles.push_back(new Tile(EMPTY, std::pair<short, short>(2,1)));
     guiBoard.m_tiles.back()->SetAdjacent(LEFT, guiBoard.m_tiles[guiBoard.m_tiles.size() - 1]);
 
+    guiBoard.m_tiles.push_back(new Tile(EMPTY, std::pair<short, short>(-2,2)));
+    guiBoard.m_tiles.back()->SetAdjacent(DOWN, guiBoard.getTile(std::pair<short, short>(-2,1)));
     guiBoard.m_tiles.push_back(new Tile(EMPTY, std::pair<short, short>(0,2)));
-    guiBoard.m_tiles.back()->SetAdjacent(DOWN, guiBoard.m_tiles[5]);
+    guiBoard.m_tiles.back()->SetAdjacent(DOWN, guiBoard.getTile(std::pair<short, short>(0,1)));
     guiBoard.m_tiles.push_back(new Tile(EMPTY, std::pair<short, short>(1,2)));
     guiBoard.m_tiles.back()->SetAdjacent(LEFT, guiBoard.m_tiles[guiBoard.m_tiles.size() - 1]);
-    guiBoard.m_tiles.back()->SetAdjacent(DOWN, guiBoard.m_tiles[6]);
+    guiBoard.m_tiles.back()->SetAdjacent(DOWN, guiBoard.getTile(std::pair<short, short>(1, 1)));
     guiBoard.m_tiles.push_back(new Tile(EMPTY, std::pair<short, short>(2,2)));
     guiBoard.m_tiles.back()->SetAdjacent(LEFT, guiBoard.m_tiles[guiBoard.m_tiles.size() - 1]);
-    guiBoard.m_tiles.back()->SetAdjacent(DOWN, guiBoard.m_tiles[7]);
+    guiBoard.m_tiles.back()->SetAdjacent(DOWN, guiBoard.getTile(std::pair<short, short>(2,1)));
     std::cout << guiBoard.getAsciiBoard() << std::endl;
+    std::cout << guiBoard.getAsciiBoard(true) << std::endl;
+    std::cout << guiBoard.getAsciiBoard(true, 5, 5) << std::endl;
+    std::cout << guiBoard.getAsciiBoard(true, 1, 1, '-') << std::endl;
+    std::cout << guiBoard.getAsciiBoard(true, 2, 2) << std::endl;
+    std::cout << guiBoard.getAsciiBoard(true, 4, 4, '.') << std::endl;
     return 0;
 }
 

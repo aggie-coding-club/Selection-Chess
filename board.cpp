@@ -11,7 +11,9 @@
 
 void Tile::SetAdjacent(DirectionEnum _dir, Tile* _adj) {
     m_adjacents[_dir] = _adj;
+    // std::cout << "SD _dir:" << getCharFromDirection(_dir) << std::endl;
     if (_adj != nullptr) {
+        // std::cout << "SD flipped _dir:" << getCharFromDirection(flipDirection(_dir)) << std::endl;
         _adj->m_adjacents[flipDirection(_dir)] = this;
     }
 }
@@ -38,12 +40,12 @@ Board::Board() {
  * Note that comparing the hashes is MUCH faster that this, and should be used to compare boards
  * for most practical purposes. Really, this is just here to test if the hash function is working.
  */
-bool Board::operator==(const Board& other) const {
+bool Board::operator==(const Board& _other) const {
     //TODO: implement
     return true;
 }
 
-bool Board::updatePieceInPL(PieceEnum piece, Tile* oldLocation, Tile* newLocation) {
+bool Board::updatePieceInPL(PieceEnum _piece, Tile* _oldLocation, Tile* _newLocation) {
     //TODO: re implement
     // for (int i = 0; i < pieceNumbers[piece]; i++) { // loop for all pieces of type
     //     if (pieceLocations[piece][i] == oldLocation) { // find the match
@@ -54,7 +56,7 @@ bool Board::updatePieceInPL(PieceEnum piece, Tile* oldLocation, Tile* newLocatio
     return false;
 }
 
-bool Board::removePieceFromPL(PieceEnum piece, Tile* location) {
+bool Board::removePieceFromPL(PieceEnum _piece, Tile* _location) {
     //TODO: re implement
     // for (int i = 0; i < pieceNumbers[piece]; i++) { // loop for all pieces of type
     //     if (pieceLocations[piece][i] == location) { // find the match
@@ -68,7 +70,7 @@ bool Board::removePieceFromPL(PieceEnum piece, Tile* location) {
     return false;
 }
 
-std::string Board::getAsciiBoard(bool showCoords) {
+std::string Board::getAsciiBoard(bool _showCoords, size_t _width, size_t _height, char _tileFillChar) {
     // Sort by x coords
     std::sort(m_tiles.begin(), m_tiles.end(), [](Tile* _t1, Tile* _t2) {
         if (_t1 == nullptr || _t2 == nullptr) return false;
@@ -76,6 +78,7 @@ std::string Board::getAsciiBoard(bool showCoords) {
     });
     // FIXME: temporary hack to get minimum.
     const short MIN_X = m_tiles.front()->m_coords.first;
+    const short MAX_X = m_tiles.back()->m_coords.first;
 
     // Sort by y coords. Note that stablity is needed to ensure x elements are not scrambled.
     std::stable_sort(m_tiles.begin(), m_tiles.end(), [](Tile* _t1, Tile* _t2) {
@@ -85,68 +88,140 @@ std::string Board::getAsciiBoard(bool showCoords) {
     const short MIN_Y = m_tiles.front()->m_coords.second;
 
     std::vector<std::string> lines; // each element is line of output
-    const unsigned short V_SIZE = 1u;
-    const std::string H_SEP = "---";
-    const std::string V_SEP = "|";
-    const std::string CORNER = "+";
 
-    const std::string H_FILL = "   ";
-    const std::string H_PAD = " ";
-    const std::string H_NON_SEP = "   ";
+    // DRAWING CONTROLS
+    const std::string V_SEP = "|"; // sides of tile, repeated _height times
+    const std::string CORNER = "+"; // corner where h_sep and V_SEP meet
 
-    for (int i = 0; i < 2 + V_SIZE; i++) { // +2 for V_SEP on both sides
+    std::string h_sep = ""; // top/bottom of tiles. Must be odd since piece must be centered. //TODO: odd?
+    std::string h_fill_out = ""; // filler used for outside of cell. Must be same size as h_sep
+    std::string h_fill_in = ""; // filler used for outside of cell. Must be same size as h_sep
+    std::string h_non_sep = ""; // Used like an h_sep but for when there is no adjacent cell
+    for (int i = 0; i < _width; i++) {
+        h_sep += "-";
+        h_fill_out += " ";
+        h_fill_in += _tileFillChar;
+        h_non_sep += " ";
+    }
+    std::string h_pad_left = std::string((_width - 1) / 2, _tileFillChar); // Used between V_SEP and the piece character. Sizes must satisfy h_sep = h_pad + 1 + h_pad.
+    std::string h_pad_right = std::string(_width / 2, _tileFillChar);
+
+    size_t TILE_WIDTH = h_sep.size() + 2; //FIXME: deprecated
+
+    // Margin drawing controls
+    const unsigned short LEFT_MARGIN_SIZE = 5; //TODO: parameterize
+    const unsigned short LEFT_MARGIN_PAD = 3;
+
+    for (int i = 0; i < 2 + _height; i++) { // +2 for V_SEP on both sides
         lines.push_back("");
     }
-    short lastY = MIN_Y;
-    short currentX = MIN_X;
-    size_t activeLineNum = 0;
-    size_t activeLineCursorPos = 0;
+    short lastY = MIN_Y; // Which Y position the previous tile we printed is in. Keeps track if we start on a new row.
+    short currentX = MIN_X; // Which X position this tile correspond to. Keeps track if we need to print empty cells.
+    size_t activeLineNum = 0; // First line of output we are currently modifying
+    bool trailingEdge = false; // Whether the last tile of this row already has printed the edge we share with it
     for (auto tilesIter = m_tiles.begin(); tilesIter != m_tiles.end(); tilesIter++) {
-        if ((*tilesIter)->m_coords.second != lastY) { // We've started the next line
+        // We've started the next line
+        if ((*tilesIter)->m_coords.second != lastY) {
             lastY = (*tilesIter)->m_coords.second;
             currentX = MIN_X;
-            for (int i = 0; i < 1 + V_SIZE; i++) { // +1 for V_SEP
+            trailingEdge = false;
+            for (int i = 0; i < 1 + _height; i++) { // +1 for V_SEP
                 activeLineNum++;
                 lines.push_back("");
             }
-
-            activeLineCursorPos = 0;
         }
-        size_t lowerLine = activeLineNum + V_SIZE + 1;
+        size_t lowerLine = activeLineNum + _height + 1;
 
-        // Move along to our X position
+        // Move along to our X position if needed, printing empty space as we go
         while ((*tilesIter)->m_coords.first != currentX++) {
-            for (int i = 1; i <= V_SIZE; i++) {
-                lines[activeLineNum + i] += ((*tilesIter)->HasAdjacent(LEFT) ? "" : " ") + H_FILL;
+            for (int i = 1; i <= _height; i++) {
+                lines[activeLineNum + i] += (trailingEdge ? "" : " ") + h_fill_out;
             }
-            lines[lowerLine] += ((*tilesIter)->HasAdjacent(LEFT) ? "" : " ") + H_NON_SEP;
+            lines[lowerLine] += (trailingEdge ? "" : " ") + h_non_sep;
+            // We did not print righthand edge in case our neighbor is a tile and needs to print its edge there
+            trailingEdge = false;
         }
 
-        // Place our square
-        for (int i = 1; i <= V_SIZE; i++) {
-            if (i == V_SIZE / 2 + 1) {
-                lines[activeLineNum + i] += ((*tilesIter)->HasAdjacent(LEFT) ? "" : V_SEP) + H_PAD + getCharFromEnum((*tilesIter)->m_contents, '_') + H_PAD + V_SEP;
+        // Output our tile's bottom border and center.
+        for (int i = 1; i <= _height; i++) {
+            if (i == _height / 2 + 1) { // Is this the row which contains the piece
+                lines[activeLineNum + i] += (trailingEdge ? "" : V_SEP) + h_pad_left + getCharFromEnum((*tilesIter)->m_contents, _tileFillChar) + h_pad_right + V_SEP;
             } else {
-                lines[activeLineNum + i] += ((*tilesIter)->HasAdjacent(LEFT) ? "" : V_SEP) + H_FILL + V_SEP;
+                lines[activeLineNum + i] += (trailingEdge ? "" : V_SEP) + h_fill_in + V_SEP;
             }
         }
-        lines[lowerLine] += ((*tilesIter)->HasAdjacent(LEFT) ? "" : CORNER) + H_SEP + CORNER;
+        lines[lowerLine] += (trailingEdge ? "" : CORNER) + h_sep + CORNER;
 
-        // Place upper line. This one is tricky bcz it is also the lower line of the previous one.
-        // Fill in the line if needed so we can just run the same replacement
+        // Place upper line of our tile. This one is tricky bcz it is also the lower line of the previous row.
+        // Fill in the line if needed so we can just run the same replacement and not worry about out-of-bounds
         for (int i = lines[activeLineNum + 1].size() - lines[activeLineNum].size(); i > 0; i--) {
             lines[activeLineNum] += " ";
         }
+        // Override upper border with an edge, whether it is empty or there is already a tile with a lower edge there.
+        size_t starting = lines[activeLineNum + 1].size() - TILE_WIDTH;
+        lines[activeLineNum].replace(starting, TILE_WIDTH, CORNER + h_sep + CORNER);
 
-        size_t square_length = H_SEP.size() + 2;
-        size_t starting = lines[activeLineNum + 1].size() - square_length;
-        lines[activeLineNum].replace(starting, square_length, CORNER + H_SEP + CORNER);
-
+        // We printed the righthand edge
+        trailingEdge = true;
     }
 
     std::string result = "";
-    for (auto& line : lines) {
-        result += "$  " + line + "\n";
+    std::string dividerLine;
+
+    // Add stuff to top of output;
+    if (_showCoords) {
+        result += "|";
+        for (int i = 0; i < LEFT_MARGIN_SIZE - 1; i++) {
+            result += " ";
+        }
+        result += "|";
+        for (int i = 0; i < LEFT_MARGIN_PAD; i++) {
+            result += " ";
+        }
+        result += " "; // first label divider
+        for (auto xLabel = MIN_X; xLabel != MAX_X + 1; xLabel++) {
+            std::string labelString = std::to_string(xLabel);
+            while (labelString.size() < TILE_WIDTH - 2) {
+                labelString += " "; // label filler
+            }
+            result += labelString + " "; // other label dividers
+        }
+        // long horizontal line
+        short topSize = result.size();
+        for (int i = 0; i < topSize; i++) {
+            dividerLine += "-";
+        }
+        result = dividerLine + "\n" + result + "\n" + dividerLine + "\n";
+    }
+    // Add stuff to left side of output
+    short currentY = MIN_Y;
+    for (int i = 0; i < lines.size(); i++) {
+        if (_showCoords) {
+            std::string leftMargin = "| ";
+            if (i % (_height+1) == _height / 2 + 1) {
+                leftMargin += std::to_string(currentY++);
+            }
+            while (leftMargin.size() < LEFT_MARGIN_SIZE) {
+                leftMargin += " ";
+            }
+            leftMargin += "|";
+            for (int i = 0; i < LEFT_MARGIN_PAD; i++) {
+                leftMargin += " ";
+            }
+            result += leftMargin;
+        }
+        result += lines[i] + "\n";
+    }
+    if (_showCoords) {
+        result += dividerLine + "\n";
     }
     return result;
+}
+
+Tile* Board::getTile(std::pair<short, short> _coords) {
+    for (auto tilesIter = m_tiles.begin(); tilesIter != m_tiles.end(); tilesIter++) {
+        if ((*tilesIter)->m_coords == _coords) return *tilesIter;
+    }
+    std::cout << "returned nullptr" << std::endl;
+    return nullptr;
 }
