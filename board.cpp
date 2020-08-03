@@ -93,7 +93,7 @@ std::string Board::getAsciiBoard(bool _showCoords, size_t _width, size_t _height
     const std::string V_SEP = "|"; // sides of tile, repeated _height times
     const std::string CORNER = "+"; // corner where h_sep and V_SEP meet
 
-    std::string h_sep = ""; // top/bottom of tiles. Must be odd since piece must be centered. //TODO: odd?
+    std::string h_sep = ""; // top/bottom of tiles. Must be odd since piece must be centered.
     std::string h_fill_out = ""; // filler used for outside of cell. Must be same size as h_sep
     std::string h_fill_in = ""; // filler used for outside of cell. Must be same size as h_sep
     std::string h_non_sep = ""; // Used like an h_sep but for when there is no adjacent cell
@@ -106,11 +106,12 @@ std::string Board::getAsciiBoard(bool _showCoords, size_t _width, size_t _height
     std::string h_pad_left = std::string((_width - 1) / 2, _tileFillChar); // Used between V_SEP and the piece character. Sizes must satisfy h_sep = h_pad + 1 + h_pad.
     std::string h_pad_right = std::string(_width / 2, _tileFillChar);
 
-    size_t TILE_WIDTH = h_sep.size() + 2; //FIXME: deprecated
-
-    // Margin drawing controls
-    const unsigned short LEFT_MARGIN_SIZE = 5; //TODO: parameterize
-    const unsigned short LEFT_MARGIN_PAD = 3;
+    // Margin drawing controls //TODO: parameterize?
+    const unsigned short LEFT_MARGIN_SIZE = 5; // width of left margin
+    const unsigned short LEFT_MARGIN_PAD = 3; // space between left margin and leftmost tiles
+    const char MARGIN_V_SEP = '|'; // vertical boundary for margin
+    const char MARGIN_H_SEP = '='; // horizontal boundary for margin
+    const char MARGIN_H_LABEL_DIV = ' '; // What separates the labels on the x axis from eachother
 
     for (int i = 0; i < 2 + _height; i++) { // +2 for V_SEP on both sides
         lines.push_back("");
@@ -158,8 +159,8 @@ std::string Board::getAsciiBoard(bool _showCoords, size_t _width, size_t _height
             lines[activeLineNum] += " ";
         }
         // Override upper border with an edge, whether it is empty or there is already a tile with a lower edge there.
-        size_t starting = lines[activeLineNum + 1].size() - TILE_WIDTH;
-        lines[activeLineNum].replace(starting, TILE_WIDTH, CORNER + h_sep + CORNER);
+        size_t starting = lines[activeLineNum + 1].size() - (_width + 2);
+        lines[activeLineNum].replace(starting, (_width + 2), CORNER + h_sep + CORNER);
 
         // We printed the righthand edge
         trailingEdge = true;
@@ -170,44 +171,41 @@ std::string Board::getAsciiBoard(bool _showCoords, size_t _width, size_t _height
 
     // Add stuff to top of output;
     if (_showCoords) {
-        result += "|";
-        for (int i = 0; i < LEFT_MARGIN_SIZE - 1; i++) {
-            result += " ";
-        }
-        result += "|";
-        for (int i = 0; i < LEFT_MARGIN_PAD; i++) {
-            result += " ";
-        }
-        result += " "; // first label divider
+        // the cornerpiece
+        result += MARGIN_V_SEP;
+        result += std::string(LEFT_MARGIN_SIZE - 1, ' ');
+        result += MARGIN_V_SEP;
+
+        // pad before labels start
+        result += std::string(LEFT_MARGIN_PAD, ' ');
+
+        // labels
+        result += MARGIN_H_LABEL_DIV;
         for (auto xLabel = MIN_X; xLabel != MAX_X + 1; xLabel++) {
             std::string labelString = std::to_string(xLabel);
-            while (labelString.size() < TILE_WIDTH - 2) {
+            while (labelString.size() < _width) {
                 labelString += " "; // label filler
             }
-            result += labelString + " "; // other label dividers
+            result += labelString + MARGIN_H_LABEL_DIV;
         }
+
         // long horizontal line
-        short topSize = result.size();
-        for (int i = 0; i < topSize; i++) {
-            dividerLine += "-";
-        }
+        dividerLine = std::string(result.size(), MARGIN_H_SEP);
         result = dividerLine + "\n" + result + "\n" + dividerLine + "\n";
     }
     // Add stuff to left side of output
     short currentY = MIN_Y;
     for (int i = 0; i < lines.size(); i++) {
         if (_showCoords) {
-            std::string leftMargin = "| ";
+            std::string leftMargin = std::string(1, MARGIN_V_SEP) + " ";
             if (i % (_height+1) == _height / 2 + 1) {
                 leftMargin += std::to_string(currentY++);
             }
             while (leftMargin.size() < LEFT_MARGIN_SIZE) {
                 leftMargin += " ";
             }
-            leftMargin += "|";
-            for (int i = 0; i < LEFT_MARGIN_PAD; i++) {
-                leftMargin += " ";
-            }
+            leftMargin += MARGIN_V_SEP;
+            leftMargin += std::string(LEFT_MARGIN_PAD, ' ');
             result += leftMargin;
         }
         result += lines[i] + "\n";
