@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <vector>
 #include <iostream>
+#include <ctype.h>
 
 #include "constants.h"
 #include "utils.h"
@@ -11,9 +12,7 @@
 
 void Tile::SetAdjacent(DirectionEnum _dir, Tile* _adj) {
     m_adjacents[_dir] = _adj;
-    // std::cout << "SD _dir:" << getCharFromDirection(_dir) << std::endl;
     if (_adj != nullptr) {
-        // std::cout << "SD flipped _dir:" << getCharFromDirection(flipDirection(_dir)) << std::endl;
         _adj->m_adjacents[flipDirection(_dir)] = this;
     }
 }
@@ -30,9 +29,83 @@ Tile::Tile(PieceEnum _contents, std::pair<short, short> _coords) {
 /** //TODO: update description
  * Creates a new board with array set to INVALID. Usually you should call parseFen after creating a new board. 
  */
-Board::Board() {
-    // TODO: Implement
+Board::Board(const std::string _sfen) {
     m_movesSinceLastCapture = 0;
+    // Parse position section (until first space)
+    dout << "Read board as: ";
+    int i = 0; // which character of _sfen we are on
+    const short STARTING_X = 0; //FIXME: needs to be taken as param?
+    const short STARTING_Y = 0; //FIXME: needs to be taken as param?
+    short currentX = STARTING_X; // Which coord we are currently on
+    short currentY = STARTING_Y;
+    for (; i < _sfen.length() && _sfen[i] != ' '; i++) {
+        dout << "Reading next character as [";
+        const char c = _sfen[i];
+        dout << c << "] for position (" << currentX << ", " << currentY << ")" << std::endl;
+        if (c == '/') { // Next row
+            dout << "Starting next line" << std::endl;
+            currentX = STARTING_X;
+            currentY++; //FIXME: is anything weird going to happen here when we implement wrapping?
+            continue;
+        }
+        if (c == '(') { // Space(s) have no tile(s)
+            int j;
+            // set j to be the next non-numeric character
+            for (j = i+1; isdigit(_sfen[j]); j++);
+            // make sure that it has this closing paren
+            if (_sfen[j] != ')') {
+                std::cerr << "Expected ')' after non tile sequence in SFen!" << std::endl;
+                throw "Expected ')' after non tile sequence in SFen!";
+            }
+            // If it is the ege case where there is no numbers, i.e. "()", we can skip this part
+            if (j != i+1) {
+                // Get the next characters as integer
+                int num_no_tiles = std::stoi(_sfen.substr(i+1, j)); //i+1 to ignore '('
+                dout << num_no_tiles << " no tiles ";
+                currentX += num_no_tiles;
+            }
+            // update i to to account for the number of additional characters we read in
+            i = j;
+            continue;
+        }
+        if (isdigit(c)) { // Spaces are empty tiles
+            int j;
+            // set j to be the next non-numeric character
+            for (j = i+1; isdigit(_sfen[j]); j++);
+            // Get the next characters as integer
+            int num_empty_tiles = std::stoi(_sfen.substr(i, j));
+            // update i to to account for the number of additional characters we read in
+            i = j-1;
+
+            dout << num_empty_tiles << " empty tiles ";
+            for (int k = 0; k < num_empty_tiles; k++) {
+                Tile* newTile = new Tile(EMPTY, std::pair<short, short>(currentX, currentY));
+                currentX++;
+                newTile->SetAdjacent(LEFT, getTile(std::pair<short, short>(currentX - 1, currentY)));
+                newTile->SetAdjacent(DOWN, getTile(std::pair<short, short>(currentX, currentY - 1)));
+                m_tiles.push_back(newTile);
+            }
+            dout << "Empty tiles added" << std::endl;
+            continue;
+        }
+
+        PieceEnum thisTile = getPieceFromChar(c, ' '); // We look for empty as ' ' to ensure we never find empty this way, just in case.
+        dout << "This tile is piece #" << (int)thisTile << std::endl;
+        if (thisTile != INVALID) {
+            Tile* newTile = new Tile(thisTile, std::pair<short, short>(currentX, currentY));
+            currentX++;
+            newTile->SetAdjacent(LEFT, getTile(std::pair<short, short>(currentX - 1, currentY)));
+            newTile->SetAdjacent(DOWN, getTile(std::pair<short, short>(currentX, currentY - 1)));
+            m_tiles.push_back(newTile);
+            continue;
+        } else {
+            std::cerr << "Invalid piece symbol '" << c << "' in SFen!" << std::endl;
+            throw "Invalid piece symbol in SFen!";
+        }
+    }
+    dout << "Done parsing." << std::endl;
+    // Parse remaining fields
+    // TODO: implement
 }
 
 /** 
@@ -146,7 +219,7 @@ std::string Board::getAsciiBoard(bool _showCoords, size_t _width, size_t _height
         // Output our tile's bottom border and center.
         for (int i = 1; i <= _height; i++) {
             if (i == _height / 2 + 1) { // Is this the row which contains the piece
-                lines[activeLineNum + i] += (trailingEdge ? "" : V_SEP) + h_pad_left + getCharFromEnum((*tilesIter)->m_contents, _tileFillChar) + h_pad_right + V_SEP;
+                lines[activeLineNum + i] += (trailingEdge ? "" : V_SEP) + h_pad_left + getCharFromPiece((*tilesIter)->m_contents, _tileFillChar) + h_pad_right + V_SEP;
             } else {
                 lines[activeLineNum + i] += (trailingEdge ? "" : V_SEP) + h_fill_in + V_SEP;
             }
@@ -213,6 +286,7 @@ std::string Board::getAsciiBoard(bool _showCoords, size_t _width, size_t _height
     if (_showCoords) {
         result += dividerLine + "\n";
     }
+    dout << "Length of printable string = " << result.length() << std::endl;
     return result;
 }
 
@@ -220,6 +294,5 @@ Tile* Board::getTile(std::pair<short, short> _coords) {
     for (auto tilesIter = m_tiles.begin(); tilesIter != m_tiles.end(); tilesIter++) {
         if ((*tilesIter)->m_coords == _coords) return *tilesIter;
     }
-    std::cout << "returned nullptr" << std::endl;
     return nullptr;
 }

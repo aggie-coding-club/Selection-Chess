@@ -2,15 +2,30 @@
 #define UTILITYMETHODS_H
 
 #include <string>
+#include <iostream>
 
 #include "constants.h"
 #include "board.h"
 
+// This macro is how "dout << ..." works
+extern std::ostream g_nullout;
+#ifdef DEBUG
+#define dout std::cout
+#else
+#define dout g_nullout
+#endif
+
 /**
  * Gets letter respresentation of piece type enum
- * OPTIONALLY set empty to desired character representation of EMPTY, 
+ * Optionally set empty to desired character representation of EMPTY and INVALID
  */
-char getCharFromEnum(PieceEnum _enumValue, char _empty=' ');
+char getCharFromPiece(PieceEnum _enumValue, char _empty=PIECE_LETTERS[EMPTY], char _invalid=PIECE_LETTERS[INVALID]);
+/**
+ * Gets piece enum from letter
+ * Optionally set empty to desired character representation of EMPTY
+ * Returns INVALID for unknown characters.
+ */
+PieceEnum getPieceFromChar(char _char, char _empty=PIECE_LETTERS[EMPTY]);
 
 /**
  * Gets letter respresentation of direction

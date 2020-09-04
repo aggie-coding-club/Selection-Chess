@@ -17,6 +17,7 @@ class Tile {
 
         Tile(PieceEnum _contents, std::pair<short, short> _coords);
 
+        // Sets m_adjacents of this tile and the tile given. Also takes nullptr for no adjacent
         void SetAdjacent(DirectionEnum _dir, Tile* _adj);
         inline bool HasAdjacent(DirectionEnum _dir) {
             return m_adjacents[_dir] != nullptr;
@@ -44,9 +45,9 @@ class Board {
         std::vector<Tile*> pieceLocations[2 * NUM_PIECE_TYPES];
 
         /** 
-         * Creates a new board with all values set to INVALID. Usually you should call parseFen after creating a new board. 
+         * Creates a new board from SFEN.
          */
-        Board();
+        Board(const std::string _sfen);
 
         /**
          * Boards are equal if all independent fields except moveHistory are equal. 
@@ -68,7 +69,8 @@ class Board {
         bool removePieceFromPL(PieceEnum _piece, Tile* _location);
 
         /** 
-         * Print the current tiles and pieces in a nice ASCII format, intended for debugging use.
+         * Print the current tiles and pieces in a nice ASCII format.
+         * @warning: If the board's tiles have errors in their adjacents arrays, this method may have unexpected behavior
          */
         std::string getAsciiBoard(bool _showCoords = false, size_t _width = 3, size_t _height = 1, char _tileFillChar = '`');
 

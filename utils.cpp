@@ -13,52 +13,25 @@ DirectionEnum flipDirection(DirectionEnum _dir) {
     }
 }
 
-// TODO: is there a better way to do this than just a big switch?
-char getCharFromEnum(PieceEnum _enumValue, char _empty) {
-    switch (_enumValue) {
-    case EMPTY:
+char getCharFromPiece(PieceEnum _enumValue, char _empty, char _invalid) {
+    if (_enumValue == EMPTY) {
         return _empty;
-        break;
-    case W_PAWN:
-        return 'P';
-        break;
-    case B_PAWN:
-        return 'p';
-        break;
-    case W_ROOK:
-        return 'R';
-        break;
-    case B_ROOK:
-        return 'r';
-        break;
-    case W_KNIGHT:
-        return 'N';
-        break;
-    case B_KNIGHT:
-        return 'n';
-        break;
-    case W_BISHOP:
-        return 'B';
-        break;
-    case B_BISHOP:
-        return 'b';
-        break;
-    case W_QUEEN:
-        return 'Q';
-        break;
-    case B_QUEEN:
-        return 'q';
-        break;
-    case W_KING:
-        return 'K';
-        break;
-    case B_KING:
-        return 'k';
-        break;
-    default:
-        return '?';
-        break;
     }
+    if (_enumValue == INVALID) {
+        return _invalid;
+    }
+    return PIECE_LETTERS[_enumValue];
+}
+
+PieceEnum getPieceFromChar(char _char, char _empty) {
+    if (_char == _empty) {
+        return EMPTY;
+    }
+    std::size_t found = PIECE_LETTERS.find(_char);
+    if (found == std::string::npos) {
+        return INVALID;
+    }
+    return found;
 }
 
 // TODO: is there a better way to do this than just a big switch?
@@ -140,3 +113,13 @@ char getCharFromDirection(DirectionEnum _dir) {
         break;
     }
 }
+
+// Throw away stream inputs. We use this for hiding debugging outputs in the 'dout' macro
+// TODO: See if there is a better implementation to debugging prints, which still uses ostream syntax like cout.
+class NullBuffer : public std::streambuf {
+    public:
+        int overflow(int c) { return c; }
+};
+NullBuffer null_buffer;
+std::ostream g_nullout(&null_buffer);
+
