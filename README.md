@@ -8,7 +8,7 @@ This is currently a hobbiest project, so we are not looking for outside help at 
 
 ### How to Compile
 
-We use [SCons](https://www.scons.org/). Once you have SCons properly installed on your machine, you can compile both the GUI and executable by running `scons` inside of the project folder.
+We use [SCons](https://www.scons.org/). Once you have SCons properly installed on your machine, you can compile both the GUI and engine by running `scons` inside of the project folder.
 
 ## Standards
 
