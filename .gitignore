@@ -6,7 +6,7 @@
 
 # Ignored folders
 old_code/
-examples/
+scratch/
 
 # Visual Studio Code
 .vscode/

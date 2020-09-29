@@ -4,11 +4,14 @@ Selection chess is a variant of chess where players can dynamically rearrange se
 
 ## Contribution
 
-This is currently a hobbiest project, so we are not looking for outside help at this time. This is more intended to be something me, friends, and peers can work on to build cool algorithms in our spare time. This is subject to change in the future, whether it be anything from abandonment to fully open-sourcing.
+This is currently a learners project for the Aggie Coding Club, so we are not looking for outside help at this time. This is more intended to be something we can work on to build cool algorithms in our spare time. This is subject to change in the future, whether it be anything from abandonment to fully open-sourcing.
 
 ### How to Compile
 
 We use [SCons](https://www.scons.org/). Once you have SCons properly installed on your machine, you can compile both the GUI and engine by running `scons` inside of the project folder.
+Running `scons -c` will cleanup.
+
+To compile with debug outputs enabled, run `scons debug=1`
 
 ## Standards
 

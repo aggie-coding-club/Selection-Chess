@@ -3,17 +3,34 @@
 
 #include <string>
 #include <iostream>
+#include <sstream>
+#include <ios>
+#include <stdlib.h>
 
 #include "constants.h"
 #include "board.h"
 
-// This macro is how "dout << ..." works
+// dout macro 'debug out'
+// like cout, cerr, etc., except only outputs to console/log in debug mode.
 extern std::ostream g_nullout;
 #ifdef DEBUG
 #define dout std::cout
 #else
 #define dout g_nullout
 #endif
+
+// USAGE: FORMAT(foo << bar << ... << baz) returns a std::string
+// This macro lets us make std::string analogous to
+// std::cout << foo << bar << baz
+// Credit to Mr.Ree https://stackoverflow.com/questions/303562/c-format-macro-inline-ostringstream
+#define FORMAT(ITEMS) \
+    ( ( dynamic_cast<std::ostringstream &> ( \
+        std::ostringstream() . std::ostream::seekp( 0, std::ios_base::cur ) << ITEMS ) \
+    ) . str() )
+
+// USAGE: returns a string describing where in the source code this macro is.
+#define WHERE (FORMAT("\tFile: " << __FILE__ << "\n\tLine: " << __LINE__ << std::endl))
+
 
 /**
  * Gets letter respresentation of piece type enum
