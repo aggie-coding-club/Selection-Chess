@@ -3,6 +3,9 @@
 #include <stdio.h> 
 #include <strsafe.h>
 
+#include <string>
+#include <iostream>
+
 #define BUFSIZE 4096 
  
 HANDLE g_hChildStd_IN_Rd = NULL;
@@ -217,7 +220,7 @@ void ErrorExit(PTSTR lpszFunction)
         LocalSize(lpDisplayBuf) / sizeof(TCHAR),
         TEXT("%s failed with error %d: %s"), 
         lpszFunction, dw, lpMsgBuf); 
-    // MessageBox(NULL, (LPCTSTR)lpDisplayBuf, TEXT("Error"), MB_OK); 
+    std::cout << "Error: " << (LPCTSTR)lpDisplayBuf << std::endl;
 
     LocalFree(lpMsgBuf);
     LocalFree(lpDisplayBuf);
