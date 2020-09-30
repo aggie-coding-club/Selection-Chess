@@ -41,6 +41,7 @@ int main(int argc, char *argv[]) {
         break;
     }
 
+    // TODO: spin up input thread / Godot interface
 
     // Debugging prints, // TODO: remove later
     Board guiBoard = Board("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");

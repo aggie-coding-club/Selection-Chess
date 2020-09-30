@@ -7,3 +7,5 @@ if int(debug):
 
 gui = env.Program('SelChessGui', Split('gui_main.cpp board.cpp utils.cpp'))
 engine = env.Program('Hippocrene', Split('hippo_main.cpp board.cpp utils.cpp'))
+test1 = env.Program('Parent', Split('parent.cpp'))
+test2 = env.Program('Child', Split('child.cpp'), LIBS=['user32'])
