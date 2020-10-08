@@ -52,6 +52,15 @@ int main(int argc, char *argv[]) {
     std::cout << guiBoard.getAsciiBoard(true, 1, 1, '-') << std::endl;
     std::cout << guiBoard.getAsciiBoard(true, 2, 2) << std::endl;
     std::cout << guiBoard.getAsciiBoard(true, 4, 4, '.') << std::endl;
-    return 0;
+    
+    // Debugging pieces (sliding), // TODO: remove later
+    std::cout << "Testing sliding pieces" << std::endl;
+    Tile* tile = guiBoard.m_tiles[65];
+    for(Tile* adj_tile : tile->m_adjacents) {
+
+        std::cout << adj_tile << std::endl;
+    }
+    // Tile* right_tile = tile->m_adjacents[DOWN];
+    // std::cout << getCharFromPiece(right_tile->m_contents) << std::endl;
 }
 
