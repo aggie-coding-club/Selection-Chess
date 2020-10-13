@@ -8,6 +8,7 @@
 #include "constants.h"
 #include "utils.h"
 #include "board.h"
+#include "pieces.h"
 
 bool addEngine(std::string) {
     // TODO: implement
@@ -54,13 +55,16 @@ int main(int argc, char *argv[]) {
     std::cout << guiBoard.getAsciiBoard(true, 4, 4, '.') << std::endl;
     
     // Debugging pieces (sliding), // TODO: remove later
+    guiBoard = Board("r1bqkbnr/4pppp/P7/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
+    std::cout << guiBoard.getAsciiBoard() << std::endl;
     std::cout << "Testing sliding pieces" << std::endl;
-    Tile* tile = guiBoard.m_tiles[65];
-    for(Tile* adj_tile : tile->m_adjacents) {
-
-        std::cout << adj_tile << std::endl;
-    }
-    // Tile* right_tile = tile->m_adjacents[DOWN];
+    Tile* tile = guiBoard.m_tiles[3];
+    // for(Tile* adj_tile : tile->m_adjacents) {
+    //     std::cout << adj_tile << std::endl;
+    // }
+    PieceType* p = new PieceType(tile->m_contents, tile);
+    // std::cout << getCharFromPiece(p->m_tile->m_contents) << std::endl;
+    // Tile* right_tile = tile->m_adjacents[DOWN]; // does this even make sense
     // std::cout << getCharFromPiece(right_tile->m_contents) << std::endl;
 }
 
