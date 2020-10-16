@@ -52,6 +52,15 @@ int main(int argc, char *argv[]) {
     std::cout << guiBoard.getAsciiBoard(true, 1, 1, '-') << std::endl;
     std::cout << guiBoard.getAsciiBoard(true, 2, 2) << std::endl;
     std::cout << guiBoard.getAsciiBoard(true, 4, 4, '.') << std::endl;
+
+
+    // Debugging prints for board changes, // TODO: remove later
+    for(int i = 0; i < 8; ++i) {
+        for(int j = 0; j < 8; ++j) {
+            // goes out of bounds eventually, no worries
+            std::cout << getCharFromPiece(guiBoard.getTile(std::pair<short, short>(j, i))->m_contents) << std::endl;
+        }
+    }
     return 0;
 }
 

@@ -80,10 +80,12 @@ Board::Board(const std::string _sfen) {
             dout << num_empty_tiles << " empty tiles ";
             for (int k = 0; k < num_empty_tiles; k++) {
                 Tile* newTile = new Tile(EMPTY, std::pair<short, short>(currentX, currentY));
-                currentX++;
+                m_tiles.push_back(newTile);
                 newTile->SetAdjacent(LEFT, getTile(std::pair<short, short>(currentX - 1, currentY)));
                 newTile->SetAdjacent(DOWN, getTile(std::pair<short, short>(currentX, currentY - 1)));
-                m_tiles.push_back(newTile);
+                newTile->SetAdjacent(DOWN_LEFT, getTile(std::pair<short, short>(currentX - 1, currentY - 1)));
+                newTile->SetAdjacent(DOWN_RIGHT, getTile(std::pair<short, short>(currentX + 1, currentY - 1)));
+                currentX++;
             }
             dout << "Empty tiles added" << std::endl;
             continue;
@@ -93,10 +95,12 @@ Board::Board(const std::string _sfen) {
         dout << "This tile is piece #" << (int)thisTile << std::endl;
         if (thisTile != INVALID) {
             Tile* newTile = new Tile(thisTile, std::pair<short, short>(currentX, currentY));
-            currentX++;
+            m_tiles.push_back(newTile);
             newTile->SetAdjacent(LEFT, getTile(std::pair<short, short>(currentX - 1, currentY)));
             newTile->SetAdjacent(DOWN, getTile(std::pair<short, short>(currentX, currentY - 1)));
-            m_tiles.push_back(newTile);
+            newTile->SetAdjacent(DOWN_LEFT, getTile(std::pair<short, short>(currentX - 1, currentY - 1)));
+            newTile->SetAdjacent(DOWN_RIGHT, getTile(std::pair<short, short>(currentX + 1, currentY - 1)));
+            currentX++;
             continue;
         } else {
             std::cerr << "Invalid piece symbol '" << c << "' in SFen!" << std::endl;
