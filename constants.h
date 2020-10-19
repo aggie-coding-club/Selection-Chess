@@ -11,6 +11,12 @@
 */
 typedef unsigned char PieceEnum;
 enum : PieceEnum {EMPTY=0, W_PAWN, B_PAWN, W_ROOK, B_ROOK, W_KNIGHT, B_KNIGHT, W_BISHOP, B_BISHOP, W_QUEEN, B_QUEEN, W_KING, B_KING, INVALID};
+
+typedef unsigned char PieceType;
+enum : PieceType {PAWN, ROOK, KNIGHT, BISHOP, QUEEN, KING};
+
+typedef unsigned char PieceColor;
+enum : PieceColor {BLACK, WHITE};
 // parallel to piece enum. This is how we read SFEN
 const std::string PIECE_LETTERS = ".PpRrNnBbQqKk?";
 
