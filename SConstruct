@@ -1,4 +1,4 @@
-env = Environment()
+env = Environment(CXXFLAGS="-std=c++0x")
 
 debug = ARGUMENTS.get('debug', 0)
 if int(debug):

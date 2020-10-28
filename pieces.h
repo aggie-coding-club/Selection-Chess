@@ -3,7 +3,7 @@
 
 #include "constants.h"
 
-class PieceType {
+class Piece {
     public:
 };
 

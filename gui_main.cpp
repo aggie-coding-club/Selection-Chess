@@ -4,6 +4,7 @@
 #include <climits>
 #include <stdlib.h>
 #include <stdio.h>
+#include <map>
 
 #include "constants.h"
 #include "utils.h"
@@ -55,12 +56,18 @@ int main(int argc, char *argv[]) {
 
 
     // Debugging prints for board changes, // TODO: remove later
+    // for loop to compare old and new getTile functions
+    // the first char is from the old getTile, second char is from the getTileNew
     for(int i = 0; i < 8; ++i) {
         for(int j = 0; j < 8; ++j) {
             // goes out of bounds eventually, no worries
-            std::cout << getCharFromPiece(guiBoard.getTile(std::pair<short, short>(j, i))->m_contents) << std::endl;
+            if(guiBoard.getTileNew(std::pair<short, short>(j, i)) != nullptr) {
+                std::cout << getCharFromPiece(guiBoard.getTile(std::pair<short, short>(j, i))->m_contents) <<
+                getCharFromPiece(guiBoard.getTileNew(std::pair<short, short>(j, i))->m_contents) << std::endl;
+            }
         }
     }
+
     return 0;
 }
 

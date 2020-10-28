@@ -5,8 +5,10 @@
 #include <stack>
 #include <vector>
 #include <string>
+#include <map>
 
 #include "constants.h"
+#include "pieces.h"
 
 class Tile {
     public:
@@ -28,6 +30,8 @@ class Board {
     public:
         /* ------- independent fields, provide necessary information about board ------- */
         std::vector<Tile*> m_tiles; // Every tile, which contains piece and coords.
+        std::map<std::pair<short, short>, Tile*> m_tiles_map; // map of coords to tile pntr
+        std::vector<Piece*> m_pieces; // store all 32 pieces in this vector
 
         // minimum x and y of this board. Because of wrap-around, the literal min integer value is not 
         // guaranteed to be the furtherest "left" or "down".
@@ -108,6 +112,7 @@ class Board {
         //         const Board& m_board;
         // };
 
+        Tile* getTileNew(std::pair<short, short> _coords); // TODO: make this replace getTile once it works
         Tile* getTile(std::pair<short, short> _coords);
 
 };

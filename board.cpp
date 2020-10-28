@@ -81,6 +81,7 @@ Board::Board(const std::string _sfen) {
             for (int k = 0; k < num_empty_tiles; k++) {
                 Tile* newTile = new Tile(EMPTY, std::pair<short, short>(currentX, currentY));
                 m_tiles.push_back(newTile);
+                m_tiles_map[std::pair<int, int>(currentX, currentY)] = newTile;
                 newTile->SetAdjacent(LEFT, getTile(std::pair<short, short>(currentX - 1, currentY)));
                 newTile->SetAdjacent(DOWN, getTile(std::pair<short, short>(currentX, currentY - 1)));
                 newTile->SetAdjacent(DOWN_LEFT, getTile(std::pair<short, short>(currentX - 1, currentY - 1)));
@@ -96,6 +97,7 @@ Board::Board(const std::string _sfen) {
         if (thisTile != INVALID) {
             Tile* newTile = new Tile(thisTile, std::pair<short, short>(currentX, currentY));
             m_tiles.push_back(newTile);
+            m_tiles_map[std::pair<int, int>(currentX, currentY)] = newTile;
             newTile->SetAdjacent(LEFT, getTile(std::pair<short, short>(currentX - 1, currentY)));
             newTile->SetAdjacent(DOWN, getTile(std::pair<short, short>(currentX, currentY - 1)));
             newTile->SetAdjacent(DOWN_LEFT, getTile(std::pair<short, short>(currentX - 1, currentY - 1)));
@@ -299,4 +301,8 @@ Tile* Board::getTile(std::pair<short, short> _coords) {
         if ((*tilesIter)->m_coords == _coords) return *tilesIter;
     }
     return nullptr;
+}
+
+Tile* Board::getTileNew(std::pair<short, short> _coords) {
+    return m_tiles_map[_coords];
 }
