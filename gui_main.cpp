@@ -61,10 +61,10 @@ int main(int argc, char *argv[]) {
     for(int i = 0; i < 8; ++i) {
         for(int j = 0; j < 8; ++j) {
             // goes out of bounds eventually, no worries
-            if(guiBoard.getTileNew(std::pair<short, short>(j, i)) != nullptr) {
-                std::cout << getCharFromPiece(guiBoard.getTile(std::pair<short, short>(j, i))->m_contents) <<
-                getCharFromPiece(guiBoard.getTileNew(std::pair<short, short>(j, i))->m_contents) << std::endl;
-            }
+            // if(guiBoard.getTileNew(std::pair<short, short>(j, i)) != nullptr) {
+            //     std::cout << getCharFromPiece(guiBoard.getTile(std::pair<short, short>(j, i))->m_contents) <<
+            //     getCharFromPiece(guiBoard.getTileNew(std::pair<short, short>(j, i))->m_contents) << std::endl;
+            // }
         }
     }
 

@@ -29,13 +29,14 @@ class Tile {
 class Board {
     public:
         /* ------- independent fields, provide necessary information about board ------- */
-        std::vector<Tile*> m_tiles; // Every tile, which contains piece and coords.
+        // std::vector<Tile*> m_tiles; // Every tile, which contains piece and coords.
         std::map<std::pair<short, short>, Tile*> m_tiles_map; // map of coords to tile pntr
         std::vector<Piece*> m_pieces; // store all 32 pieces in this vector
 
         // minimum x and y of this board. Because of wrap-around, the literal min integer value is not 
         // guaranteed to be the furtherest "left" or "down".
         std::pair<short, short> m_minCoords;
+        std::pair<short, short> m_maxCoords;
 
         short m_movesSinceLastCapture; // 50 move rule
         bool m_turnWhite; // whose turn it is
