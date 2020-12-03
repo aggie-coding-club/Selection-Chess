@@ -1,7 +1,7 @@
-#include <cstdint>
-#include <stack>
+#ifdef _WIN32
+    #include "engine_runner_windows.cpp"
+#endif
 
-#include "constants.h"
-
-#include "engine_runner.h"
-
+#ifdef linux
+    #include "engine_runner_posix.cpp"
+#endif
