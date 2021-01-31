@@ -8,6 +8,7 @@
 #include "constants.h"
 #include "utils.h"
 #include "dll_board.h"
+#include "array_board.h"
 
 bool addEngine(std::string) {
     // TODO: implement
@@ -43,7 +44,8 @@ int main(int argc, char *argv[]) {
 
 
     // Debugging prints, // TODO: remove later
-    DLLBoard guiBoard = DLLBoard("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
+    // DLLBoard guiBoard = DLLBoard("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
+    ArrayBoard guiBoard = ArrayBoard("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
     dout << "Done initializing board" << std::endl;
 
     std::cout << guiBoard.getAsciiBoard() << std::endl;
