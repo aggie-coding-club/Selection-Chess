@@ -11,8 +11,14 @@
 
 #include "array_board.h"
 
+inline void maxCoords(coords& _coords, size_t _first, size_t _second) {
+    _coords.first = std::max(_coords.first, _first);
+    _coords.second = std::max(_coords.second, _second);
+}
 ArrayBoard::ArrayBoard(const std::string _sfen) {
     m_movesSinceLastCapture = 0;
+    m_minCoords = std::make_pair(0, 0);
+    m_maxCoords = std::make_pair(0, 0); // the maxCoords will be updated as we create the board
     // Parse position section (until first space)
     dout << "Read board as: ";
     int i; // which character of _sfen we are on
@@ -67,6 +73,10 @@ ArrayBoard::ArrayBoard(const std::string _sfen) {
         throw "Board is too large!";
     }
     m_grid = new PieceEnum[m_grid_size*m_grid_size];
+    // initialize all to non-tiles
+    for (size_t i = 0; i < m_grid_size*m_grid_size; i++) {
+        m_grid[i] = INVALID;
+    }
 
     // ----------- loop through again to initialize the grid ----------- //
     const short STARTING_X = 0;
@@ -110,6 +120,7 @@ ArrayBoard::ArrayBoard(const std::string _sfen) {
             dout << num_empty_tiles << " empty tiles ";
             for (int k = 0; k < num_empty_tiles; k++) {
                 m_grid[currentX + currentY*m_grid_size] = EMPTY;
+                maxCoords(m_maxCoords, currentX, currentY);
                 currentX++;
             }
             dout << "Empty tiles added" << std::endl;
@@ -119,8 +130,10 @@ ArrayBoard::ArrayBoard(const std::string _sfen) {
         PieceEnum thisTile = getPieceFromChar(c, ' '); // We look for empty as ' ' to ensure we never find empty this way, just in case.
         dout << "This tile is piece #" << (int)thisTile << std::endl;
         m_grid[currentX + currentY*m_grid_size] = thisTile;
+        maxCoords(m_maxCoords, currentX, currentY);
         currentX++;
     }
+    dout << "m_maxCoords ="  << m_maxCoords.first << ", " << m_maxCoords.second << std::endl;
     dout << "Done parsing." << std::endl;
     // Parse remaining fields
     // TODO: implement
@@ -148,133 +161,131 @@ bool ArrayBoard::updatePieceInPL(PieceEnum _piece, coords _oldLocation, coords _
 }
 
 std::string ArrayBoard::getAsciiBoard(bool _showCoords, size_t _width, size_t _height, char _tileFillChar) { //TODO: make const
-    // FIXME: probably just use the print created for an array, in the other branch
-    // std::vector<std::string> lines; // each element is line of output
+    // ----------- Generate array of printable space. Safer than just printing ----------- //
+    short MIN_X = m_minCoords.first;
+    short MAX_X = m_maxCoords.first;
+    short MIN_Y = m_minCoords.second;
+    short MAX_Y = m_maxCoords.second;
 
-    // // DRAWING CONTROLS
-    // const std::string V_SEP = "|"; // sides of tile, repeated _height times
-    // const std::string CORNER = "+"; // corner where h_sep and V_SEP meet
+    short printSpaceWidth = MAX_X - MIN_X + 1;
+    short printSpaceHeight = MAX_Y - MIN_Y + 1;
 
-    // std::string h_sep = ""; // top/bottom of tiles. Must be odd since piece must be centered.
-    // std::string h_fill_out = ""; // filler used for outside of cell. Must be same size as h_sep
-    // std::string h_fill_in = ""; // filler used for outside of cell. Must be same size as h_sep
-    // std::string h_non_sep = ""; // Used like an h_sep but for when there is no adjacent cell
-    // for (int i = 0; i < _width; i++) {
-    //     h_sep += "-";
-    //     h_fill_out += " ";
-    //     h_fill_in += _tileFillChar;
-    //     h_non_sep += " ";
-    // }
-    // std::string h_pad_left = std::string((_width - 1) / 2, _tileFillChar); // Used between V_SEP and the piece character. Sizes must satisfy h_sep = h_pad + 1 + h_pad.
-    // std::string h_pad_right = std::string(_width / 2, _tileFillChar);
+    std::vector<std::string> lines; // each element is line of output
 
-    // // Margin drawing controls //TODO: parameterize?
-    // const unsigned short LEFT_MARGIN_SIZE = 5; // width of left margin
-    // const unsigned short LEFT_MARGIN_PAD = 3; // space between left margin and leftmost tiles
-    // const char MARGIN_V_SEP = '|'; // vertical boundary for margin
-    // const char MARGIN_H_SEP = '='; // horizontal boundary for margin
-    // const char MARGIN_H_LABEL_DIV = ' '; // What separates the labels on the x axis from eachother
+    // ----------- Drawing controls ----------- //
+    const char V_SEP = '|'; // sides of tile, repeated _height times
+    const char CORNER = '+'; // corner where H_SEP and V_SEP meet
+    const char H_SEP = '-'; // top/bottom of tile, repeated _width times
 
-    // for (int i = 0; i < 2 + _height; i++) { // +2 for V_SEP on both sides
-    //     lines.push_back("");
-    // }
-    // short lastY = MIN_Y; // Which Y position the previous tile we printed is in. Keeps track if we start on a new row.
-    // short currentX = MIN_X; // Which X position this tile correspond to. Keeps track if we need to print empty cells.
-    // size_t activeLineNum = 0; // First line of output we are currently modifying
-    // bool trailingEdge = false; // Whether the last tile of this row already has printed the edge we share with it
-    // for (auto tilesIter = m_tiles.begin(); tilesIter != m_tiles.end(); tilesIter++) {
-    //     // We've started the next line
-    //     if ((*tilesIter)->m_coords.second != lastY) {
-    //         lastY = (*tilesIter)->m_coords.second;
-    //         currentX = MIN_X;
-    //         trailingEdge = false;
-    //         for (int i = 0; i < 1 + _height; i++) { // +1 for V_SEP
-    //             activeLineNum++;
-    //             lines.push_back("");
-    //         }
-    //     }
-    //     size_t lowerLine = activeLineNum + _height + 1;
+    // Margin drawing controls //TODO: parameterize?
+    const unsigned short LEFT_MARGIN_SIZE = 5; // width of left margin
+    const unsigned short LEFT_MARGIN_PAD = 3; // space between left margin and leftmost tiles
+    const char MARGIN_V_SEP = '|'; // vertical boundary for margin
+    const char MARGIN_H_SEP = '='; // horizontal boundary for margin
+    const char MARGIN_H_LABEL_DIV = ' '; // What separates the labels on the x axis from eachother
 
-    //     // Move along to our X position if needed, printing empty space as we go
-    //     while ((*tilesIter)->m_coords.first != currentX++) {
-    //         for (int i = 1; i <= _height; i++) {
-    //             lines[activeLineNum + i] += (trailingEdge ? "" : " ") + h_fill_out;
-    //         }
-    //         lines[lowerLine] += (trailingEdge ? "" : " ") + h_non_sep;
-    //         // We did not print righthand edge in case our neighbor is a tile and needs to print its edge there
-    //         trailingEdge = false;
-    //     }
+    // ----------- Generate the board itself ----------- //
 
-    //     // Output our tile's bottom border and center.
-    //     for (int i = 1; i <= _height; i++) {
-    //         if (i == _height / 2 + 1) { // Is this the row which contains the piece
-    //             lines[activeLineNum + i] += (trailingEdge ? "" : V_SEP) + h_pad_left + getCharFromPiece((*tilesIter)->m_contents, _tileFillChar) + h_pad_right + V_SEP;
-    //         } else {
-    //             lines[activeLineNum + i] += (trailingEdge ? "" : V_SEP) + h_fill_in + V_SEP;
-    //         }
-    //     }
-    //     lines[lowerLine] += (trailingEdge ? "" : CORNER) + h_sep + CORNER;
+    // fill printable space with spaces. We will replace these as we go along
+    std::string emptyLine(1 + (_width+1)*printSpaceWidth, ' ');
+    int numLines = 1 + (_height+1)*printSpaceHeight;
+    for (int i = 0; i < numLines; i++) {
+        lines.push_back(emptyLine);
+    }
 
-    //     // Place upper line of our tile. This one is tricky bcz it is also the lower line of the previous row.
-    //     // Fill in the line if needed so we can just run the same replacement and not worry about out-of-bounds
-    //     for (int i = lines[activeLineNum + 1].size() - lines[activeLineNum].size(); i > 0; i--) {
-    //         lines[activeLineNum] += " ";
-    //     }
-    //     // Override upper border with an edge, whether it is empty or there is already a tile with a lower edge there.
-    //     size_t starting = lines[activeLineNum + 1].size() - (_width + 2);
-    //     lines[activeLineNum].replace(starting, (_width + 2), CORNER + h_sep + CORNER);
+    // loop through board positions in printable space
+    for(int gridY = 0; gridY < printSpaceHeight; gridY++) {
+        int caY = 1 + (_height+1)*gridY; // which row in this string array this cell starts. Does not include separators
+        for(int gridX = 0; gridX < printSpaceWidth; gridX++) {
+            int caX = 1 + (_width+1)*gridX; // which position in the string this cell starts. Does not include separators
 
-    //     // We printed the righthand edge
-    //     trailingEdge = true;
-    // }
+            int gridXY = (MIN_X + gridX) + (MIN_Y + gridY) * m_grid_size; // 1D coords
+
+            // draw the tile
+            if (m_grid[gridXY] != INVALID) {
+                // draw the fill
+                for (int caFillLine = caY; caFillLine < caY+ _height; caFillLine++) {
+                    lines[caFillLine] = lines[caFillLine].replace(caX, _width, _width, _tileFillChar);
+                }
+
+                // draw the piece
+                if (m_grid[gridXY] != EMPTY) {
+                    int yOff = (_height-1) / 2; // center offsets
+                    int xOff = (_width-1) / 2; // -1 means that when _width is even, slight left justification is prefered
+                    lines[caY + yOff] = lines[caY + yOff].replace(caX + xOff, 1, 1, PIECE_LETTERS[m_grid[gridXY]]);
+                }
+            }
+            
+            // draw the borders
+            if (m_grid[gridXY] != INVALID) {
+                // horizontal borders
+                for (size_t yOff : std::vector<size_t>{0, _height+1}) {
+                    lines[caY + yOff - 1] = lines[caY + yOff - 1].replace(caX, _width, _width, H_SEP);
+                }
+                // 2 sides
+                for (size_t xOff : std::vector<size_t>{0, _width+1}) {
+                    // vertical borders
+                    for (size_t yOff = 0; yOff < _height; yOff++) {
+                        lines[caY + yOff] = lines[caY + yOff].replace(caX + xOff - 1, 1, 1, V_SEP);
+                    }
+                    // 4 corners
+                    for (size_t yOff : std::vector<size_t>{0, _height+1}) {
+                        lines[caY + yOff - 1] = lines[caY + yOff - 1].replace(caX + xOff - 1, 1, 1, CORNER);
+                    }
+                }
+            }
+
+        }
+    }
 
     std::string result = "";
-    // std::string dividerLine;
+    std::string dividerLine;
 
-    // // Add stuff to top of output;
-    // if (_showCoords) {
-    //     // the cornerpiece
-    //     result += MARGIN_V_SEP;
-    //     result += std::string(LEFT_MARGIN_SIZE - 1, ' ');
-    //     result += MARGIN_V_SEP;
+    // ----------- Add stuff to the top of output ----------- //
+    if (_showCoords) {
+        // the cornerpiece
+        result += MARGIN_V_SEP;
+        result += std::string(LEFT_MARGIN_SIZE - 1, ' ');
+        result += MARGIN_V_SEP;
 
-    //     // pad before labels start
-    //     result += std::string(LEFT_MARGIN_PAD, ' ');
+        // pad before labels start
+        result += std::string(LEFT_MARGIN_PAD, ' ');
 
-    //     // labels
-    //     result += MARGIN_H_LABEL_DIV;
-    //     for (auto xLabel = MIN_X; xLabel != MAX_X + 1; xLabel++) {
-    //         std::string labelString = std::to_string(xLabel);
-    //         while (labelString.size() < _width) {
-    //             labelString += " "; // label filler
-    //         }
-    //         result += labelString + MARGIN_H_LABEL_DIV;
-    //     }
+        // labels
+        result += MARGIN_H_LABEL_DIV;
+        for (auto xLabel = MIN_X; xLabel != MAX_X + 1; xLabel++) {
+            std::string labelString = std::to_string(xLabel);
+            while (labelString.size() < _width) {
+                labelString += " "; // label filler
+            }
+            result += labelString + MARGIN_H_LABEL_DIV;
+        }
 
-    //     // long horizontal line
-    //     dividerLine = std::string(result.size(), MARGIN_H_SEP);
-    //     result = dividerLine + "\n" + result + "\n" + dividerLine + "\n";
-    // }
-    // // Add stuff to left side of output
-    // short currentY = MIN_Y;
-    // for (int i = 0; i < lines.size(); i++) {
-    //     if (_showCoords) {
-    //         std::string leftMargin = std::string(1, MARGIN_V_SEP) + " ";
-    //         if (i % (_height+1) == _height / 2 + 1) {
-    //             leftMargin += std::to_string(currentY++);
-    //         }
-    //         while (leftMargin.size() < LEFT_MARGIN_SIZE) {
-    //             leftMargin += " ";
-    //         }
-    //         leftMargin += MARGIN_V_SEP;
-    //         leftMargin += std::string(LEFT_MARGIN_PAD, ' ');
-    //         result += leftMargin;
-    //     }
-    //     result += lines[i] + "\n";
-    // }
-    // if (_showCoords) {
-    //     result += dividerLine + "\n";
-    // }
-    // dout << "Length of printable string = " << result.length() << std::endl;
+        // long horizontal line
+        dividerLine = std::string(result.size(), MARGIN_H_SEP);
+        result = dividerLine + "\n" + result + "\n" + dividerLine + "\n";
+    }
+    // ----------- Add stuff to left side of output ----------- //
+    short currentY = MIN_Y;
+    for (int i = 0; i < lines.size(); i++) {
+        if (_showCoords) {
+            std::string leftMargin = std::string(1, MARGIN_V_SEP) + " ";
+            if (i % (_height+1) == _height / 2 + 1) {
+                leftMargin += std::to_string(currentY++);
+            }
+            while (leftMargin.size() < LEFT_MARGIN_SIZE) {
+                leftMargin += " ";
+            }
+            leftMargin += MARGIN_V_SEP;
+            leftMargin += std::string(LEFT_MARGIN_PAD, ' ');
+            result += leftMargin;
+        }
+        result += lines[i] + "\n";
+    }
+    // ----------- Add stuff to the bottom of output ----------- //
+    if (_showCoords) {
+        result += dividerLine + "\n";
+    }
+    dout << "Length of printable string = " << result.length() << std::endl;
     return result;
 }

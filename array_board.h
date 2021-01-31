@@ -9,8 +9,6 @@
 #include "constants.h"
 #include "array_board.h"
 
-typedef std::pair<size_t, size_t> coords;
-
 class ArrayBoard : public Board {
     public:
         /* ------- independent fields, provide necessary information about board ------- */
@@ -19,7 +17,8 @@ class ArrayBoard : public Board {
 
         // minimum x and y of this board. Because of wrap-around, the literal min integer value is not 
         // guaranteed to be the furtherest "left" or "down".
-        std::pair<short, short> m_minCoords;
+        coords m_minCoords;
+        coords m_maxCoords;
 
         short m_movesSinceLastCapture; // 50 move rule
         bool m_turnWhite; // whose turn it is

@@ -46,13 +46,13 @@ class Board {
          *                                        lower left corner           upper right corner                         lower left corner
          * Returns false if the move is illegal.
          */
-        virtual bool moveSelection(size_t _selectMinR, size_t _selectMinF, size_t _selectMaxR, size_t _selectMaxF, size_t _goalMinR, size_t _goalMinF) = 0;
+        virtual bool moveSelection(coords _select1, coords _select2, coords _goal1) = 0;
 
         /**
          * Attempt to move piece at (_startR, _startF) to the new coords (_goalR, _goalF).
          * Returns false if the move is illegal.
          */
-        virtual bool movePiece(size_t _startR, size_t _startF, size_t _goalR, size_t _goalF) = 0;
+        virtual bool movePiece(coords _start, coords _goal) = 0;
 
         /**
          * Undoes the last move(s) made on this board.

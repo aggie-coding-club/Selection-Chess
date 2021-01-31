@@ -121,12 +121,12 @@ class DLLBoard : public Board {
             return EMPTY;
         };
 
-        bool moveSelection(size_t _selectMinR, size_t _selectMinF, size_t _selectMaxR, size_t _selectMaxF, size_t _goalMinR, size_t _goalMinF) {
+        bool moveSelection(coords _select1, coords _select2, coords _goal1) {
             //TODO: implement
             return false;
         };
 
-        bool movePiece(size_t _startR, size_t _startF, size_t _goalR, size_t _goalF) {
+        bool movePiece(coords _start, coords _goal) {
             //TODO: implement
             return false;
         };
