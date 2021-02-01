@@ -11,10 +11,6 @@
 
 #include "array_board.h"
 
-inline void maxCoords(coords& _coords, size_t _first, size_t _second) {
-    _coords.first = std::max(_coords.first, _first);
-    _coords.second = std::max(_coords.second, _second);
-}
 ArrayBoard::ArrayBoard(const std::string _sfen) {
     m_movesSinceLastCapture = 0;
     m_minCoords = std::make_pair(0, 0);
@@ -79,10 +75,10 @@ ArrayBoard::ArrayBoard(const std::string _sfen) {
     }
 
     // ----------- loop through again to initialize the grid ----------- //
-    const short STARTING_X = 0;
-    const short STARTING_Y = 0;
-    short currentX = STARTING_X; // Which coord we are currently on
-    short currentY = STARTING_Y;
+    const size_t STARTING_X = 0;
+    const size_t STARTING_Y = 0;
+    size_t currentX = STARTING_X; // Which coord we are currently on
+    size_t currentY = STARTING_Y;
     for (i = 0; i < _sfen.length() && _sfen[i] != ' '; i++) {
         dout << "Reading next character as [";
         const char c = _sfen[i];
@@ -120,7 +116,8 @@ ArrayBoard::ArrayBoard(const std::string _sfen) {
             dout << num_empty_tiles << " empty tiles ";
             for (int k = 0; k < num_empty_tiles; k++) {
                 m_grid[currentX + currentY*m_grid_size] = EMPTY;
-                maxCoords(m_maxCoords, currentX, currentY);
+                m_maxCoords.first = std::max(m_maxCoords.first, currentX);
+                m_maxCoords.second = std::max(m_maxCoords.second, currentY);
                 currentX++;
             }
             dout << "Empty tiles added" << std::endl;
@@ -130,7 +127,8 @@ ArrayBoard::ArrayBoard(const std::string _sfen) {
         PieceEnum thisTile = getPieceFromChar(c, ' '); // We look for empty as ' ' to ensure we never find empty this way, just in case.
         dout << "This tile is piece #" << (int)thisTile << std::endl;
         m_grid[currentX + currentY*m_grid_size] = thisTile;
-        maxCoords(m_maxCoords, currentX, currentY);
+        m_maxCoords.first = std::max(m_maxCoords.first, currentX);
+        m_maxCoords.second = std::max(m_maxCoords.second, currentY);
         currentX++;
     }
     dout << "m_maxCoords ="  << m_maxCoords.first << ", " << m_maxCoords.second << std::endl;

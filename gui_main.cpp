@@ -54,6 +54,7 @@ int main(int argc, char *argv[]) {
     std::cout << guiBoard.getAsciiBoard(true, 1, 1, '-') << std::endl;
     std::cout << guiBoard.getAsciiBoard(true, 2, 2) << std::endl;
     std::cout << guiBoard.getAsciiBoard(true, 4, 4, '.') << std::endl;
+    std::cout << "Board dimensions: " << guiBoard.getDimensions() << std::endl;
     return 0;
 }
 

@@ -1,19 +1,10 @@
 #ifndef BOARD_H
 #define BOARD_H
 
-#include <cstdint>
-#include <stack>
-#include <vector>
-#include <string>
-
 #include "constants.h"
 
 class Board {
     public:
-        short m_movesSinceLastCapture; // 50 move rule
-        bool m_turnWhite; // whose turn it is
-        short m_material; // changed material score to just be material for both
-
         /** 
          * Creates a new board from SFEN.
          */
@@ -39,7 +30,7 @@ class Board {
         /**
          * Gets the piece at the rank and file, zero indexed from current bounds.
          */
-        virtual PieceEnum getPiece(size_t _r, size_t _f) const = 0;
+        virtual PieceEnum getPiece(size_t _f, size_t _r) const = 0;
 
         /**
          * Attempt to move selection of tiles (_selectMinR, _selectMinF)-(_selectMaxR, _selectMaxF) to the new coords (_goalMinR, _goalMinF).

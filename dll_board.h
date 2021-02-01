@@ -116,7 +116,7 @@ class DLLBoard : public Board {
             return std::make_pair(0u,0u);
         };
 
-        PieceEnum getPiece(size_t _r, size_t _f) const {
+        PieceEnum getPiece(size_t _f, size_t _r) const {
             //TODO: implement
             return EMPTY;
         };

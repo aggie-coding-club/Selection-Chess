@@ -57,13 +57,11 @@ class ArrayBoard : public Board {
         std::string getAsciiBoard(bool _showCoords = false, size_t _width = 3, size_t _height = 1, char _tileFillChar = '`');
 
         coords getDimensions() const {
-            //TODO: implement
-            return std::make_pair(0u,0u);
+            return m_maxCoords - m_minCoords + std::make_pair(1,1);
         };
 
-        PieceEnum getPiece(size_t _r, size_t _f) const {
-            //TODO: implement
-            return EMPTY;
+        PieceEnum getPiece(size_t _f, size_t _r) const {
+            return m_grid[_f + _r * m_grid_size];
         };
 
         bool moveSelection(coords _select1, coords _select2, coords _goal1) {
