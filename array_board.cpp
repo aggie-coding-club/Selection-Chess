@@ -16,13 +16,11 @@ ArrayBoard::ArrayBoard(const std::string _sfen) {
     m_minCoords = std::make_pair(0, 0);
     m_maxCoords = std::make_pair(0, 0); // the maxCoords will be updated as we create the board
     // Parse position section (until first space)
-    dout << "Read board as: ";
     int i; // which character of _sfen we are on
 
     // ----------- loop through and count number of tiles ----------- //
     m_grid_size = 0;
     for (i = 0; i < _sfen.length() && _sfen[i] != ' '; i++) {
-        dout << "Reading next character as [";
         const char c = _sfen[i];
         if (c == '/') { // Next row
             continue;
@@ -48,7 +46,6 @@ ArrayBoard::ArrayBoard(const std::string _sfen) {
             int num_empty_tiles = std::stoi(_sfen.substr(i, j));
             // update i to to account for the number of additional characters we read in
             i = j-1;
-            dout << num_empty_tiles << " empty tiles ";
             m_grid_size += num_empty_tiles;
             continue;
         }
@@ -62,7 +59,7 @@ ArrayBoard::ArrayBoard(const std::string _sfen) {
             throw "Invalid piece symbol in SFen!";
         }
     }
-    dout << "Done counting." << std::endl;
+    // dout << "Done counting." << std::endl;
     // check for multiplication overflow
     if (m_grid_size > SIZE_MAX / m_grid_size) {
         std::cerr << "Board is too large to be stored as ArrayBoard!" << std::endl;
@@ -80,11 +77,8 @@ ArrayBoard::ArrayBoard(const std::string _sfen) {
     size_t currentX = STARTING_X; // Which coord we are currently on
     size_t currentY = STARTING_Y;
     for (i = 0; i < _sfen.length() && _sfen[i] != ' '; i++) {
-        dout << "Reading next character as [";
         const char c = _sfen[i];
-        dout << c << "] for position (" << currentX << ", " << currentY << ")" << std::endl;
         if (c == '/') { // Next row
-            dout << "Starting next line" << std::endl;
             currentX = STARTING_X;
             currentY++; //FIXME: is anything weird going to happen here when we implement wrapping?
             continue;
@@ -97,7 +91,6 @@ ArrayBoard::ArrayBoard(const std::string _sfen) {
             if (j != i+1) {
                 // Get the next characters as integer
                 int num_no_tiles = std::stoi(_sfen.substr(i+1, j)); //i+1 to ignore '('
-                dout << num_no_tiles << " no tiles ";
                 currentX += num_no_tiles;
             }
             // update i to to account for the number of additional characters we read in
@@ -113,28 +106,24 @@ ArrayBoard::ArrayBoard(const std::string _sfen) {
             // update i to to account for the number of additional characters we read in
             i = j-1;
 
-            dout << num_empty_tiles << " empty tiles ";
             for (int k = 0; k < num_empty_tiles; k++) {
                 m_grid[currentX + currentY*m_grid_size] = EMPTY;
                 m_maxCoords.first = std::max(m_maxCoords.first, currentX);
                 m_maxCoords.second = std::max(m_maxCoords.second, currentY);
                 currentX++;
             }
-            dout << "Empty tiles added" << std::endl;
             continue;
         }
 
         PieceEnum thisTile = getPieceFromChar(c, ' '); // We look for empty as ' ' to ensure we never find empty this way, just in case.
-        dout << "This tile is piece #" << (int)thisTile << std::endl;
         m_grid[currentX + currentY*m_grid_size] = thisTile;
         m_maxCoords.first = std::max(m_maxCoords.first, currentX);
         m_maxCoords.second = std::max(m_maxCoords.second, currentY);
         currentX++;
     }
-    dout << "m_maxCoords ="  << m_maxCoords.first << ", " << m_maxCoords.second << std::endl;
-    dout << "Done parsing." << std::endl;
     // Parse remaining fields
     // TODO: implement
+    dout << "Done parsing." << std::endl;
 }
 
 /** 
@@ -158,7 +147,7 @@ bool ArrayBoard::updatePieceInPL(PieceEnum _piece, coords _oldLocation, coords _
     return false;
 }
 
-std::string ArrayBoard::getAsciiBoard(bool _showCoords, size_t _width, size_t _height, char _tileFillChar) { //TODO: make const
+std::string ArrayBoard::getAsciiBoard() { //TODO: make const
     // ----------- Generate array of printable space. Safer than just printing ----------- //
     short MIN_X = m_minCoords.first;
     short MAX_X = m_maxCoords.first;
@@ -171,9 +160,9 @@ std::string ArrayBoard::getAsciiBoard(bool _showCoords, size_t _width, size_t _h
     std::vector<std::string> lines; // each element is line of output
 
     // ----------- Drawing controls ----------- //
-    const char V_SEP = '|'; // sides of tile, repeated _height times
+    const char V_SEP = '|'; // sides of tile, repeated m_printSettings.m_height times
     const char CORNER = '+'; // corner where H_SEP and V_SEP meet
-    const char H_SEP = '-'; // top/bottom of tile, repeated _width times
+    const char H_SEP = '-'; // top/bottom of tile, repeated m_printSettings.m_width times
 
     // Margin drawing controls //TODO: parameterize?
     const unsigned short LEFT_MARGIN_SIZE = 5; // width of left margin
@@ -185,31 +174,31 @@ std::string ArrayBoard::getAsciiBoard(bool _showCoords, size_t _width, size_t _h
     // ----------- Generate the board itself ----------- //
 
     // fill printable space with spaces. We will replace these as we go along
-    std::string emptyLine(1 + (_width+1)*printSpaceWidth, ' ');
-    int numLines = 1 + (_height+1)*printSpaceHeight;
+    std::string emptyLine(1 + (m_printSettings.m_width+1)*printSpaceWidth, ' ');
+    int numLines = 1 + (m_printSettings.m_height+1)*printSpaceHeight;
     for (int i = 0; i < numLines; i++) {
         lines.push_back(emptyLine);
     }
 
     // loop through board positions in printable space
     for(int gridY = 0; gridY < printSpaceHeight; gridY++) {
-        int caY = 1 + (_height+1)*gridY; // which row in this string array this cell starts. Does not include separators
+        int caY = 1 + (m_printSettings.m_height+1)*gridY; // which row in this string array this cell starts. Does not include separators
         for(int gridX = 0; gridX < printSpaceWidth; gridX++) {
-            int caX = 1 + (_width+1)*gridX; // which position in the string this cell starts. Does not include separators
+            int caX = 1 + (m_printSettings.m_width+1)*gridX; // which position in the string this cell starts. Does not include separators
 
             int gridXY = (MIN_X + gridX) + (MIN_Y + gridY) * m_grid_size; // 1D coords
 
             // draw the tile
             if (m_grid[gridXY] != INVALID) {
                 // draw the fill
-                for (int caFillLine = caY; caFillLine < caY+ _height; caFillLine++) {
-                    lines[caFillLine] = lines[caFillLine].replace(caX, _width, _width, _tileFillChar);
+                for (int caFillLine = caY; caFillLine < caY+ m_printSettings.m_height; caFillLine++) {
+                    lines[caFillLine] = lines[caFillLine].replace(caX, m_printSettings.m_width, m_printSettings.m_width, m_printSettings.m_tileFillChar);
                 }
 
                 // draw the piece
                 if (m_grid[gridXY] != EMPTY) {
-                    int yOff = (_height-1) / 2; // center offsets
-                    int xOff = (_width-1) / 2; // -1 means that when _width is even, slight left justification is prefered
+                    int yOff = (m_printSettings.m_height-1) / 2; // center offsets
+                    int xOff = (m_printSettings.m_width-1) / 2; // -1 means that when m_printSettings.m_width is even, slight left justification is prefered
                     lines[caY + yOff] = lines[caY + yOff].replace(caX + xOff, 1, 1, PIECE_LETTERS[m_grid[gridXY]]);
                 }
             }
@@ -217,17 +206,17 @@ std::string ArrayBoard::getAsciiBoard(bool _showCoords, size_t _width, size_t _h
             // draw the borders
             if (m_grid[gridXY] != INVALID) {
                 // horizontal borders
-                for (size_t yOff : std::vector<size_t>{0, _height+1}) {
-                    lines[caY + yOff - 1] = lines[caY + yOff - 1].replace(caX, _width, _width, H_SEP);
+                for (size_t yOff : std::vector<size_t>{0, m_printSettings.m_height+1}) {
+                    lines[caY + yOff - 1] = lines[caY + yOff - 1].replace(caX, m_printSettings.m_width, m_printSettings.m_width, H_SEP);
                 }
                 // 2 sides
-                for (size_t xOff : std::vector<size_t>{0, _width+1}) {
+                for (size_t xOff : std::vector<size_t>{0, m_printSettings.m_width+1}) {
                     // vertical borders
-                    for (size_t yOff = 0; yOff < _height; yOff++) {
+                    for (size_t yOff = 0; yOff < m_printSettings.m_height; yOff++) {
                         lines[caY + yOff] = lines[caY + yOff].replace(caX + xOff - 1, 1, 1, V_SEP);
                     }
                     // 4 corners
-                    for (size_t yOff : std::vector<size_t>{0, _height+1}) {
+                    for (size_t yOff : std::vector<size_t>{0, m_printSettings.m_height+1}) {
                         lines[caY + yOff - 1] = lines[caY + yOff - 1].replace(caX + xOff - 1, 1, 1, CORNER);
                     }
                 }
@@ -240,7 +229,7 @@ std::string ArrayBoard::getAsciiBoard(bool _showCoords, size_t _width, size_t _h
     std::string dividerLine;
 
     // ----------- Add stuff to the top of output ----------- //
-    if (_showCoords) {
+    if (m_printSettings.m_showCoords) {
         // the cornerpiece
         result += MARGIN_V_SEP;
         result += std::string(LEFT_MARGIN_SIZE - 1, ' ');
@@ -253,7 +242,7 @@ std::string ArrayBoard::getAsciiBoard(bool _showCoords, size_t _width, size_t _h
         result += MARGIN_H_LABEL_DIV;
         for (auto xLabel = MIN_X; xLabel != MAX_X + 1; xLabel++) {
             std::string labelString = std::to_string(xLabel);
-            while (labelString.size() < _width) {
+            while (labelString.size() < m_printSettings.m_width) {
                 labelString += " "; // label filler
             }
             result += labelString + MARGIN_H_LABEL_DIV;
@@ -266,9 +255,9 @@ std::string ArrayBoard::getAsciiBoard(bool _showCoords, size_t _width, size_t _h
     // ----------- Add stuff to left side of output ----------- //
     short currentY = MIN_Y;
     for (int i = 0; i < lines.size(); i++) {
-        if (_showCoords) {
+        if (m_printSettings.m_showCoords) {
             std::string leftMargin = std::string(1, MARGIN_V_SEP) + " ";
-            if (i % (_height+1) == _height / 2 + 1) {
+            if (i % (m_printSettings.m_height+1) == m_printSettings.m_height / 2 + 1) {
                 leftMargin += std::to_string(currentY++);
             }
             while (leftMargin.size() < LEFT_MARGIN_SIZE) {
@@ -281,7 +270,7 @@ std::string ArrayBoard::getAsciiBoard(bool _showCoords, size_t _width, size_t _h
         result += lines[i] + "\n";
     }
     // ----------- Add stuff to the bottom of output ----------- //
-    if (_showCoords) {
+    if (m_printSettings.m_showCoords) {
         result += dividerLine + "\n";
     }
     dout << "Length of printable string = " << result.length() << std::endl;

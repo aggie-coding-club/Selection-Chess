@@ -3,8 +3,20 @@
 
 #include "constants.h"
 
+class BoardPrintSettings {
+    public:
+    bool m_showCoords = false;
+    size_t m_width = 3;
+    size_t m_height = 1;
+    char m_tileFillChar = '`';
+
+    BoardPrintSettings(bool _showCoords = true, size_t _width = 3, size_t _height = 1, char _tileFillChar = '`') :  
+    m_showCoords(_showCoords), m_width(_width), m_height(_height), m_tileFillChar(_tileFillChar) {}
+};
+
 class Board {
     public:
+        BoardPrintSettings m_printSettings;
         /** 
          * Creates a new board from SFEN.
          */
@@ -20,7 +32,7 @@ class Board {
         /** 
          * Print the current tiles and pieces in a nice ASCII format.
          */
-        virtual std::string getAsciiBoard(bool _showCoords = false, size_t _width = 3, size_t _height = 1, char _tileFillChar = '`') = 0;
+        virtual std::string getAsciiBoard() = 0;
 
         /**
          * Gets the size of the minimum rectangle needed to surround this board in its current configuration.

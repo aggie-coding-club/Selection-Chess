@@ -47,6 +47,9 @@ class Game {
             //TODO: implement
             return 0u;
         };
+
+        std::string print();
+
 };
 
 #endif

@@ -7,7 +7,7 @@
 #include <string>
 
 #include "constants.h"
-#include "array_board.h"
+#include "board.h"
 
 class ArrayBoard : public Board {
     public:
@@ -54,7 +54,7 @@ class ArrayBoard : public Board {
          * Print the current tiles and pieces in a nice ASCII format.
          * @warning: If the board's tiles have errors in their adjacents arrays, this method may have unexpected behavior
          */
-        std::string getAsciiBoard(bool _showCoords = false, size_t _width = 3, size_t _height = 1, char _tileFillChar = '`');
+        std::string getAsciiBoard();
 
         coords getDimensions() const {
             return m_maxCoords - m_minCoords + std::make_pair(1,1);

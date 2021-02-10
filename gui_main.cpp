@@ -7,8 +7,7 @@
 
 #include "constants.h"
 #include "utils.h"
-#include "dll_board.h"
-#include "array_board.h"
+#include "game.h"
 
 bool addEngine(std::string) {
     // TODO: implement
@@ -45,16 +44,14 @@ int main(int argc, char *argv[]) {
 
     // Debugging prints, // TODO: remove later
     // DLLBoard guiBoard = DLLBoard("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
-    ArrayBoard guiBoard = ArrayBoard("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
-    dout << "Done initializing board" << std::endl;
+    // ArrayBoard guiBoard = ArrayBoard("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
+    Game game = Game("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
 
-    std::cout << guiBoard.getAsciiBoard() << std::endl;
-    std::cout << guiBoard.getAsciiBoard(true) << std::endl;
-    std::cout << guiBoard.getAsciiBoard(true, 5, 5) << std::endl;
-    std::cout << guiBoard.getAsciiBoard(true, 1, 1, '-') << std::endl;
-    std::cout << guiBoard.getAsciiBoard(true, 2, 2) << std::endl;
-    std::cout << guiBoard.getAsciiBoard(true, 4, 4, '.') << std::endl;
-    std::cout << "Board dimensions: " << guiBoard.getDimensions() << std::endl;
+    // Change display settings like this:
+    game.m_board->m_printSettings.m_width = 2;
+
+    std::cout << game.print() << std::endl;
+    dout << "Successfully exited" << std::endl;
     return 0;
 }
 
