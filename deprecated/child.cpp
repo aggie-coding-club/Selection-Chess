@@ -1,3 +1,6 @@
+// ----------- DEPRECATED FILE ----------- //
+// ----------- Now using Boost ----------- //
+
 #include <windows.h>
 #include <stdio.h>
 

@@ -6,4 +6,9 @@
 
 #include "constants.h"
 
+class EngineRunner {
+    public:
+    EngineRunner(std::string _path);
+};
+
 #endif
