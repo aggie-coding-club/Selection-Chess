@@ -5,6 +5,9 @@
 
 #define STARTING_MATERIAL 0 //FIXME: make constant type
 
+typedef int CustomException;
+enum : CustomException {EXCP_ENGINE_DIED=101};
+
 /**
  * White is odd, black is even, excluding EMPTY=0 and INVALID.
  * We also use this so that this enum can be directly used as an array index for pieces

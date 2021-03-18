@@ -32,18 +32,18 @@ Tile::Tile(PieceEnum _contents, std::pair<short, short> _coords) {
 Board::Board(const std::string _sfen) {
     m_movesSinceLastCapture = 0;
     // Parse position section (until first space)
-    dout << "Read board as: ";
+    // dout << "Read board as: ";
     int i = 0; // which character of _sfen we are on
     const short STARTING_X = 0; //FIXME: needs to be taken as param?
     const short STARTING_Y = 0; //FIXME: needs to be taken as param?
     short currentX = STARTING_X; // Which coord we are currently on
     short currentY = STARTING_Y;
     for (; i < _sfen.length() && _sfen[i] != ' '; i++) {
-        dout << "Reading next character as [";
+        // dout << "Reading next character as [";
         const char c = _sfen[i];
-        dout << c << "] for position (" << currentX << ", " << currentY << ")" << std::endl;
+        // dout << c << "] for position (" << currentX << ", " << currentY << ")" << std::endl;
         if (c == '/') { // Next row
-            dout << "Starting next line" << std::endl;
+            // dout << "Starting next line" << std::endl;
             currentX = STARTING_X;
             currentY++; //FIXME: is anything weird going to happen here when we implement wrapping?
             continue;
@@ -61,7 +61,7 @@ Board::Board(const std::string _sfen) {
             if (j != i+1) {
                 // Get the next characters as integer
                 int num_no_tiles = std::stoi(_sfen.substr(i+1, j)); //i+1 to ignore '('
-                dout << num_no_tiles << " no tiles ";
+                // dout << num_no_tiles << " no tiles ";
                 currentX += num_no_tiles;
             }
             // update i to to account for the number of additional characters we read in
@@ -77,7 +77,7 @@ Board::Board(const std::string _sfen) {
             // update i to to account for the number of additional characters we read in
             i = j-1;
 
-            dout << num_empty_tiles << " empty tiles ";
+            // dout << num_empty_tiles << " empty tiles ";
             for (int k = 0; k < num_empty_tiles; k++) {
                 Tile* newTile = new Tile(EMPTY, std::pair<short, short>(currentX, currentY));
                 currentX++;
@@ -85,12 +85,12 @@ Board::Board(const std::string _sfen) {
                 newTile->SetAdjacent(DOWN, getTile(std::pair<short, short>(currentX, currentY - 1)));
                 m_tiles.push_back(newTile);
             }
-            dout << "Empty tiles added" << std::endl;
+            // dout << "Empty tiles added" << std::endl;
             continue;
         }
 
         PieceEnum thisTile = getPieceFromChar(c, ' '); // We look for empty as ' ' to ensure we never find empty this way, just in case.
-        dout << "This tile is piece #" << (int)thisTile << std::endl;
+        // dout << "This tile is piece #" << (int)thisTile << std::endl;
         if (thisTile != INVALID) {
             Tile* newTile = new Tile(thisTile, std::pair<short, short>(currentX, currentY));
             currentX++;
@@ -103,7 +103,7 @@ Board::Board(const std::string _sfen) {
             throw "Invalid piece symbol in SFen!";
         }
     }
-    dout << "Done parsing." << std::endl;
+    dout << "Done parsing FEN." << std::endl;
     // Parse remaining fields
     // TODO: implement
 }

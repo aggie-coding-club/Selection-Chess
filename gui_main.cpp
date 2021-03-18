@@ -9,6 +9,7 @@
 #include "utils.h"
 #include "board.h"
 #include "engine_runner.h"
+#include "tokenizer.h" // only here for the debug test
 
 bool addEngine(std::string _enginePath) {
     // TODO: implement
@@ -19,6 +20,8 @@ bool addEngine(std::string _enginePath) {
 
 int main(int argc, char *argv[]) {
     std::cout << ASCII_LOGO << std::endl;
+    dout << "dout is enabled" << std::endl;
+    tdout << "tdout is enabled" << std::endl;
     // initialize GUI input thread and/or godot stuff
     // for now, let's assume engines are passed via command line
     switch (argc) { // TODO: this is a gross way of handling command line args, if we stick with this for long enough we should improve this
@@ -46,6 +49,15 @@ int main(int argc, char *argv[]) {
     // TODO: spin up input thread / Godot interface
 
     // Debugging prints, // TODO: remove later
+    dout << "testing Tokenizer..." << std::endl;
+    Tokenizer t("feature done=0 myname=\"Jeff\" debug=1 done=1");
+    std::string token;
+    do {
+        token = t.next();
+        dout << "\t[" << token << "]" << std::endl;
+    } while (token.front() != EOF);
+    dout << "done testing Tokenizer" << std::endl;
+
     Board guiBoard = Board("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
     dout << "Done initializing board" << std::endl;
 
