@@ -9,6 +9,7 @@
 #include "utils.h"
 #include "board.h"
 #include "engine_runner.h"
+#include "human_runner.h"
 #include "tokenizer.h" // only here for the debug test
 
 bool addEngine(std::string _enginePath, EngineRunner*& engineColor) {
@@ -27,28 +28,34 @@ int main(int argc, char *argv[]) {
 
     // for now, let's assume engines are passed via command line
 
-    EngineRunner* whiteEngine = nullptr;
-    EngineRunner* blackEngine = nullptr;
-    switch (argc) { // TODO: this is a gross way of handling command line args, if we stick with this for long enough we should improve this
-    case 1:
-        std::cout << "Note: To have engine(s) play, specify the path of their executables as command line parameters." << std::endl;
-        break;
-    case 3:
-        if (!addEngine(argv[2], blackEngine)) {
-            std::cerr << "Could not add engine at '" << argv[2] << "'!" << std::endl;
-            exit(EXIT_FAILURE);
+    PlayerRunner* whiteEngine = nullptr;
+    PlayerRunner* blackEngine = nullptr;
+    int numHumans = 0;
+    if (argc == 3) { // TODO: this is a gross way of handling command line args, if we stick with this for long enough we should improve this
+        if (std::string(argv[1]) == "human") {
+            whiteEngine = new HumanRunner(std::string("Human ") + std::to_string(++numHumans));
+        } else {
+            whiteEngine = new EngineRunner(std::string(argv[1]));
         }
-    // fall through
-    case 2:
-        if (!addEngine(argv[1], whiteEngine)) {
+        if (!whiteEngine->init()) {
             std::cerr << "Could not add engine at '" << argv[1] << "'!" << std::endl;
             exit(EXIT_FAILURE);
         }
-        break;
-    default:
-        std::cerr << "Incorrect number of params. Usage:\n\t" << argv[0] << " [engine 1] [engine 2]" << std::endl;
+
+        if (std::string(argv[2]) == "human") {
+            blackEngine = new HumanRunner(std::string("Human ") + std::to_string(++numHumans));
+        } else {
+            blackEngine = new EngineRunner(std::string(argv[2]));
+        }
+        if (!blackEngine->init()) {
+            std::cerr << "Could not add engine at '" << argv[2] << "'!" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+    } else {
+        std::cerr << "Incorrect number of params. Usage:\n\t" << argv[0] << " <player> <player>\n"
+        "where <player> is either the path to a chess engine, or is the string 'human' to indicate manual entry will be used for that color.\n"
+        "Note that the first <player> is who plays white, and the second is who plays black." << std::endl;
         exit(EXIT_FAILURE);
-        break;
     }
 
     // TODO: spin up input thread / Godot interface

@@ -3,7 +3,7 @@
 #include "engine_runner.h"
 #include "utils.h"
 
-#define edout dout << "[" << m_engineName << "] "
+#define edout dout << "[" << m_name << "] "
 
 // TODO: idk if these macros are too ugly, maybe there is a cleaner solution
 #define parseIntSanity int value; if (!parseAsInt(featureValue, value)) { m_engineInputStream << "rejected " << featureName << " " << featureValue << std::endl; continue; }
@@ -43,15 +43,23 @@ bool parseAsBool(std::string _raw, bool& _output) {
     return false;
 }
 
+EngineRunner::EngineRunner(std::string _path) {
+    m_enginePath = _path;
+}
+
 bool EngineRunner::init(std::string _path) {
-    m_engineName = _path;
+    m_enginePath = _path;
+    return init();
+}
+bool EngineRunner::init() {
+    m_name = m_enginePath;
     edout << "Creating boost child process..." << std::endl;
-    bp::child c(_path, bp::std_in < m_engineInputStream, bp::std_out > m_pipeStream);
-    m_engineAlive = true;
+    bp::child c(m_enginePath, bp::std_in < m_engineInputStream, bp::std_out > m_pipeStream);
+    m_alive = true;
 
     std::vector<char> m_engineOutputBuffer(4096);
 
-    // bp::child c(_path,
+    // bp::child c(m_enginePath,
     //     bp::std_in < m_engineInputStream,
     //     bp::std_out > asio::buffer(m_engineOutputBuffer), 
     //     m_ios);
@@ -99,7 +107,7 @@ bool EngineRunner::init(std::string _path) {
                 m_engineInputStream << "accepted " << featureName << std::endl;
             } else if (featureName == "myname") {
                 parseStringSanity
-                m_engineName = value;
+                m_name = value;
                 m_engineInputStream << "accepted " << featureName << std::endl;
             } else {
                 m_engineInputStream << "rejected " << featureName << std::endl;
@@ -111,7 +119,7 @@ bool EngineRunner::init(std::string _path) {
     m_engineInputStream << "new" << std::endl;
     // TODO: check engine actually can play selchess, return false otherwise.
     m_engineInputStream << "variant selchess" << std::endl;
-    edout << "Done with constructor" << std::endl;
+    edout << "Done initializing" << std::endl;
     return true;
 }
 
@@ -127,6 +135,7 @@ void EngineRunner::quit() {
         // std::cout << "]" << std::endl; 
 
         // int result = c.exit_code();
+        m_alive = false;
     edout << "Done with boost code." << std::endl;
 }
 
@@ -190,6 +199,6 @@ Tokenizer* EngineRunner::processCommands(std::string _cmdName, bool _ignore) {
     }
 }
 
-void EngineRunner::readLoop() {
+void EngineRunner::run() {
 
 }
