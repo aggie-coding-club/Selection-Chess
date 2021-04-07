@@ -74,41 +74,10 @@ class Board {
          */
         std::string getAsciiBoard(bool _showCoords = false, size_t _width = 3, size_t _height = 1, char _tileFillChar = '`');
 
-        // class row_iterator { // FIXME: this is really ugly
-        //     public:
-        //         row_iterator(const Board& _board) : m_board(_board) {
-        //             // TODO:
-        //         }
-        //         row_iterator& operator++() {
-        //             // TODO:
-        //             return *this;
-        //         }
-        //         row_iterator operator++(int) {
-        //             row_iterator retval = *this;
-        //             ++(*this);
-        //             return retval;
-        //         }
-        //         bool operator==(row_iterator _other) const {
-        //             // TODO:
-        //             return false;
-        //         }
-        //         bool operator!=(row_iterator _other) const {
-        //             return !(*this == _other);
-        //         }
-        //         long operator*() {
-        //             // TODO: gets the value upon dereference
-        //         };
-        //         // iterator traits //FIXME: what do these do?
-        //         // using difference_type = long;
-        //         // using value_type = long;
-        //         // using pointer = const long*;
-        //         // using reference = const long&;
-        //         // using iterator_category = std::forward_iterator_tag;
-        //     private:
-        //         const Board& m_board;
-        // };
-
+        // runs in O(numberTiles) time, so not great. //TODO: improve underlying board data structure to get amortized speedup
         Tile* getTile(std::pair<short, short> _coords);
+
+        // TODO: add some functions for moving tiles
 
 };
 
