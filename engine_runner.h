@@ -2,7 +2,8 @@
 #define ENGINE_RUNNER_H
 
 #include <cstdint>
-#include <stack>
+#include <stack> // TODO: remove?
+#include <queue>
 
 #include <boost/process.hpp> // note: requires boost >= 1_64_0
 // Also note, if you are using VSCode, add your boost path as an includePath to your c_cpp_properties.json if your Intelisense isn't recognizing it
@@ -24,6 +25,7 @@ class EngineRunner {
         bp::ipstream m_pipeStream;
         bool m_engineAlive;
         std::string m_engineName;
+        std::queue<std::string> m_cmdQueue;
 
         // Cleans input by handling comments, messages, etc.
         // Throws exception if program closes prematurely
@@ -35,13 +37,18 @@ class EngineRunner {
         Tokenizer* processCommands(std::string _cmdName="", bool _ignore=false);
 
     public:
-        EngineRunner(std::string _path);
+        // EngineRunner();
+
+        bool init(std::string _path);
 
         void quit();
 
         Move getMove();
 
         bool setMove(Move _move);
+
+        // fills m_cmdQueue as input comes in
+        void readLoop();
 };
 
 #endif

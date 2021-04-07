@@ -43,7 +43,8 @@ bool parseAsBool(std::string _raw, bool& _output) {
     return false;
 }
 
-EngineRunner::EngineRunner(std::string _path) : m_engineName(_path) {
+bool EngineRunner::init(std::string _path) {
+    m_engineName = _path;
     edout << "Creating boost child process..." << std::endl;
     bp::child c(_path, bp::std_in < m_engineInputStream, bp::std_out > m_pipeStream);
     m_engineAlive = true;
@@ -108,8 +109,10 @@ EngineRunner::EngineRunner(std::string _path) : m_engineName(_path) {
     }
 
     m_engineInputStream << "new" << std::endl;
+    // TODO: check engine actually can play selchess, return false otherwise.
     m_engineInputStream << "variant selchess" << std::endl;
     edout << "Done with constructor" << std::endl;
+    return true;
 }
 
 
@@ -140,6 +143,8 @@ Tokenizer* EngineRunner::getCommand() {
     // TODO: add timeouts. This is a pain in the ass since there is no portable way to do this. 
     // Maybe this will help? Idk if reading from pipe has magic properties that make this not applicable... 
     // https://www.boost.org/doc/libs/1_75_0/libs/beast/doc/html/beast/ref/boost__beast__basic_stream.html 
+    // Update: an equivalent feature to timeouts is thread cancellation. Unfortunately, there is no portable
+    // way to do this either. So if either feature can be added, the other can be built from it.
     std::string line;
     for (;;) {
         edout << "getting line..." << std::endl;
@@ -183,4 +188,8 @@ Tokenizer* EngineRunner::processCommands(std::string _cmdName, bool _ignore) {
         }
         delete cmd;
     }
+}
+
+void EngineRunner::readLoop() {
+
 }

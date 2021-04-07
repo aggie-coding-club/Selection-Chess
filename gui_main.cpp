@@ -11,10 +11,11 @@
 #include "engine_runner.h"
 #include "tokenizer.h" // only here for the debug test
 
-bool addEngine(std::string _enginePath) {
+bool addEngine(std::string _enginePath, EngineRunner*& engineColor) {
     // TODO: implement
     dout << "here we would start the engine process " << _enginePath << " and do some stuff to it" << std::endl;
-    EngineRunner engRun(_enginePath);
+    engineColor = new EngineRunner();
+    engineColor->init(_enginePath);
     return true;
 }
 
@@ -23,19 +24,23 @@ int main(int argc, char *argv[]) {
     dout << "dout is enabled" << std::endl;
     tdout << "tdout is enabled" << std::endl;
     // initialize GUI input thread and/or godot stuff
+
     // for now, let's assume engines are passed via command line
+
+    EngineRunner* whiteEngine = nullptr;
+    EngineRunner* blackEngine = nullptr;
     switch (argc) { // TODO: this is a gross way of handling command line args, if we stick with this for long enough we should improve this
     case 1:
         std::cout << "Note: To have engine(s) play, specify the path of their executables as command line parameters." << std::endl;
         break;
     case 3:
-        if (!addEngine(argv[2])) {
+        if (!addEngine(argv[2], blackEngine)) {
             std::cerr << "Could not add engine at '" << argv[2] << "'!" << std::endl;
             exit(EXIT_FAILURE);
         }
     // fall through
     case 2:
-        if (!addEngine(argv[1])) {
+        if (!addEngine(argv[1], whiteEngine)) {
             std::cerr << "Could not add engine at '" << argv[1] << "'!" << std::endl;
             exit(EXIT_FAILURE);
         }
@@ -47,6 +52,9 @@ int main(int argc, char *argv[]) {
     }
 
     // TODO: spin up input thread / Godot interface
+
+    // whiteEngine->init()
+    // blackEngine->init()
 
     // Debugging prints, // TODO: remove later
     dout << "testing Tokenizer..." << std::endl;
