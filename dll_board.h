@@ -7,7 +7,7 @@
 #include <string>
 
 #include "constants.h"
-#include "dll_board.h"
+#include "board.h"
 
 class Tile {
     public:
@@ -48,6 +48,8 @@ class DLLBoard : public Board {
         /** 
          * Creates a new board from SFEN.
          */
+        DLLBoard();
+        void init(const std::string _sfen);
         DLLBoard(const std::string _sfen);
 
         /**
@@ -73,7 +75,7 @@ class DLLBoard : public Board {
          * Print the current tiles and pieces in a nice ASCII format.
          * @warning: If the board's tiles have errors in their adjacents arrays, this method may have unexpected behavior
          */
-        std::string getAsciiBoard(bool _showCoords = false, size_t _width = 3, size_t _height = 1, char _tileFillChar = '`');
+        std::string getAsciiBoard();
 
         // class row_iterator { // FIXME: this is really ugly
         //     public:

@@ -28,5 +28,14 @@ if int(debug):
     # We actually set the value of DEBUG to the numeric value, in case we want to use bit flags later
     env.Append(CPPDEFINES=['DEBUG=' + str(debug)])
 
-gui = env.Program(compiled_path + 'SelChessGui', Split('gui_main.cpp dll_board.cpp array_board.cpp utils.cpp game.cpp move.cpp engine_runner.cpp human_runner.cpp tokenizer.cpp'))
-engine = env.Program(compiled_path + 'engines/Hippocrene', Split('hippo_main.cpp dll_board.cpp array_board.cpp utils.cpp game.cpp move.cpp'))
+gui = env.Program(compiled_path + 'SelChessGui', Split(
+    'gui_main.cpp utils.cpp '
+    'dll_board.cpp array_board.cpp '
+    'game.cpp move.cpp '
+    'engine_runner.cpp human_runner.cpp tokenizer.cpp'
+))
+engine = env.Program(compiled_path + 'engines/Hippocrene', Split(
+    'hippo_main.cpp utils.cpp '
+    'dll_board.cpp array_board.cpp '
+    'game.cpp move.cpp'
+))

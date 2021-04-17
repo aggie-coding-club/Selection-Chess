@@ -20,6 +20,8 @@ class Board {
         /** 
          * Creates a new board from SFEN.
          */
+        // virtual Board() = 0;
+        virtual void init(const std::string _sfen) = 0;
         // virtual Board(const std::string _sfen) = 0;
 
         /**

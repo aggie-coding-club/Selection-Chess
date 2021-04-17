@@ -25,12 +25,17 @@ Tile::Tile(PieceEnum _contents, std::pair<short, short> _coords) {
     }
 };
 
-
-/** //TODO: update description
- * Creates a new board with array set to INVALID. Usually you should call parseFen after creating a new board. 
- */
+DLLBoard::DLLBoard() { 
+    m_movesSinceLastCapture = 0; // TODO: should be set by SFEN instead of initialized here
+}
 DLLBoard::DLLBoard(const std::string _sfen) {
-    m_movesSinceLastCapture = 0;
+    DLLBoard();
+    init(_sfen);
+}
+void DLLBoard::init(const std::string _sfen) {
+    // delete old info, in case init called multiple times.
+    m_tiles.clear();
+
     // Parse position section (until first space)
     // dout << "Read board as: ";
     int i = 0; // which character of _sfen we are on
@@ -143,7 +148,10 @@ bool DLLBoard::removePieceFromPL(PieceEnum _piece, Tile* _location) {
     return false;
 }
 
-std::string DLLBoard::getAsciiBoard(bool _showCoords, size_t _width, size_t _height, char _tileFillChar) { //TODO: make const
+std::string DLLBoard::getAsciiBoard() {
+    if (m_tiles.empty()) {
+        return "[Empty board]"; // TODO: [Very Low Priority] There is probably a nicer way to display this. Probably should still to show the whole frame and everything.
+    }
     // Sort by x coords
     std::sort(m_tiles.begin(), m_tiles.end(), [](Tile* _t1, Tile* _t2) {
         if (_t1 == nullptr || _t2 == nullptr) return false;
@@ -163,21 +171,21 @@ std::string DLLBoard::getAsciiBoard(bool _showCoords, size_t _width, size_t _hei
     std::vector<std::string> lines; // each element is line of output
 
     // DRAWING CONTROLS
-    const std::string V_SEP = "|"; // sides of tile, repeated _height times
+    const std::string V_SEP = "|"; // sides of tile, repeated m_printSettings.m_height times
     const std::string CORNER = "+"; // corner where h_sep and V_SEP meet
 
     std::string h_sep = ""; // top/bottom of tiles. Must be odd since piece must be centered.
     std::string h_fill_out = ""; // filler used for outside of cell. Must be same size as h_sep
     std::string h_fill_in = ""; // filler used for outside of cell. Must be same size as h_sep
     std::string h_non_sep = ""; // Used like an h_sep but for when there is no adjacent cell
-    for (int i = 0; i < _width; i++) {
+    for (int i = 0; i < m_printSettings.m_width; i++) {
         h_sep += "-";
         h_fill_out += " ";
-        h_fill_in += _tileFillChar;
+        h_fill_in += m_printSettings.m_tileFillChar;
         h_non_sep += " ";
     }
-    std::string h_pad_left = std::string((_width - 1) / 2, _tileFillChar); // Used between V_SEP and the piece character. Sizes must satisfy h_sep = h_pad + 1 + h_pad.
-    std::string h_pad_right = std::string(_width / 2, _tileFillChar);
+    std::string h_pad_left = std::string((m_printSettings.m_width - 1) / 2, m_printSettings.m_tileFillChar); // Used between V_SEP and the piece character. Sizes must satisfy h_sep = h_pad + 1 + h_pad.
+    std::string h_pad_right = std::string(m_printSettings.m_width / 2, m_printSettings.m_tileFillChar);
 
     // Margin drawing controls //TODO: parameterize?
     const unsigned short LEFT_MARGIN_SIZE = 5; // width of left margin
@@ -186,7 +194,7 @@ std::string DLLBoard::getAsciiBoard(bool _showCoords, size_t _width, size_t _hei
     const char MARGIN_H_SEP = '='; // horizontal boundary for margin
     const char MARGIN_H_LABEL_DIV = ' '; // What separates the labels on the x axis from eachother
 
-    for (int i = 0; i < 2 + _height; i++) { // +2 for V_SEP on both sides
+    for (int i = 0; i < 2 + m_printSettings.m_height; i++) { // +2 for V_SEP on both sides
         lines.push_back("");
     }
     short lastY = MIN_Y; // Which Y position the previous tile we printed is in. Keeps track if we start on a new row.
@@ -199,16 +207,16 @@ std::string DLLBoard::getAsciiBoard(bool _showCoords, size_t _width, size_t _hei
             lastY = (*tilesIter)->m_coords.second;
             currentX = MIN_X;
             trailingEdge = false;
-            for (int i = 0; i < 1 + _height; i++) { // +1 for V_SEP
+            for (int i = 0; i < 1 + m_printSettings.m_height; i++) { // +1 for V_SEP
                 activeLineNum++;
                 lines.push_back("");
             }
         }
-        size_t lowerLine = activeLineNum + _height + 1;
+        size_t lowerLine = activeLineNum + m_printSettings.m_height + 1;
 
         // Move along to our X position if needed, printing empty space as we go
         while ((*tilesIter)->m_coords.first != currentX++) {
-            for (int i = 1; i <= _height; i++) {
+            for (int i = 1; i <= m_printSettings.m_height; i++) {
                 lines[activeLineNum + i] += (trailingEdge ? "" : " ") + h_fill_out;
             }
             lines[lowerLine] += (trailingEdge ? "" : " ") + h_non_sep;
@@ -217,9 +225,9 @@ std::string DLLBoard::getAsciiBoard(bool _showCoords, size_t _width, size_t _hei
         }
 
         // Output our tile's bottom border and center.
-        for (int i = 1; i <= _height; i++) {
-            if (i == _height / 2 + 1) { // Is this the row which contains the piece
-                lines[activeLineNum + i] += (trailingEdge ? "" : V_SEP) + h_pad_left + getCharFromPiece((*tilesIter)->m_contents, _tileFillChar) + h_pad_right + V_SEP;
+        for (int i = 1; i <= m_printSettings.m_height; i++) {
+            if (i == m_printSettings.m_height / 2 + 1) { // Is this the row which contains the piece
+                lines[activeLineNum + i] += (trailingEdge ? "" : V_SEP) + h_pad_left + getCharFromPiece((*tilesIter)->m_contents, m_printSettings.m_tileFillChar) + h_pad_right + V_SEP;
             } else {
                 lines[activeLineNum + i] += (trailingEdge ? "" : V_SEP) + h_fill_in + V_SEP;
             }
@@ -232,8 +240,8 @@ std::string DLLBoard::getAsciiBoard(bool _showCoords, size_t _width, size_t _hei
             lines[activeLineNum] += " ";
         }
         // Override upper border with an edge, whether it is empty or there is already a tile with a lower edge there.
-        size_t starting = lines[activeLineNum + 1].size() - (_width + 2);
-        lines[activeLineNum].replace(starting, (_width + 2), CORNER + h_sep + CORNER);
+        size_t starting = lines[activeLineNum + 1].size() - (m_printSettings.m_width + 2);
+        lines[activeLineNum].replace(starting, (m_printSettings.m_width + 2), CORNER + h_sep + CORNER);
 
         // We printed the righthand edge
         trailingEdge = true;
@@ -243,7 +251,7 @@ std::string DLLBoard::getAsciiBoard(bool _showCoords, size_t _width, size_t _hei
     std::string dividerLine;
 
     // Add stuff to top of output;
-    if (_showCoords) {
+    if (m_printSettings.m_showCoords) {
         // the cornerpiece
         result += MARGIN_V_SEP;
         result += std::string(LEFT_MARGIN_SIZE - 1, ' ');
@@ -256,7 +264,7 @@ std::string DLLBoard::getAsciiBoard(bool _showCoords, size_t _width, size_t _hei
         result += MARGIN_H_LABEL_DIV;
         for (auto xLabel = MIN_X; xLabel != MAX_X + 1; xLabel++) {
             std::string labelString = std::to_string(xLabel);
-            while (labelString.size() < _width) {
+            while (labelString.size() < m_printSettings.m_width) {
                 labelString += " "; // label filler
             }
             result += labelString + MARGIN_H_LABEL_DIV;
@@ -269,9 +277,9 @@ std::string DLLBoard::getAsciiBoard(bool _showCoords, size_t _width, size_t _hei
     // Add stuff to left side of output
     short currentY = MIN_Y;
     for (int i = 0; i < lines.size(); i++) {
-        if (_showCoords) {
+        if (m_printSettings.m_showCoords) {
             std::string leftMargin = std::string(1, MARGIN_V_SEP) + " ";
-            if (i % (_height+1) == _height / 2 + 1) {
+            if (i % (m_printSettings.m_height+1) == m_printSettings.m_height / 2 + 1) {
                 leftMargin += std::to_string(currentY++);
             }
             while (leftMargin.size() < LEFT_MARGIN_SIZE) {
@@ -283,7 +291,7 @@ std::string DLLBoard::getAsciiBoard(bool _showCoords, size_t _width, size_t _hei
         }
         result += lines[i] + "\n";
     }
-    if (_showCoords) {
+    if (m_printSettings.m_showCoords) {
         result += dividerLine + "\n";
     }
     dout << "Length of printable string = " << result.length() << std::endl;
