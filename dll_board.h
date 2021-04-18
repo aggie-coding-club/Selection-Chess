@@ -12,11 +12,12 @@
 class Tile {
     public:
         PieceEnum m_contents;
-        std::pair<short, short> m_coords;
+        // We use unsigned to represent coords so we can utilize overflow.
+        Coords m_coords;
         static const size_t NUM_ADJACENT_DIRECTIONS = 8; // 4 cardinal, 4 diagonal //TODO: may remove diagonal if unused
         Tile* m_adjacents[NUM_ADJACENT_DIRECTIONS]; // Links to adjacent tiles.
 
-        Tile(PieceEnum _contents, std::pair<short, short> _coords);
+        Tile(PieceEnum _contents, Coords _coords);
 
         // Sets m_adjacents of this tile and the tile given. Also takes nullptr for no adjacent
         void SetAdjacent(DirectionEnum _dir, Tile* _adj);
@@ -29,18 +30,6 @@ class DLLBoard : public Board {
     public:
         /* ------- independent fields, provide necessary information about board ------- */
         std::vector<Tile*> m_tiles; // Every tile, which contains piece and coords.
-
-        // minimum x and y of this board. Because of wrap-around, the literal min integer value is not 
-        // guaranteed to be the furtherest "left" or "down".
-        std::pair<short, short> m_minCoords;
-
-        short m_movesSinceLastCapture; // 50 move rule
-        bool m_turnWhite; // whose turn it is
-        // std::stack<Move> moveHistory; // list of moves applied to starting FEN.
-
-        /* ------- dependent fields, store information about board that is derived from independent fields -------- */
-        short m_material; // changed material score to just be material for both
-        uint64_t m_hashCode;
         
         /** For looking up where pieces are at by their type and color. */
         std::vector<Tile*> pieceLocations[2 * NUM_PIECE_TYPES];
@@ -77,43 +66,11 @@ class DLLBoard : public Board {
          */
         std::string getAsciiBoard();
 
-        // class row_iterator { // FIXME: this is really ugly
-        //     public:
-        //         row_iterator(const DLLBoard& _board) : m_board(_board) {
-        //             // TODO:
-        //         }
-        //         row_iterator& operator++() {
-        //             // TODO:
-        //             return *this;
-        //         }
-        //         row_iterator operator++(int) {
-        //             row_iterator retval = *this;
-        //             ++(*this);
-        //             return retval;
-        //         }
-        //         bool operator==(row_iterator _other) const {
-        //             // TODO:
-        //             return false;
-        //         }
-        //         bool operator!=(row_iterator _other) const {
-        //             return !(*this == _other);
-        //         }
-        //         long operator*() {
-        //             // TODO: gets the value upon dereference
-        //         };
-        //         // iterator traits //FIXME: what do these do?
-        //         // using difference_type = long;
-        //         // using value_type = long;
-        //         // using pointer = const long*;
-        //         // using reference = const long&;
-        //         // using iterator_category = std::forward_iterator_tag;
-        //     private:
-        //         const DLLBoard& m_board;
-        // };
+        std::string toSfen();
 
-        Tile* getTile(std::pair<short, short> _coords);
+        Tile* getTile(Coords _coords);
 
-        std::pair<size_t, size_t> getDimensions() const {
+        Coords getDimensions() const {
             //TODO: implement
             return std::make_pair(0u,0u);
         };
@@ -123,12 +80,12 @@ class DLLBoard : public Board {
             return EMPTY;
         };
 
-        bool moveSelection(coords _select1, coords _select2, coords _goal1) {
+        bool moveSelection(Coords _select1, Coords _select2, Coords _goal1) {
             //TODO: implement
             return false;
         };
 
-        bool movePiece(coords _start, coords _goal) {
+        bool movePiece(Coords _start, Coords _goal) {
             //TODO: implement
             return false;
         };
@@ -142,6 +99,30 @@ class DLLBoard : public Board {
             //TODO: implement
             return 0u;
         };
+    protected:
+        // Sort pieces by their coordinates.
+        // when _priorityRank is true, all entries of first rank will be listed, followed by second rank, etc., e.g. a1, b1, c1, ..., g8, h8
+        // when _priorityRank is false, all entries of first file will be listed, followed by second file, etc., e.g. a1, a2, a3, ..., h7, h8
+        // when _reverseRank is true, rank order will be reversed, i.e. 8,7,6,...,2,1
+        // when _reverseFile is true, file order will be reversed, i.e. h,g,f,...,b,a
+        void sortByCoords(bool _priorityRank, bool _reverseFile=false, bool _reverseRank=false);
+
+        inline bool compareTileByFile(Tile* _t1, Tile* _t2, bool _reverse=false) {
+            if (_reverse) {
+                return coordLessThan(_t2->m_coords.first, _t1->m_coords.first, m_minCoords.first);
+            } else {
+                return coordLessThan(_t1->m_coords.first, _t2->m_coords.first, m_minCoords.first);
+            }
+        }
+        inline bool compareTileByRank(Tile* _t1, Tile* _t2, bool _reverse=false) {
+            if (_reverse) {
+                return coordLessThan(_t2->m_coords.second, _t1->m_coords.second, m_minCoords.second);
+            } else {
+                return coordLessThan(_t1->m_coords.second, _t2->m_coords.second, m_minCoords.second);
+            }
+        }
+
+        void updateExtrema(const Coords& _new);
 };
 
 #endif

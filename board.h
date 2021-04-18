@@ -2,6 +2,7 @@
 #define BOARD_H
 
 #include "constants.h"
+#include "utils.h"
 
 class BoardPrintSettings {
     public:
@@ -23,6 +24,19 @@ class Board {
         // virtual Board() = 0;
         virtual void init(const std::string _sfen) = 0;
         // virtual Board(const std::string _sfen) = 0;
+        // minimum x and y of this board. Because of wrap-around, the literal min integer value is not 
+        // guaranteed to be the furtherest "left" or "down".
+        Coords m_minCoords;
+        Coords m_maxCoords;
+
+        int m_movesSinceLastCapture; // 50 move rule
+        bool m_turnWhite; // whose turn it is
+        // std::stack<Move> moveHistory; // list of moves applied to starting FEN.
+
+        int m_material; // changed material score to just be material for both
+        uint64_t m_hashCode;
+
+        virtual std::string toSfen() = 0;
 
         /**
          * Boards are equal if all independent fields except moveHistory are equal. 
@@ -39,7 +53,7 @@ class Board {
         /**
          * Gets the size of the minimum rectangle needed to surround this board in its current configuration.
          */
-        virtual std::pair<size_t, size_t> getDimensions() const = 0;
+        virtual Coords getDimensions() const = 0;
 
         /**
          * Gets the piece at the rank and file, zero indexed from current bounds.
@@ -51,13 +65,13 @@ class Board {
          *                                        lower left corner           upper right corner                         lower left corner
          * Returns false if the move is illegal.
          */
-        virtual bool moveSelection(coords _select1, coords _select2, coords _goal1) = 0;
+        virtual bool moveSelection(Coords _select1, Coords _select2, Coords _goal1) = 0;
 
         /**
-         * Attempt to move piece at (_startR, _startF) to the new coords (_goalR, _goalF).
+         * Attempt to move piece at (_startR, _startF) to the new Coords (_goalR, _goalF).
          * Returns false if the move is illegal.
          */
-        virtual bool movePiece(coords _start, coords _goal) = 0;
+        virtual bool movePiece(Coords _start, Coords _goal) = 0;
 
         /**
          * Undoes the last move(s) made on this board.
@@ -70,7 +84,6 @@ class Board {
         virtual uint64_t getHash() const = 0;
 
         // TODO: add some functions for moving tiles
-
 };
 
 #endif

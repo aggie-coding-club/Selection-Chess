@@ -8,7 +8,6 @@
 #include <stdlib.h>
 
 #include "constants.h"
-#include "board.h"
 
 // ----------- debugging macros ----------- //
 // dout macro 'debug output'
@@ -109,17 +108,36 @@ DirectionEnum flipDirection(DirectionEnum _dir);
 
 // ----------- operators on coords ----------- //
 
-inline coords operator+(const coords & _l,const coords & _r) {   
-    return std::make_pair(_l.first + _r.first, _l.second + _r.second);                                    
-} 
+// inline coords operator+(const coords & _l,const coords & _r) {   
+//     return std::make_pair(_l.first + _r.first, _l.second + _r.second);                                    
+// } 
 
-inline coords operator-(const coords & _l,const coords & _r) {   
-    return std::make_pair(_l.first - _r.first, _l.second - _r.second);                                    
-} 
+// inline coords operator-(const coords & _l,const coords & _r) {   
+//     return std::make_pair(_l.first - _r.first, _l.second - _r.second);                                    
+// } 
 
-inline std::ostream& operator<<(std::ostream& _stream, const coords& _coords) {
+inline std::ostream& operator<<(std::ostream& _stream, const Coords& _coords) {
     _stream << "(" << _coords.first << ", " << _coords.second << ")";
     return _stream;
+}
+//----------- Here are some function useful for coordinate wrapping ----------//
+
+// Compares which coords is more to the left or down from another coord, based on where the wrap-around happens (namely, at _relZero)
+// returns if _lhs < _rhs
+inline bool coordLessThan(unsigned int _lhs, unsigned int _rhs, unsigned int _relZero) {
+    return (_lhs - _relZero) < (_rhs - _relZero);
+}
+inline bool coordGreaterThan(unsigned int _lhs, unsigned int _rhs, unsigned int _relZero) {
+    return (_lhs - _relZero) > (_rhs - _relZero);
+}
+
+// Gets the distance from one coord to another, without crossing the wrap around point _relZero
+inline unsigned int coordDistance(unsigned int _1, unsigned int _2, unsigned int _relZero) {
+    if (coordLessThan(_1, _2, _relZero)) {
+        return _2 - _1;
+    } else {
+        return _1 - _2;
+    }
 }
 
 #endif

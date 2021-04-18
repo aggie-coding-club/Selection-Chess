@@ -17,8 +17,8 @@ class ArrayBoard : public Board {
 
         // minimum x and y of this board. Because of wrap-around, the literal min integer value is not 
         // guaranteed to be the furtherest "left" or "down".
-        coords m_minCoords;
-        coords m_maxCoords;
+        Coords m_minCoords;
+        Coords m_maxCoords;
 
         short m_movesSinceLastCapture; // 50 move rule
         bool m_turnWhite; // whose turn it is
@@ -29,7 +29,7 @@ class ArrayBoard : public Board {
         uint64_t m_hashCode;
         
         /** For looking up where pieces are at by their type and color. */
-        std::vector<coords> pieceLocations[2 * NUM_PIECE_TYPES];
+        std::vector<Coords> pieceLocations[2 * NUM_PIECE_TYPES];
 
         /** 
          * Creates a new board from SFEN.
@@ -48,7 +48,7 @@ class ArrayBoard : public Board {
          * Give (only) one of the locations as (-1,-1) for adding or removing a piece.
          * Returns false if it does not find such a piece to update.
          */
-        bool updatePieceInPL(PieceEnum _piece, coords _oldLocation, coords _newLocation);
+        bool updatePieceInPL(PieceEnum _piece, Coords _oldLocation, Coords _newLocation);
 
         /** 
          * Print the current tiles and pieces in a nice ASCII format.
@@ -56,7 +56,7 @@ class ArrayBoard : public Board {
          */
         std::string getAsciiBoard();
 
-        coords getDimensions() const {
+        Coords getDimensions() const {
             //TODO: implement
             return std::make_pair(0u,0u);
         };
@@ -65,12 +65,12 @@ class ArrayBoard : public Board {
             return m_grid[_f + _r * m_grid_size];
         };
 
-        bool moveSelection(coords _select1, coords _select2, coords _goal1) {
+        bool moveSelection(Coords _select1, Coords _select2, Coords _goal1) {
             //TODO: implement
             return false;
         };
 
-        bool movePiece(coords _start, coords _goal) {
+        bool movePiece(Coords _start, Coords _goal) {
             //TODO: implement
             return false;
         };

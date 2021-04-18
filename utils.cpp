@@ -1,7 +1,6 @@
 #include <string>
 
 #include "constants.h"
-#include "board.h"
 
 #include "utils.h"
 

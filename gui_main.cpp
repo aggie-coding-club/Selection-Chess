@@ -86,14 +86,25 @@ int main(int argc, char *argv[]) {
     } while (token.front() != EOF);
     dout << "done testing Tokenizer" << std::endl;
 
-
     dout << "Testing overriding initialization" << std::endl;
     std::cout << game.print() << std::endl;
     game.m_board->init("rnbqkbnr/p6p/8/2(4)2/(2)4/18/P6P/RNBQKBNR w 0 1");
     std::cout << game.print() << std::endl;
-    // game.m_board->init("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
+    dout << "min coords: " << (signed int) game.m_board->m_minCoords.first << ", " << (signed int) game.m_board->m_minCoords.second << std::endl;
+    dout << "max coords: " << (signed int) game.m_board->m_maxCoords.first << ", " << (signed int) game.m_board->m_maxCoords.second << std::endl;
+    std::cout << game.m_board->toSfen() << std::endl;
+
+    dout << "Testing int wrapping..." << std::endl;
+    dout << coordLessThan(1, 5, 2) << std::endl;
+    dout << coordLessThan(1, 5, 0) << std::endl;
+    dout << coordDistance(5, 1, 0) << std::endl;
+    dout << coordDistance(1, 5, 0) << std::endl;
+    dout << coordDistance(5, 1, 2) << std::endl;
+    dout << coordDistance(1, 5, 2) << std::endl;
+    dout << "Done testing int wrapping." << std::endl;
 
     dout << "Done with all tests" << std::endl;
+
     return 0;
 }
 

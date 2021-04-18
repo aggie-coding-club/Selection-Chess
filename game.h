@@ -28,12 +28,12 @@ class Game {
          */
         Game(const std::string _sfen);
 
-        bool moveSelection(coords _select1, coords _select2, coords _goal1) {
+        bool moveSelection(Coords _select1, Coords _select2, Coords _goal1) {
             //TODO: implement
             return false;
         };
 
-        bool movePiece(coords _start, coords _goal) {
+        bool movePiece(Coords _start, Coords _goal) {
             //TODO: implement
             return false;
         };

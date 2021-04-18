@@ -3,9 +3,9 @@
 
 #include <string>
 
-typedef std::pair<size_t, size_t> coords;
-
 #define STARTING_MATERIAL 0 //FIXME: make constant type
+
+typedef std::pair<unsigned int, unsigned int> Coords;
 
 typedef int CustomException;
 enum : CustomException {EXCP_ENGINE_DIED=101};
