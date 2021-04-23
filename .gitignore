@@ -4,6 +4,9 @@
 *.stackdump
 *.gch
 
+# User specific files
+scons.config
+
 # Ignored folders
 old_code/
 scratch/

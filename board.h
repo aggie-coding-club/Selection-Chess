@@ -67,6 +67,8 @@ class Board {
          */
         virtual uint64_t getHash() const = 0;
 
+        // TODO: add some functions for moving tiles
+
 };
 
 #endif

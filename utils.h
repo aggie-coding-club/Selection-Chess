@@ -11,14 +11,23 @@
 #include "board.h"
 
 // ----------- debugging macros ----------- //
-
-// dout macro 'debug out'
+// dout macro 'debug output'
 // like cout, cerr, etc., except only outputs to console/log in debug mode.
 extern std::ostream g_nullout;
 #ifdef DEBUG
-#define dout std::cout
+    #if DEBUG & (1<<0)
+        #define dout std::cout
+    #else 
+        #define dout g_nullout
+    #endif
+    #if DEBUG & (1<<1)
+        #define tdout std::cout
+    #else 
+        #define tdout g_nullout
+    #endif
 #else
-#define dout g_nullout
+    #define dout g_nullout
+    #define tdout g_nullout
 #endif
 
 // USAGE: FORMAT(foo << bar << ... << baz) returns a std::string

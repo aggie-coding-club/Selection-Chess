@@ -1,5 +1,5 @@
-#ifndef ENGINE_RUNNER_H
-#define ENGINE_RUNNER_H
+#ifndef HUMAN_RUNNER_H
+#define HUMAN_RUNNER_H
 
 #include <cstdint>
 #include <stack> // TODO: remove?
@@ -16,7 +16,7 @@ namespace asio = boost::asio;
 #include "player_runner.h"
 #include "tokenizer.h"
 
-class EngineRunner : public PlayerRunner {
+class HumanRunner : public PlayerRunner {
     protected:
         bp::opstream m_engineInputStream;
         boost::asio::io_service m_ios; // TODO: remove?
@@ -34,10 +34,8 @@ class EngineRunner : public PlayerRunner {
         Tokenizer* processCommands(std::string _cmdName="", bool _ignore=false);
 
     public:
-        EngineRunner() = default;
-        EngineRunner(std::string _path);
+        HumanRunner(std::string _name);
 
-        bool init(std::string _path);
         bool init();
 
         void quit();
