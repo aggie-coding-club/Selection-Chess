@@ -7,6 +7,7 @@
 
 #include "constants.h"
 #include "utils.h"
+#include "game.h"
 #include "board.h"
 #include "engine_runner.h"
 #include "human_runner.h"
@@ -64,6 +65,16 @@ int main(int argc, char *argv[]) {
     // blackEngine->init()
 
     // Debugging prints, // TODO: remove later
+    // DLLBoard guiBoard = DLLBoard("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
+    // ArrayBoard guiBoard = ArrayBoard("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
+    Game game = Game("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
+
+    // Change display settings like this:
+    game.m_board->m_printSettings.m_width = 2;
+
+    std::cout << game.print() << std::endl;
+    dout << "Successfully exited" << std::endl;
+
     dout << "testing Tokenizer..." << std::endl;
     Tokenizer t("feature done=0 myname=\"Jeff\" debug=1 done=1");
     std::string token;
@@ -73,10 +84,10 @@ int main(int argc, char *argv[]) {
     } while (token.front() != EOF);
     dout << "done testing Tokenizer" << std::endl;
 
-    Board guiBoard = Board("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
-    dout << "Done initializing board" << std::endl;
+    // Board guiBoard = Board("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
+    // dout << "Done initializing board" << std::endl;
 
-    std::cout << guiBoard.getAsciiBoard(true, 1, 1, '-') << std::endl;
+    // std::cout << guiBoard.getAsciiBoard(true, 1, 1, '-') << std::endl;
     return 0;
 }
 

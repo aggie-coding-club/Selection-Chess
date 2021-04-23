@@ -3,6 +3,8 @@
 
 #include <string>
 
+typedef std::pair<size_t, size_t> coords;
+
 #define STARTING_MATERIAL 0 //FIXME: make constant type
 
 typedef int CustomException;

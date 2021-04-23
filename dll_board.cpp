@@ -8,7 +8,7 @@
 #include "constants.h"
 #include "utils.h"
 
-#include "board.h"
+#include "dll_board.h"
 
 void Tile::SetAdjacent(DirectionEnum _dir, Tile* _adj) {
     m_adjacents[_dir] = _adj;
@@ -29,7 +29,7 @@ Tile::Tile(PieceEnum _contents, std::pair<short, short> _coords) {
 /** //TODO: update description
  * Creates a new board with array set to INVALID. Usually you should call parseFen after creating a new board. 
  */
-Board::Board(const std::string _sfen) {
+DLLBoard::DLLBoard(const std::string _sfen) {
     m_movesSinceLastCapture = 0;
     // Parse position section (until first space)
     // dout << "Read board as: ";
@@ -113,12 +113,12 @@ Board::Board(const std::string _sfen) {
  * Note that comparing the hashes is MUCH faster that this, and should be used to compare boards
  * for most practical purposes. Really, this is just here to test if the hash function is working.
  */
-bool Board::operator==(const Board& _other) const {
+bool DLLBoard::operator==(const Board& _other) const {
     //TODO: implement
     return true;
 }
 
-bool Board::updatePieceInPL(PieceEnum _piece, Tile* _oldLocation, Tile* _newLocation) {
+bool DLLBoard::updatePieceInPL(PieceEnum _piece, Tile* _oldLocation, Tile* _newLocation) {
     //TODO: re implement
     // for (int i = 0; i < pieceNumbers[piece]; i++) { // loop for all pieces of type
     //     if (pieceLocations[piece][i] == oldLocation) { // find the match
@@ -129,7 +129,7 @@ bool Board::updatePieceInPL(PieceEnum _piece, Tile* _oldLocation, Tile* _newLoca
     return false;
 }
 
-bool Board::removePieceFromPL(PieceEnum _piece, Tile* _location) {
+bool DLLBoard::removePieceFromPL(PieceEnum _piece, Tile* _location) {
     //TODO: re implement
     // for (int i = 0; i < pieceNumbers[piece]; i++) { // loop for all pieces of type
     //     if (pieceLocations[piece][i] == location) { // find the match
@@ -143,7 +143,7 @@ bool Board::removePieceFromPL(PieceEnum _piece, Tile* _location) {
     return false;
 }
 
-std::string Board::getAsciiBoard(bool _showCoords, size_t _width, size_t _height, char _tileFillChar) {
+std::string DLLBoard::getAsciiBoard(bool _showCoords, size_t _width, size_t _height, char _tileFillChar) { //TODO: make const
     // Sort by x coords
     std::sort(m_tiles.begin(), m_tiles.end(), [](Tile* _t1, Tile* _t2) {
         if (_t1 == nullptr || _t2 == nullptr) return false;
@@ -290,7 +290,7 @@ std::string Board::getAsciiBoard(bool _showCoords, size_t _width, size_t _height
     return result;
 }
 
-Tile* Board::getTile(std::pair<short, short> _coords) {
+Tile* DLLBoard::getTile(std::pair<short, short> _coords) {
     for (auto tilesIter = m_tiles.begin(); tilesIter != m_tiles.end(); tilesIter++) {
         if ((*tilesIter)->m_coords == _coords) return *tilesIter;
     }

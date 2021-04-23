@@ -1,81 +1,71 @@
 #ifndef BOARD_H
 #define BOARD_H
 
-#include <cstdint>
-#include <stack>
-#include <vector>
-#include <string>
-
 #include "constants.h"
 
-class Tile {
+class BoardPrintSettings {
     public:
-        PieceEnum m_contents;
-        std::pair<short, short> m_coords;
-        static const size_t NUM_ADJACENT_DIRECTIONS = 8; // 4 cardinal, 4 diagonal //TODO: may remove diagonal if unused
-        Tile* m_adjacents[NUM_ADJACENT_DIRECTIONS]; // Links to adjacent tiles.
+    bool m_showCoords = false;
+    size_t m_width = 3;
+    size_t m_height = 1;
+    char m_tileFillChar = '`';
 
-        Tile(PieceEnum _contents, std::pair<short, short> _coords);
-
-        // Sets m_adjacents of this tile and the tile given. Also takes nullptr for no adjacent
-        void SetAdjacent(DirectionEnum _dir, Tile* _adj);
-        inline bool HasAdjacent(DirectionEnum _dir) {
-            return m_adjacents[_dir] != nullptr;
-        }
+    BoardPrintSettings(bool _showCoords = true, size_t _width = 3, size_t _height = 1, char _tileFillChar = '`') :  
+    m_showCoords(_showCoords), m_width(_width), m_height(_height), m_tileFillChar(_tileFillChar) {}
 };
 
 class Board {
     public:
-        /* ------- independent fields, provide necessary information about board ------- */
-        std::vector<Tile*> m_tiles; // Every tile, which contains piece and coords.
-
-        // minimum x and y of this board. Because of wrap-around, the literal min integer value is not 
-        // guaranteed to be the furtherest "left" or "down".
-        std::pair<short, short> m_minCoords;
-
-        short m_movesSinceLastCapture; // 50 move rule
-        bool m_turnWhite; // whose turn it is
-        // std::stack<Move> moveHistory; // list of moves applied to starting FEN.
-
-        /* ------- dependent fields, store information about board that is derived from independent fields -------- */
-        short m_material; // changed material score to just be material for both
-        uint64_t m_hashCode;
-        
-        /** For looking up where pieces are at by their type and color. */
-        std::vector<Tile*> pieceLocations[2 * NUM_PIECE_TYPES];
-
+        BoardPrintSettings m_printSettings;
         /** 
          * Creates a new board from SFEN.
          */
-        Board(const std::string _sfen);
+        // virtual Board(const std::string _sfen) = 0;
 
         /**
          * Boards are equal if all independent fields except moveHistory are equal. 
          * Note that comparing the hashes is MUCH faster that this, and should be used to compare boards
          * for most practical purposes. Really, this is just here to test if the hash function is working.
          */
-        bool operator==(const Board& _other) const;
-
-        /** 
-         * Update the position oldLocation to be newLocation for type piece.
-         * Returns false if it does not find such a piece to update.
-         */
-        bool updatePieceInPL(PieceEnum _piece, Tile* _oldLocation, Tile* _newLocation);
-
-        /** 
-         * Remove the piece at location for type piece.
-         * Returns false if it does not find such a piece to remove.
-         */
-        bool removePieceFromPL(PieceEnum _piece, Tile* _location);
+        virtual bool operator==(const Board& _other) const = 0;
 
         /** 
          * Print the current tiles and pieces in a nice ASCII format.
-         * @warning: If the board's tiles have errors in their adjacents arrays, this method may have unexpected behavior
          */
-        std::string getAsciiBoard(bool _showCoords = false, size_t _width = 3, size_t _height = 1, char _tileFillChar = '`');
+        virtual std::string getAsciiBoard() = 0;
 
-        // runs in O(numberTiles) time, so not great. //TODO: improve underlying board data structure to get amortized speedup
-        Tile* getTile(std::pair<short, short> _coords);
+        /**
+         * Gets the size of the minimum rectangle needed to surround this board in its current configuration.
+         */
+        virtual std::pair<size_t, size_t> getDimensions() const = 0;
+
+        /**
+         * Gets the piece at the rank and file, zero indexed from current bounds.
+         */
+        virtual PieceEnum getPiece(size_t _f, size_t _r) const = 0;
+
+        /**
+         * Attempt to move selection of tiles (_selectMinR, _selectMinF)-(_selectMaxR, _selectMaxF) to the new coords (_goalMinR, _goalMinF).
+         *                                        lower left corner           upper right corner                         lower left corner
+         * Returns false if the move is illegal.
+         */
+        virtual bool moveSelection(coords _select1, coords _select2, coords _goal1) = 0;
+
+        /**
+         * Attempt to move piece at (_startR, _startF) to the new coords (_goalR, _goalF).
+         * Returns false if the move is illegal.
+         */
+        virtual bool movePiece(coords _start, coords _goal) = 0;
+
+        /**
+         * Undoes the last move(s) made on this board.
+         */
+        virtual bool undo(size_t _numMoves=1) = 0;
+
+        /**
+         * Gets the hash of this configuration.
+         */
+        virtual uint64_t getHash() const = 0;
 
         // TODO: add some functions for moving tiles
 

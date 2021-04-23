@@ -10,6 +10,7 @@
 #include "constants.h"
 #include "board.h"
 
+// ----------- debugging macros ----------- //
 // dout macro 'debug output'
 // like cout, cerr, etc., except only outputs to console/log in debug mode.
 extern std::ostream g_nullout;
@@ -41,6 +42,7 @@ extern std::ostream g_nullout;
 // USAGE: returns a string describing where in the source code this macro is.
 #define WHERE (FORMAT("\tFile: " << __FILE__ << "\n\tLine: " << __LINE__ << std::endl))
 
+// ----------- PieceEnum functions ----------- //
 
 /**
  * Gets letter respresentation of piece type enum
@@ -53,16 +55,6 @@ char getCharFromPiece(PieceEnum _enumValue, char _empty=PIECE_LETTERS[EMPTY], ch
  * Returns INVALID for unknown characters.
  */
 PieceEnum getPieceFromChar(char _char, char _empty=PIECE_LETTERS[EMPTY]);
-
-/**
- * Gets letter respresentation of direction
- */
-char getCharFromDirection(DirectionEnum _dir);
-
-/**
- * LEFT to RIGHT, etc.
- */
-DirectionEnum flipDirection(DirectionEnum _dir);
 
 /**
  * Gets unicode chess piece respresentation of piece type enum
@@ -101,6 +93,33 @@ inline unsigned char uncolor(PieceEnum piece) {
 inline PieceEnum recolor(unsigned char piece) {
     // just add LSB of zero.
     return piece << 1;
+}
+
+// ----------- DirectionEnum functions ----------- //
+
+/**
+ * Gets letter respresentation of direction
+ */
+char getCharFromDirection(DirectionEnum _dir);
+
+/**
+ * LEFT to RIGHT, etc.
+ */
+DirectionEnum flipDirection(DirectionEnum _dir);
+
+// ----------- operators on coords ----------- //
+
+inline coords operator+(const coords & _l,const coords & _r) {   
+    return std::make_pair(_l.first + _r.first, _l.second + _r.second);                                    
+} 
+
+inline coords operator-(const coords & _l,const coords & _r) {   
+    return std::make_pair(_l.first - _r.first, _l.second - _r.second);                                    
+} 
+
+inline std::ostream& operator<<(std::ostream& _stream, const coords& _coords) {
+    _stream << "(" << _coords.first << ", " << _coords.second << ")";
+    return _stream;
 }
 
 #endif
