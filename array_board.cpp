@@ -72,10 +72,10 @@ ArrayBoard::ArrayBoard(const std::string _sfen) {
     }
 
     // ----------- loop through again to initialize the grid ----------- //
-    const size_t STARTING_X = 0;
-    const size_t STARTING_Y = 0;
-    size_t currentX = STARTING_X; // Which coord we are currently on
-    size_t currentY = STARTING_Y;
+    const unsigned int STARTING_X = 0;
+    const unsigned int STARTING_Y = 0;
+    unsigned int currentX = STARTING_X; // Which coord we are currently on
+    unsigned int currentY = STARTING_Y;
     for (i = 0; i < _sfen.length() && _sfen[i] != ' '; i++) {
         const char c = _sfen[i];
         if (c == '/') { // Next row
@@ -136,7 +136,7 @@ bool ArrayBoard::operator==(const Board& _other) const {
     return true;
 }
 
-bool ArrayBoard::updatePieceInPL(PieceEnum _piece, coords _oldLocation, coords _newLocation) {
+bool ArrayBoard::updatePieceInPL(PieceEnum _piece, Coords _oldLocation, Coords _newLocation) {
     //TODO: re implement
     // for (int i = 0; i < pieceNumbers[piece]; i++) { // loop for all pieces of type
     //     if (pieceLocations[piece][i] == oldLocation) { // find the match

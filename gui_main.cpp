@@ -14,7 +14,6 @@
 #include "tokenizer.h" // only here for the debug test
 
 bool addEngine(std::string _enginePath, EngineRunner*& engineColor) {
-    // TODO: implement
     dout << "here we would start the engine process " << _enginePath << " and do some stuff to it" << std::endl;
     engineColor = new EngineRunner();
     engineColor->init(_enginePath);
@@ -71,6 +70,9 @@ int main(int argc, char *argv[]) {
 
     // Change display settings like this:
     game.m_board->m_printSettings.m_width = 2;
+    game.m_board->m_printSettings.m_tileFillChar = '`';
+    game.m_board->m_printSettings.m_showCoords = true;
+
 
     std::cout << game.print() << std::endl;
     dout << "Successfully exited" << std::endl;
@@ -84,10 +86,25 @@ int main(int argc, char *argv[]) {
     } while (token.front() != EOF);
     dout << "done testing Tokenizer" << std::endl;
 
-    // Board guiBoard = Board("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
-    // dout << "Done initializing board" << std::endl;
+    dout << "Testing overriding initialization" << std::endl;
+    std::cout << game.print() << std::endl;
+    game.m_board->init("rnbqkbnr/p6p/8/2(4)2/(2)4/18/P6P/RNBQKBNR w 0 1");
+    std::cout << game.print() << std::endl;
+    dout << "min coords: " << (signed int) game.m_board->m_minCoords.first << ", " << (signed int) game.m_board->m_minCoords.second << std::endl;
+    dout << "max coords: " << (signed int) game.m_board->m_maxCoords.first << ", " << (signed int) game.m_board->m_maxCoords.second << std::endl;
+    std::cout << game.m_board->toSfen() << std::endl;
 
-    // std::cout << guiBoard.getAsciiBoard(true, 1, 1, '-') << std::endl;
+    dout << "Testing int wrapping..." << std::endl;
+    dout << coordLessThan(1, 5, 2) << std::endl;
+    dout << coordLessThan(1, 5, 0) << std::endl;
+    dout << coordDistance(5, 1, 0) << std::endl;
+    dout << coordDistance(1, 5, 0) << std::endl;
+    dout << coordDistance(5, 1, 2) << std::endl;
+    dout << coordDistance(1, 5, 2) << std::endl;
+    dout << "Done testing int wrapping." << std::endl;
+
+    dout << "Done with all tests" << std::endl;
+
     return 0;
 }
 

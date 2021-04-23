@@ -6,8 +6,8 @@
 class Move
 {
 public:
-    coords StartPos;
-    coords EndPos;
+    Coords StartPos;
+    Coords EndPos;
 };
 
 #endif

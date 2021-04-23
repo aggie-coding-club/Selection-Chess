@@ -1,6 +1,10 @@
 #include <iostream>
 
 #include "constants.h"
+// #include "board.h"
+#include "dll_board.h"
+#include "array_board.h"
+#include "utils.h"
 
 // TODO: async search tree functions
 const size_t MAX_MESSAGE = sizeof(size_t);
@@ -12,10 +16,19 @@ int main() {
     // std::cout << "Hippo read [" << std::flush << inp << "]" << std::endl;
 
     // init shared variables, mutexes, etc.
+    DLLBoard eBoard; // engine's memory of the board
+    // eBoard.init("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
+    eBoard.m_printSettings.m_tileFillChar = '-';
+    eBoard.m_printSettings.m_height = 1;
+    eBoard.m_printSettings.m_width = 2;
+    eBoard.m_printSettings.m_showCoords = true;
+
+    std::cout << eBoard.getAsciiBoard() << std::endl;
+    std::cout << "Done initializing board" << std::endl;
 
     // start interface thread
 
-    while (true) { //FIXME: stop it, get some help (ugly busy waiting)
+    while (true) {
         if (std::getline(std::cin, cmd)) {
             std::cout << "# Hippo read [" << cmd << "]" << std::endl;
             if (cmd == "quit") {
