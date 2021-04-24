@@ -7,40 +7,29 @@
 // Note: all of the error checks to make sure the format is correct can be ommited by a chess engine when it communicates with the gui, if it wants to.
 
 // ----------- Conversions for the letter lexeme of algebraic notation ----------- //
+// a=0, ..., z=25, aa=26+0, ..., az=26+25, ba=2*26+0, ...
+// Note that upper case letters are prohibited
 unsigned int lettersToInt(std::string _letters) {
-    // Note that upper case letters are prohibited
+    if (_letters.length() > 2) {
+        dout << "ERROR: coords too big. " << WHERE << std::endl;
+        return -1;
+    }
     unsigned int value = 0;
-    size_t place = 0; // which digit are we on?
-    for (auto it = _letters.crbegin(); it != _letters.crend(); it++) {
-        if (*it != 'z') {
-            value += (*it - 'a' + 1) * pow(26, place);
-        }
-        place++;
+
+    if (_letters.length() == 2) {
+        value += (_letters.at(0)-'a'+1) * 26;
+        value += _letters.at(1)-'a';
+    } else { // length=1
+        value += _letters.at(0)-'a';
     }
     return value;
 }
 std::string intToLetters(unsigned int _int) {
     std::string letters = "";
-    if (_int == 0) return "a"; // weird edge case
-    // First, get the starting place
-    // size_t place = 0;
-    unsigned int placeUnit;
-    // FIXME: bad behavior on overflow
-    for (placeUnit = 1; placeUnit < _int; placeUnit *= 26) {
-        // place++;
+    if (_int >= 26) {
+        letters += (_int/26)+'a'-1;
     }
-    placeUnit /= 26; // since we went over by one in the loop
-    // Then, get letters
-    for (; placeUnit > 0; placeUnit /= 26) {
-        dout << "placeUnit is " << placeUnit << std::endl;
-        unsigned int thisDigit = _int / placeUnit;
-        dout << "thisDigit is " << thisDigit << std::endl;
-        char thisDigitChar = (thisDigit == 0)? 'z' : thisDigit + 'a' - 1; 
-        dout << "thisDigitChar is " << thisDigitChar << std::endl;
-        letters += thisDigitChar;
-        _int %= placeUnit;
-        dout << "_int is " << _int << std::endl;
-    }
+    letters += (_int%26)+'a';
     return letters;
 }
 

@@ -1,14 +1,14 @@
+#include "dll_board.h"
+#include "constants.h"
+#include "utils.h"
+#include "move.h"
+
 #include <cstdint>
 #include <stack>
 #include <algorithm>
 #include <vector>
 #include <iostream>
 #include <ctype.h>
-
-#include "constants.h"
-#include "utils.h"
-
-#include "dll_board.h"
 
 // FIXME: clear up coordinates naming convention. XY is ambiguous, should switch to rank-file.
 
@@ -327,7 +327,7 @@ std::string DLLBoard::getAsciiBoard() {
         // labels
         result += MARGIN_H_LABEL_DIV;
         for (auto xLabel = m_minCoords.first; xLabel != m_maxCoords.first + 1; xLabel++) {
-            std::string labelString = std::to_string(xLabel);
+            std::string labelString = intToLetters(xLabel);
             while (labelString.size() < m_printSettings.m_width) {
                 labelString += " "; // label filler
             }

@@ -2,6 +2,7 @@
 
 #include "constants.h"
 #include "utils.h"
+#include "move.h"
 
 #include <cstdint>
 #include <stack>
@@ -241,7 +242,7 @@ std::string ArrayBoard::getAsciiBoard() { //TODO: make const
         // labels
         result += MARGIN_H_LABEL_DIV;
         for (auto xLabel = MIN_X; xLabel != MAX_X + 1; xLabel++) {
-            std::string labelString = std::to_string(xLabel);
+            std::string labelString = intToLetters(xLabel);
             while (labelString.size() < m_printSettings.m_width) {
                 labelString += " "; // label filler
             }

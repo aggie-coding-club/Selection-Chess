@@ -40,4 +40,8 @@ class AlgebraicTokenizer : AbstractTokenizer {
         std::string next();
 };
 
+
+unsigned int lettersToInt(std::string _letters);
+std::string intToLetters(unsigned int _int);
+
 #endif
