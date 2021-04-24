@@ -1,7 +1,6 @@
+#include "game.h"
 #include "constants.h"
 #include "utils.h"
-
-#include "game.h"
 #include "array_board.h"
 #include "dll_board.h"
 

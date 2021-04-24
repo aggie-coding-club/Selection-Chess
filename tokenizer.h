@@ -1,8 +1,9 @@
 #ifndef TOKENIZER_H
 #define TOKENIZER_H
 
-#include <sstream>
 #include "constants.h"
+
+#include <sstream>
 
 class Tokenizer {
     protected:

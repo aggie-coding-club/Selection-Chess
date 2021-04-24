@@ -1,13 +1,13 @@
 #ifndef DLL_BOARD_H
 #define DLL_BOARD_H
 
+#include "board.h"
+#include "constants.h"
+
 #include <cstdint>
 #include <stack>
 #include <vector>
 #include <string>
-
-#include "constants.h"
-#include "board.h"
 
 class Tile {
     public:

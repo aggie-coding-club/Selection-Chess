@@ -1,9 +1,8 @@
-#include <string>
-#include <map>
-
+#include "utils.h"
 #include "constants.h"
 
-#include "utils.h"
+#include <string>
+#include <map>
 
 DirectionEnum flipDirection(DirectionEnum _dir) {
     if (_dir & 1) { // if odd

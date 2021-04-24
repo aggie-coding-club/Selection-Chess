@@ -1,6 +1,10 @@
 #ifndef ENGINE_RUNNER_H
 #define ENGINE_RUNNER_H
 
+#include "player_runner.h"
+#include "tokenizer.h"
+#include "constants.h"
+
 #include <cstdint>
 #include <stack> // TODO: remove?
 #include <queue>
@@ -11,10 +15,6 @@
 
 namespace bp = boost::process;
 namespace asio = boost::asio;
-
-#include "constants.h"
-#include "player_runner.h"
-#include "tokenizer.h"
 
 class EngineRunner : public PlayerRunner {
     protected:

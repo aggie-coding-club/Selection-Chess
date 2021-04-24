@@ -1,13 +1,13 @@
 #ifndef UTILITYMETHODS_H
 #define UTILITYMETHODS_H
 
+#include "constants.h"
+
 #include <string>
 #include <iostream>
 #include <sstream>
 #include <ios>
 #include <stdlib.h>
-
-#include "constants.h"
 
 // ----------- debugging macros ----------- //
 // dout macro 'debug output'

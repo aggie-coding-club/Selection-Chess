@@ -1,6 +1,7 @@
 #include "move.h"
 #include "constants.h"
 #include "utils.h"
+
 #include <math.h>
 
 // Note: all of the error checks to make sure the format is correct can be ommited by a chess engine when it communicates with the gui, if it wants to.

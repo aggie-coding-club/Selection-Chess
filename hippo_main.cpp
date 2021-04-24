@@ -1,10 +1,9 @@
-#include <iostream>
-
-#include "constants.h"
-// #include "board.h"
 #include "dll_board.h"
 #include "array_board.h"
 #include "utils.h"
+#include "constants.h"
+
+#include <iostream>
 
 // TODO: async search tree functions
 const size_t MAX_MESSAGE = sizeof(size_t);

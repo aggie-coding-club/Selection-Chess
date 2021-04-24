@@ -1,10 +1,3 @@
-#include <cstdint>
-#include <stack>
-#include <iostream>
-#include <climits>
-#include <stdlib.h>
-#include <stdio.h>
-
 #include "constants.h"
 #include "utils.h"
 #include "game.h"
@@ -15,6 +8,13 @@
 // only here for the debug test
 #include "tokenizer.h" 
 #include "move.h"
+
+#include <cstdint>
+#include <stack>
+#include <iostream>
+#include <climits>
+#include <stdlib.h>
+#include <stdio.h>
 
 bool addEngine(std::string _enginePath, EngineRunner*& engineColor) {
     dout << "here we would start the engine process " << _enginePath << " and do some stuff to it" << std::endl;

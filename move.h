@@ -2,6 +2,7 @@
 #define MOVE_H
 
 #include "constants.h"
+
 #include <sstream>
 
 class Move {

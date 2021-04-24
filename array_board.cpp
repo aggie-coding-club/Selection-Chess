@@ -1,3 +1,8 @@
+#include "array_board.h"
+
+#include "constants.h"
+#include "utils.h"
+
 #include <cstdint>
 #include <stack>
 #include <algorithm>
@@ -5,11 +10,6 @@
 #include <iostream>
 #include <ctype.h>
 #include <limits.h>
-
-#include "constants.h"
-#include "utils.h"
-
-#include "array_board.h"
 
 ArrayBoard::ArrayBoard(const std::string _sfen) {
     m_movesSinceLastCapture = 0;

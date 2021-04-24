@@ -1,7 +1,7 @@
-#include <iostream>
-
 #include "human_runner.h"
 #include "utils.h"
+
+#include <iostream>
 
 #define edout dout << "[" << m_name << "] "
 

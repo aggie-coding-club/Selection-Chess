@@ -1,13 +1,13 @@
 #ifndef GAME_H
 #define GAME_H
 
+#include "constants.h"
+#include "board.h"
+
 #include <cstdint>
 #include <stack>
 #include <vector>
 #include <string>
-
-#include "constants.h"
-#include "board.h"
 
 class GameState {
     public:
