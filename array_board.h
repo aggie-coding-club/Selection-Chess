@@ -3,6 +3,7 @@
 
 #include "constants.h"
 #include "board.h"
+#include "move.h"
 
 #include <cstdint>
 #include <stack>
@@ -65,17 +66,12 @@ class ArrayBoard : public Board {
             return m_grid[_f + _r * m_grid_size];
         };
 
-        bool moveSelection(Coords _select1, Coords _select2, Coords _goal1) {
+        bool apply(Move _move) {
             //TODO: implement
             return false;
         };
 
-        bool movePiece(Coords _start, Coords _goal) {
-            //TODO: implement
-            return false;
-        };
-
-        bool undo(size_t _numMoves=1) {
+        bool undo(Move _move) {
             //TODO: implement
             return false;
         };

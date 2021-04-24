@@ -2,6 +2,8 @@
 #include "array_board.h"
 #include "utils.h"
 #include "constants.h"
+#include "move.h"
+#include "game.h"
 
 #include <iostream>
 
@@ -35,17 +37,36 @@ int xboardLoop() {
 }
 int testMode() {
     std::string cmd;
-    // init shared variables, mutexes, etc.
-    DLLBoard eBoard; // engine's memory of the board
-    eBoard.init("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
-    eBoard.m_printSettings.m_tileFillChar = '-';
-    eBoard.m_printSettings.m_height = 1;
-    eBoard.m_printSettings.m_width = 1;
-    eBoard.m_printSettings.m_showCoords = true;
+    Game game("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1"); // engine's memory of the board
+    game.m_board->m_printSettings.m_tileFillChar = '-';
+    game.m_board->m_printSettings.m_height = 1;
+    game.m_board->m_printSettings.m_width = 1;
+    game.m_board->m_printSettings.m_showCoords = true;
 
-    std::cout << eBoard.getAsciiBoard() << std::endl;
-    std::cout << "Done initializing board" << std::endl;
+    std::cout << game.print() << std::endl;
 
+    Move m1(std::make_pair(1,0), std::make_pair(0, 2));
+    game.applyMove(m1);
+    std::cout << game.print() << std::endl;
+
+    Move m2(std::make_pair(0, 2), std::make_pair(2, 1));
+    m2.m_capture = W_PAWN;
+    game.applyMove(m2);
+    std::cout << game.print() << std::endl;
+
+    game.undoMove();
+    std::cout << game.print() << std::endl;
+    game.undoMove();
+    std::cout << game.print() << std::endl;
+
+    game.applyMove(m1);
+    std::cout << game.print() << std::endl;
+    game.applyMove(m2);
+    std::cout << game.print() << std::endl;
+    game.undoMove(2);
+    std::cout << game.print() << std::endl;
+
+    std::cout << "Done testing" << std::endl;
     return 0;
 }
 

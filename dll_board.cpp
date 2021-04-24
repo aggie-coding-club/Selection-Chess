@@ -50,9 +50,7 @@ void DLLBoard::sortByCoords(bool _priorityRank, bool _reverseFile, bool _reverse
 }
 
 
-DLLBoard::DLLBoard() { 
-    m_movesSinceLastCapture = 0; // TODO: should be set by SFEN instead of initialized here
-}
+DLLBoard::DLLBoard() { }
 DLLBoard::DLLBoard(const std::string _sfen) {
     DLLBoard();
     init(_sfen);
@@ -118,8 +116,8 @@ void DLLBoard::init(const std::string _sfen) {
                 Tile* newTile = new Tile(EMPTY, currentFR);
                 updateExtrema(currentFR);
                 currentFR.first++;
-                newTile->SetAdjacent(LEFT, getTile(std::make_pair(currentFR.first - 1, currentFR.second)));
-                newTile->SetAdjacent(UP, getTile(std::make_pair(currentFR.first, currentFR.second + 1)));
+                newTile->SetAdjacent(LEFT, getTile(std::make_pair(currentFR.first - 1, currentFR.second), true));
+                newTile->SetAdjacent(UP, getTile(std::make_pair(currentFR.first, currentFR.second + 1), true));
                 m_tiles.push_back(newTile);
             }
             // dout << "Empty tiles added" << std::endl;
@@ -132,8 +130,8 @@ void DLLBoard::init(const std::string _sfen) {
             Tile* newTile = new Tile(thisTile, currentFR);
             updateExtrema(currentFR);
             currentFR.first++;
-            newTile->SetAdjacent(LEFT, getTile(std::make_pair(currentFR.first - 1, currentFR.second)));
-            newTile->SetAdjacent(UP, getTile(std::make_pair(currentFR.first, currentFR.second + 1)));
+            newTile->SetAdjacent(LEFT, getTile(std::make_pair(currentFR.first - 1, currentFR.second), true));
+            newTile->SetAdjacent(UP, getTile(std::make_pair(currentFR.first, currentFR.second + 1), true));
             m_tiles.push_back(newTile);
             continue;
         } else {
@@ -362,7 +360,11 @@ std::string DLLBoard::getAsciiBoard() {
     return result;
 }
 
-Tile* DLLBoard::getTile(Coords _coords) {
+Tile* DLLBoard::getTile(Coords _coords, bool _useInternal) {
+    if (!_useInternal) {
+        _coords.first += m_minCoords.first;
+        _coords.second += m_minCoords.second;
+    }
     for (auto tilesIter = m_tiles.begin(); tilesIter != m_tiles.end(); tilesIter++) {
         if ((*tilesIter)->m_coords == _coords) return *tilesIter;
     }
@@ -375,3 +377,43 @@ void DLLBoard::updateExtrema(const Coords& _new) {
     m_minCoords.second = std::min(m_minCoords.second, _new.second);
     m_maxCoords.second = std::max(m_maxCoords.second, _new.second);
 }
+
+bool DLLBoard::apply(Move _move) {
+    tdout << "applying move " << _move.algebraic() << std::endl;
+    Tile* startTile = getTile(_move.m_startPos, false);
+    Tile* endTile = getTile(_move.m_endPos, false);
+
+    // Check this is valid
+    if (startTile == nullptr || endTile == nullptr) {
+        dout << "# INVALID MOVE, TILE MISSING " << _move.algebraic() << std::endl;
+        return false;
+    }
+    if (endTile->m_contents != _move.m_capture) {
+        dout << "# INVALID MOVE, CAPTURE MISMATCH " << _move.algebraic() << std::endl;
+        return false;
+    }
+    // Execute the move
+    endTile->m_contents = startTile->m_contents;
+    startTile->m_contents = EMPTY;
+    return true;
+};
+
+bool DLLBoard::undo(Move _move) {
+    tdout << "undoing move " << _move.algebraic() << std::endl;
+    Tile* startTile = getTile(_move.m_startPos, false);
+    Tile* endTile = getTile(_move.m_endPos, false);
+
+    // Check this is valid
+    if (startTile == nullptr || endTile == nullptr) {
+        dout << "# INVALID UNDO, TILE MISSING " << _move.algebraic() << std::endl;
+        return false;
+    }
+    if (startTile->m_contents != EMPTY) {
+        dout << "# INVALID UNDO, MOVING FROM OCCUPIED SQUARE " << _move.algebraic() << std::endl;
+        return false;
+    }
+    // Execute the undo
+    startTile->m_contents = endTile->m_contents;
+    endTile->m_contents = _move.m_capture;
+    return true;
+};

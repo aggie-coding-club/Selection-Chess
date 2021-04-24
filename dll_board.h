@@ -3,6 +3,7 @@
 
 #include "board.h"
 #include "constants.h"
+#include "move.h"
 
 #include <cstdint>
 #include <stack>
@@ -68,7 +69,10 @@ class DLLBoard : public Board {
 
         std::string toSfen();
 
-        Tile* getTile(Coords _coords);
+        // Gets the tile at _coords. 
+        // If _useInternal=true, it will get the tile whose m_coords=_coords.
+        // If _useInternal=false, it will get the tile whose displayed coords = _coords.
+        Tile* getTile(Coords _coords, bool _useInternal);
 
         Coords getDimensions() const {
             //TODO: implement
@@ -80,20 +84,9 @@ class DLLBoard : public Board {
             return EMPTY;
         };
 
-        bool moveSelection(Coords _select1, Coords _select2, Coords _goal1) {
-            //TODO: implement
-            return false;
-        };
+        bool apply(Move _move);
 
-        bool movePiece(Coords _start, Coords _goal) {
-            //TODO: implement
-            return false;
-        };
-
-        bool undo(size_t _numMoves=1) {
-            //TODO: implement
-            return false;
-        };
+        bool undo(Move _move);
 
         uint64_t getHash() const {
             //TODO: implement
