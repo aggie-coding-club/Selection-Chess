@@ -50,7 +50,9 @@ class Board {
         /**
          * Gets the size of the minimum rectangle needed to surround this board in its current configuration.
          */
-        virtual Coords getDimensions() const = 0;
+        virtual Coords getDimensions() const {
+            return std::make_pair(m_maxCoords.first - m_minCoords.first + 1, m_maxCoords.second - m_minCoords.second + 1);
+        };
 
         /**
          * Gets the piece at the rank and file, zero indexed from current bounds.

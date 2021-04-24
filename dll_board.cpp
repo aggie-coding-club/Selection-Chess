@@ -337,12 +337,12 @@ std::string DLLBoard::getAsciiBoard() {
         result = dividerLine + "\n" + result + "\n" + dividerLine + "\n";
     }
     // Add stuff to left side of output
-    int currentY = m_minCoords.second;
+    int currentY = getDimensions().second - 1;
     for (int i = 0; i < lines.size(); i++) {
         if (m_printSettings.m_showCoords) {
             std::string leftMargin = std::string(1, MARGIN_V_SEP) + " ";
             if (i % (m_printSettings.m_height+1) == m_printSettings.m_height / 2 + 1) {
-                leftMargin += std::to_string(currentY++);
+                leftMargin += std::to_string(currentY--);
             }
             while (leftMargin.size() < LEFT_MARGIN_SIZE) {
                 leftMargin += " ";

@@ -74,11 +74,6 @@ class DLLBoard : public Board {
         // If _useInternal=false, it will get the tile whose displayed coords = _coords.
         Tile* getTile(Coords _coords, bool _useInternal);
 
-        Coords getDimensions() const {
-            //TODO: implement
-            return std::make_pair(0u,0u);
-        };
-
         PieceEnum getPiece(size_t _f, size_t _r) const {
             //TODO: implement
             return EMPTY;

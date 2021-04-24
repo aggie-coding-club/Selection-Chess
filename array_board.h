@@ -57,11 +57,6 @@ class ArrayBoard : public Board {
          */
         std::string getAsciiBoard();
 
-        Coords getDimensions() const {
-            //TODO: implement
-            return std::make_pair(0u,0u);
-        };
-
         PieceEnum getPiece(size_t _f, size_t _r) const {
             return m_grid[_f + _r * m_grid_size];
         };
