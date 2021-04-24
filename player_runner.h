@@ -3,8 +3,7 @@
 
 #include "constants.h"
 #include "board.h"
-
-class Move {}; // FIXME: temporary until merged
+#include "move.h"
 
 class PlayerRunner {
     protected:

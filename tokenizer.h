@@ -1,6 +1,7 @@
 #ifndef TOKENIZER_H
 #define TOKENIZER_H
 
+#include <sstream>
 #include "constants.h"
 
 class Tokenizer {

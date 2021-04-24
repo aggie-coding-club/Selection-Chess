@@ -11,7 +11,10 @@
 #include "board.h"
 #include "engine_runner.h"
 #include "human_runner.h"
-#include "tokenizer.h" // only here for the debug test
+
+// only here for the debug test
+#include "tokenizer.h" 
+#include "move.h"
 
 bool addEngine(std::string _enginePath, EngineRunner*& engineColor) {
     dout << "here we would start the engine process " << _enginePath << " and do some stuff to it" << std::endl;
@@ -103,6 +106,17 @@ int main(int argc, char *argv[]) {
     dout << coordDistance(1, 5, 2) << std::endl;
     dout << "Done testing int wrapping." << std::endl;
 
+    dout << "Testing Algebraic Notation conversions... " << std::endl;
+    Coords c1 = std::make_pair(3,5);
+    Coords c2 = std::make_pair(129,50);
+    dout << coordsToAlgebraic(c1) << std::endl;
+    dout << coordsToAlgebraic(c2) << std::endl;
+    c1 = algebraicToCoords(coordsToAlgebraic(c1));
+    c2 = algebraicToCoords(coordsToAlgebraic(c2));
+    dout << c1.first << ", " << c1.second << std::endl;
+    dout << c2.first << ", " << c2.second << std::endl;
+    Move m1(c1, c2);
+    dout << m1.algebraic() << std::endl;
     dout << "Done with all tests" << std::endl;
 
     return 0;
