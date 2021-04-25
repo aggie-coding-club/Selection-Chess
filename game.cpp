@@ -27,7 +27,7 @@ std::string Game::print() {
     }
     result += "Moves since last capture: " + std::to_string(m_movesSinceLastCapture) + "\n";
     result += "Estimated score for this position: " + std::to_string(m_board->staticEvaluation()) + "\n";
-    result += m_turnWhite? "White's Turn\n" : "Black's Turn\n";
+    result += m_turn == WHITE? "White's Turn\n" : "Black's Turn\n";
     return result;
 }
 
@@ -35,7 +35,7 @@ bool Game::applyMove(Move _move){
     if (!m_board->apply(_move)) {
         return false;
     }
-    m_turnWhite = !m_turnWhite;
+    m_turn = -m_turn;
     m_moveHistory.push(_move);
     if (_move.m_capture != EMPTY) {
         m_movesSinceLastCapture = 0;
@@ -50,7 +50,7 @@ bool Game::undoMove(size_t _numMoves) {
         if (!m_board->undo(undone)) {
             return false;
         }
-        m_turnWhite = !m_turnWhite;
+        m_turn = -m_turn;
         // TODO: how do we restore moveSinceLastCapture?
         m_moveHistory.pop();
     }

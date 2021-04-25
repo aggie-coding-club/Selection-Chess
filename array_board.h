@@ -22,7 +22,7 @@ class ArrayBoard : public Board {
         Coords m_maxCoords;
 
         short m_movesSinceLastCapture; // 50 move rule
-        bool m_turnWhite; // whose turn it is
+        PieceColor m_turn; // whose turn it is
         // std::stack<Move> moveHistory; // list of moves applied to starting FEN.
 
         /* ------- dependent fields, store information about board that is derived from independent fields -------- */

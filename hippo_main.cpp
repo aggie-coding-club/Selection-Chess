@@ -12,15 +12,15 @@
 // TODO: async search tree functions
 const size_t MAX_MESSAGE = sizeof(size_t);
 
-std::pair<int,Move> minmax(Game* _game, int _depth, int _alpha, int _beta, std::string& _history="") {
+std::pair<int,Move> minmax(Game* _game, int _depth, int _alpha, int _beta, std::string& _history) {
     if (_depth == 0) {// or if in stale/checkmate.
         int value = _game->m_board->staticEvaluation();
         return std::make_pair(value, Move());
     }
 
-    std::vector<Move> legalMoves = _game->m_board->getMoves(_game->m_turnWhite? WHITE : BLACK);
+    std::vector<Move> legalMoves = _game->m_board->getMoves(_game->m_turn);
     std::string depthPadding = std::string(_depth-1, '\t');
-    if (_game->m_turnWhite) {
+    if (_game->m_turn == WHITE) {
         auto bestResult = std::make_pair(std::numeric_limits<int>::min(), Move());
         for (Move m : legalMoves) {
             _game->applyMove(m);
@@ -46,6 +46,15 @@ std::pair<int,Move> minmax(Game* _game, int _depth, int _alpha, int _beta, std::
             }
         }
         return bestResult;
+    }
+}
+
+// Returns the benefit of the current position to the current player, and the best move.
+// E.g. if the position is valued at -100 centipawns and its blacks turn, it returns 100 centipawns plus the move that leads down that branch of the tree
+std::pair<int,Move> negamax(Game* _game, int _depth, int _alpha, int _beta, std::string& _history) {
+    if (_depth == 0) {// or if in stale/checkmate.
+        int value = _game->m_board->staticEvaluation();
+        return std::make_pair(value, Move());
     }
 }
 
@@ -122,7 +131,7 @@ int testMode() {
     std::cout << "At depth 1, score is " << result.first << " and best move is " << result.second.algebraic() << std::endl;
     negaHistory = "";
 
-    game.m_turnWhite = false;
+    game.m_turn = false;
     std::cout << "Testing minmax depth 1" << std::endl;
     result = minmax(&game, 1, 0, 0, negaHistory);
     std::cout << negaHistory;
@@ -141,7 +150,7 @@ int testMode() {
     std::cout << "At depth 3, score is " << result.first << " and best move is " << result.second.algebraic() << std::endl;
     negaHistory = "";
 
-    game.m_turnWhite = true;
+    game.m_turn = WHITE;
 
     std::cout << "Testing minmax depth 3" << std::endl;
     result = minmax(&game, 3, 0, 0, negaHistory);

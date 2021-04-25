@@ -15,7 +15,7 @@ class Game {
         std::stack<Move> m_moveHistory; // list of moves applied to starting FEN.
 
         short m_movesSinceLastCapture = 0; // 50 move rule
-        bool m_turnWhite = true; // whose turn it is
+        PieceColor m_turn = WHITE; // whose turn it is
         
         /** 
          * Creates a new board from SFEN.
