@@ -4,118 +4,12 @@
 #include "constants.h"
 #include "move.h"
 #include "game.h"
+#include "min_max.h"
 
 #include <iostream>
-#include <algorithm>
-#include <limits>
 
 // TODO: async search tree functions
 const size_t MAX_MESSAGE = sizeof(size_t);
-
-// Minmax, meant to be easier to understand. Use the negamax implementation instead for actual usage.
-std::pair<int,Move> minmax(Game* _game, int _depth, std::string& _history) {
-    if (_depth == 0) {// or if in stale/checkmate.
-        int value = _game->m_board->staticEvaluation();
-        return std::make_pair(value, Move());
-    }
-
-    std::vector<Move> legalMoves = _game->m_board->getMoves(_game->m_turn);
-    std::string depthPadding = std::string(_depth-1, '\t');
-    if (_game->m_turn == WHITE) {
-        if (legalMoves.size() == 0) { // FIXME: temporary hack to handle stalemates
-            return std::make_pair(-PIECE_VALUES[W_KING], Move());
-        }
-        auto bestResult = std::make_pair(std::numeric_limits<int>::min(), Move());
-        for (Move m : legalMoves) {
-            _game->applyMove(m);
-            auto result = minmax(_game, _depth-1, _history);
-            _history += depthPadding + std::to_string(result.first) + " " + m.algebraic() + '\n';
-            _game->undoMove(1);
-            if (result.first > bestResult.first) { // white tries to maximize
-                bestResult.first = result.first;
-                bestResult.second = m;
-            }
-        }
-        return bestResult;
-    } else { // turn is black's
-        if (legalMoves.size() == 0) { // FIXME: temporary hack to handle stalemates
-            return std::make_pair(-PIECE_VALUES[B_KING], Move());
-        }
-        auto bestResult = std::make_pair(std::numeric_limits<int>::max(), Move());
-        for (Move m : legalMoves) {
-            _game->applyMove(m);
-            auto result = minmax(_game, _depth-1, _history);
-            _history += depthPadding + std::to_string(result.first) + " " + m.algebraic() + '\n';
-            _game->undoMove(1);
-            if (result.first < bestResult.first) { // black tries to minimize
-                bestResult.first = result.first;
-                bestResult.second = m;
-            }
-        }
-        return bestResult;
-    }
-}
-
-// Returns the benefit of the current position to the current player, and the best move.
-// E.g. if the position is valued at -100 centipawns and its blacks turn, 
-// it returns 100 centipawns plus the move that leads down that branch of the tree whose leaf has static eval of -100.
-std::pair<int,Move> negamax(Game* _game, int _depth) {
-    if (_depth == 0) {// or if in stale/checkmate.
-        int value = _game->m_board->staticEvaluation();
-        value *= _game->m_turn;
-        return std::make_pair(value, Move());
-    }
-
-    std::vector<Move> legalMoves = _game->m_board->getMoves(_game->m_turn);
-
-    if (legalMoves.size() == 0) { // FIXME: temporary hack to handle stalemates
-        return std::make_pair(-PIECE_VALUES[W_KING], Move());
-    }
-
-    auto bestResult = std::make_pair(std::numeric_limits<int>::min(), Move());
-    for (Move m : legalMoves) {
-        _game->applyMove(m);
-        auto result = negamax(_game, _depth-1);
-        result.first = - result.first; // Benefit to our opponent is our detriment
-        _game->undoMove(1);
-        if (result.first > bestResult.first) { // maximize our benefit
-            bestResult.first = result.first;
-            bestResult.second = m;
-        }
-    }
-    return bestResult;
-}
-// Like negamax, but uses alpha-beta pruning
-std::pair<int,Move> negamaxAB(Game* _game, int _depth, int _alpha=std::numeric_limits<int>::min()+1, int _beta=std::numeric_limits<int>::max()-1) { // Note, we do the limit +- 1 to avoid any unexpected binary behavior. complement behavior
-    if (_depth == 0) {// or if in stale/checkmate.
-        int value = _game->m_board->staticEvaluation();
-        value *= _game->m_turn;
-        return std::make_pair(value, Move());
-    }
-
-    std::vector<Move> legalMoves = _game->m_board->getMoves(_game->m_turn);
-
-    if (legalMoves.size() == 0) { // FIXME: temporary hack to handle stalemates
-        return std::make_pair(-PIECE_VALUES[W_KING], Move());
-    }
-
-    auto bestResult = std::make_pair(std::numeric_limits<int>::min(), Move());
-    for (Move m : legalMoves) {
-        _game->applyMove(m);
-        auto result = negamaxAB(_game, _depth-1, -_beta, -_alpha);
-        result.first = - result.first; // Benefit to our opponent is our detriment
-        _game->undoMove(1);
-        if (result.first > bestResult.first) { // maximize our benefit
-            bestResult.first = result.first;
-            bestResult.second = m;
-        }
-        _alpha = std::max(_alpha, bestResult.first);
-        if (_alpha >= _beta) {
-            break;
-        }
-    }
-    return bestResult;
-}
 
 int xboardLoop() {
     std::string cmd;
@@ -167,16 +61,6 @@ int testMode() {
     std::cout << game.print() << std::endl;
     std::cout << game.m_board->printPieces() << std::endl;
     game.undoMove();
-    std::cout << game.print() << std::endl;
-    std::cout << game.m_board->printPieces() << std::endl;
-
-    game.applyMove(m1);
-    std::cout << game.print() << std::endl;
-    std::cout << game.m_board->printPieces() << std::endl;
-    game.applyMove(m2);
-    std::cout << game.print() << std::endl;
-    std::cout << game.m_board->printPieces() << std::endl;
-    game.undoMove(2);
     std::cout << game.print() << std::endl;
     std::cout << game.m_board->printPieces() << std::endl;
 

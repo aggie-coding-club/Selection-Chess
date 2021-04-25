@@ -37,5 +37,6 @@ gui = env.Program(compiled_path + 'SelChessGui', Split(
 engine = env.Program(compiled_path + 'engines/Hippocrene', Split(
     'hippo_main.cpp utils.cpp '
     'dll_board.cpp array_board.cpp '
-    'game.cpp move.cpp'
+    'game.cpp move.cpp '
+    'min_max.cpp'
 ))
