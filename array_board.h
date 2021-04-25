@@ -3,6 +3,7 @@
 
 #include "constants.h"
 #include "board.h"
+#include "move.h"
 
 #include <cstdint>
 #include <stack>
@@ -21,7 +22,7 @@ class ArrayBoard : public Board {
         Coords m_maxCoords;
 
         short m_movesSinceLastCapture; // 50 move rule
-        bool m_turnWhite; // whose turn it is
+        PieceColor m_turn; // whose turn it is
         // std::stack<Move> moveHistory; // list of moves applied to starting FEN.
 
         /* ------- dependent fields, store information about board that is derived from independent fields -------- */
@@ -56,26 +57,16 @@ class ArrayBoard : public Board {
          */
         std::string getAsciiBoard();
 
-        Coords getDimensions() const {
-            //TODO: implement
-            return std::make_pair(0u,0u);
-        };
-
         PieceEnum getPiece(size_t _f, size_t _r) const {
             return m_grid[_f + _r * m_grid_size];
         };
 
-        bool moveSelection(Coords _select1, Coords _select2, Coords _goal1) {
+        bool apply(Move _move) {
             //TODO: implement
             return false;
         };
 
-        bool movePiece(Coords _start, Coords _goal) {
-            //TODO: implement
-            return false;
-        };
-
-        bool undo(size_t _numMoves=1) {
+        bool undo(Move _move) {
             //TODO: implement
             return false;
         };
@@ -84,6 +75,11 @@ class ArrayBoard : public Board {
             //TODO: implement
             return 0u;
         };
+
+        int staticEvaluation() {
+            return 0;
+        }
+
 };
 
 #endif

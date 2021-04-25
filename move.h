@@ -9,10 +9,10 @@ class Move {
     public:
         Coords m_startPos;
         Coords m_endPos;
-        Move (Coords _startPos, Coords _endPos) : m_startPos(_startPos), m_endPos(_endPos) { }
-        Move () { }
+        PieceEnum m_capture;
 
-        //TODO: standard algebraic notation
+        Move (Coords _startPos, Coords _endPos) : m_startPos(_startPos), m_endPos(_endPos), m_capture(EMPTY) { }
+        Move () { }
 
         std::string algebraic();
 };

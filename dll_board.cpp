@@ -50,9 +50,7 @@ void DLLBoard::sortByCoords(bool _priorityRank, bool _reverseFile, bool _reverse
 }
 
 
-DLLBoard::DLLBoard() { 
-    m_movesSinceLastCapture = 0; // TODO: should be set by SFEN instead of initialized here
-}
+DLLBoard::DLLBoard() { }
 DLLBoard::DLLBoard(const std::string _sfen) {
     DLLBoard();
     init(_sfen);
@@ -117,10 +115,10 @@ void DLLBoard::init(const std::string _sfen) {
             for (int k = 0; k < num_empty_tiles; k++) {
                 Tile* newTile = new Tile(EMPTY, currentFR);
                 updateExtrema(currentFR);
-                currentFR.first++;
-                newTile->SetAdjacent(LEFT, getTile(std::make_pair(currentFR.first - 1, currentFR.second)));
-                newTile->SetAdjacent(UP, getTile(std::make_pair(currentFR.first, currentFR.second + 1)));
+                newTile->SetAdjacent(LEFT, getTile(std::make_pair(currentFR.first - 1, currentFR.second), true));
+                newTile->SetAdjacent(UP, getTile(std::make_pair(currentFR.first, currentFR.second + 1), true));
                 m_tiles.push_back(newTile);
+                currentFR.first++;
             }
             // dout << "Empty tiles added" << std::endl;
             continue;
@@ -131,10 +129,11 @@ void DLLBoard::init(const std::string _sfen) {
         if (thisTile != INVALID) {
             Tile* newTile = new Tile(thisTile, currentFR);
             updateExtrema(currentFR);
+            newTile->SetAdjacent(LEFT, getTile(std::make_pair(currentFR.first - 1, currentFR.second), true));
+            newTile->SetAdjacent(UP, getTile(std::make_pair(currentFR.first, currentFR.second + 1), true));
             currentFR.first++;
-            newTile->SetAdjacent(LEFT, getTile(std::make_pair(currentFR.first - 1, currentFR.second)));
-            newTile->SetAdjacent(UP, getTile(std::make_pair(currentFR.first, currentFR.second + 1)));
             m_tiles.push_back(newTile);
+            m_pieceLocations[thisTile].push_back(newTile);
             continue;
         } else {
             std::cerr << "Invalid piece symbol '" << c << "' in SFen!" << std::endl;
@@ -157,27 +156,26 @@ bool DLLBoard::operator==(const Board& _other) const {
 }
 
 bool DLLBoard::updatePieceInPL(PieceEnum _piece, Tile* _oldLocation, Tile* _newLocation) {
-    //TODO: re implement
-    // for (int i = 0; i < pieceNumbers[piece]; i++) { // loop for all pieces of type
-    //     if (pieceLocations[piece][i] == oldLocation) { // find the match
-    //         pieceLocations[piece][i] = newLocation;
-    //         return true;
-    //     }
-    // }
+    for (int i = 0; i < m_pieceLocations[_piece].size(); i++) { // loop for all pieces of type _piece
+        if (m_pieceLocations[_piece][i] == _oldLocation) { // find the match
+            m_pieceLocations[_piece][i] = _newLocation;
+            return true;
+        }
+    }
     return false;
 }
 
 bool DLLBoard::removePieceFromPL(PieceEnum _piece, Tile* _location) {
-    //TODO: re implement
-    // for (int i = 0; i < pieceNumbers[piece]; i++) { // loop for all pieces of type
-    //     if (pieceLocations[piece][i] == location) { // find the match
-    //         // override current position with last element in this row of PL
-    //         pieceLocations[piece][i] = pieceLocations[piece][pieceNumbers[piece] - 1];
-    //         // delete last element in this row of PL
-    //         pieceNumbers[piece]--;
-    //         return true;
-    //     }
-    // }
+    for (int i = 0; i < m_pieceLocations[_piece].size(); i++) { // loop for all pieces of type _piece
+        if (m_pieceLocations[_piece][i] == _location) { // find the match
+            m_pieceLocations[_piece].erase(m_pieceLocations[_piece].begin() + i);
+            // // override current position with last element in this row of PL
+            // m_pieceLocations[_piece][i] = m_pieceLocations[_piece][pieceNumbers[piece] - 1];
+            // // delete last element in this row of PL
+            // pieceNumbers[piece]--;
+            return true;
+        }
+    }
     return false;
 }
 
@@ -339,12 +337,12 @@ std::string DLLBoard::getAsciiBoard() {
         result = dividerLine + "\n" + result + "\n" + dividerLine + "\n";
     }
     // Add stuff to left side of output
-    int currentY = m_minCoords.second;
+    int currentY = getDimensions().second - 1;
     for (int i = 0; i < lines.size(); i++) {
         if (m_printSettings.m_showCoords) {
             std::string leftMargin = std::string(1, MARGIN_V_SEP) + " ";
             if (i % (m_printSettings.m_height+1) == m_printSettings.m_height / 2 + 1) {
-                leftMargin += std::to_string(currentY++);
+                leftMargin += std::to_string(currentY--);
             }
             while (leftMargin.size() < LEFT_MARGIN_SIZE) {
                 leftMargin += " ";
@@ -362,7 +360,11 @@ std::string DLLBoard::getAsciiBoard() {
     return result;
 }
 
-Tile* DLLBoard::getTile(Coords _coords) {
+Tile* DLLBoard::getTile(Coords _coords, bool _useInternal) {
+    if (!_useInternal) {
+        _coords.first += m_minCoords.first;
+        _coords.second += m_minCoords.second;
+    }
     for (auto tilesIter = m_tiles.begin(); tilesIter != m_tiles.end(); tilesIter++) {
         if ((*tilesIter)->m_coords == _coords) return *tilesIter;
     }
@@ -374,4 +376,91 @@ void DLLBoard::updateExtrema(const Coords& _new) {
     m_maxCoords.first = std::max(m_maxCoords.first, _new.first);
     m_minCoords.second = std::min(m_minCoords.second, _new.second);
     m_maxCoords.second = std::max(m_maxCoords.second, _new.second);
+}
+
+bool DLLBoard::apply(Move _move) {
+    // tdout << "applying move " << _move.algebraic() << std::endl;
+    Tile* startTile = getTile(_move.m_startPos, false);
+    Tile* endTile = getTile(_move.m_endPos, false);
+
+    // Check this is valid
+    if (startTile == nullptr || endTile == nullptr) {
+        dout << "# INVALID MOVE, TILE MISSING " << _move.algebraic() << std::endl;
+        return false;
+    }
+    if (endTile->m_contents != _move.m_capture) {
+        dout << "# INVALID MOVE, CAPTURE MISMATCH " << _move.algebraic() << std::endl;
+        return false;
+    }
+    // Execute the move
+    if (isPiece(endTile->m_contents)) {
+        removePieceFromPL(endTile->m_contents, endTile);
+    }
+    endTile->m_contents = startTile->m_contents;
+    updatePieceInPL(startTile->m_contents, startTile, endTile);
+    startTile->m_contents = EMPTY;
+    return true;
+};
+
+bool DLLBoard::undo(Move _move) {
+    // tdout << "undoing move " << _move.algebraic() << std::endl;
+    Tile* startTile = getTile(_move.m_startPos, false);
+    Tile* endTile = getTile(_move.m_endPos, false);
+
+    // Check this is valid
+    if (startTile == nullptr || endTile == nullptr) {
+        dout << "# INVALID UNDO, TILE MISSING " << _move.algebraic() << std::endl;
+        return false;
+    }
+    if (startTile->m_contents != EMPTY) {
+        dout << "# INVALID UNDO, MOVING FROM OCCUPIED SQUARE " << _move.algebraic() << std::endl;
+        return false;
+    }
+    // Execute the undo
+    updatePieceInPL(endTile->m_contents, endTile, startTile);
+    startTile->m_contents = endTile->m_contents;
+    if (isPiece(_move.m_capture)) {
+        addPieceToPL(_move.m_capture, endTile);
+    }
+    endTile->m_contents = _move.m_capture;
+    return true;
+};
+
+int DLLBoard::staticEvaluation() {
+    //TODO: this is just a dumb implementation to test if minmax works. Find a better implementation in the future.
+    int staticValue = 0;
+    for (int i = 1; i < NUM_PIECE_TYPES*2+1; i++) {
+        staticValue += PIECE_VALUES[i] * m_pieceLocations[i].size();
+        for (Tile* t : m_pieceLocations[i]) {
+            // add 20 centipawns for being on 'even' coordinates
+            if ((t->m_coords.first + t->m_coords.second) % 2 == 0) {
+                staticValue += 20 * (isWhite(i) ? 1 : -1); // negate if black
+            }
+        }
+    }
+    return staticValue;
+}
+
+std::vector<Move> DLLBoard::getMoves(PieceColor _color) {
+    // TODO: assumes all pieces can move 1 tile forward, back, left, or right, for the sake of testing minmax.
+    std::vector<Move> legalMoves;
+    for (int pieceType = (_color==WHITE ? W_PAWN : B_PAWN); pieceType < NUM_PIECE_TYPES*2+1; pieceType+=2) { // iterate over pieces of _color in piece list
+        for (Tile* t : m_pieceLocations[pieceType]) { // for all tiles of pieces of this type
+            for (int direction = LEFT; direction <= DOWN; direction++) { // iterate over 4 directions
+                if (t->HasAdjacent(direction)) {
+                    // check if empty
+                    if (t->m_adjacents[direction]->m_contents == EMPTY) {
+                        Move newMove(externalCoords(t), externalCoords(t->m_adjacents[direction]));
+                        legalMoves.push_back(newMove);
+                    // check if capture
+                    } else if (isPiece(t->m_adjacents[direction]->m_contents) && (isWhite(t->m_contents) != isWhite(t->m_adjacents[direction]->m_contents))) {
+                        Move newMove(externalCoords(t), externalCoords(t->m_adjacents[direction]));
+                        newMove.m_capture = t->m_adjacents[direction]->m_contents;
+                        legalMoves.push_back(newMove);
+                    }
+                }
+            }
+        }
+    }
+    return legalMoves;
 }

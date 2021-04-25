@@ -3,6 +3,7 @@
 
 #include "board.h"
 #include "constants.h"
+#include "move.h"
 
 #include <cstdint>
 #include <stack>
@@ -31,8 +32,12 @@ class DLLBoard : public Board {
         /* ------- independent fields, provide necessary information about board ------- */
         std::vector<Tile*> m_tiles; // Every tile, which contains piece and coords.
         
-        /** For looking up where pieces are at by their type and color. */
-        std::vector<Tile*> pieceLocations[2 * NUM_PIECE_TYPES];
+        /** 
+         * For looking up where pieces are at by their type and color. 
+         * Organized in same order as PieceEnum: 
+         *      since PieceEnum starts pieces on 1, the zero element of this is a placeholder.
+        */
+        std::vector<Tile*> m_pieceLocations[NUM_PIECE_TYPES * 2+1];
 
         /** 
          * Creates a new board from SFEN.
@@ -59,6 +64,12 @@ class DLLBoard : public Board {
          * Returns false if it does not find such a piece to remove.
          */
         bool removePieceFromPL(PieceEnum _piece, Tile* _location);
+        /** 
+         * Adds the piece at location for type piece.
+         */
+        void addPieceToPL(PieceEnum _piece, Tile* _location) {
+            m_pieceLocations[_piece].push_back(_location);
+        }
 
         /** 
          * Print the current tiles and pieces in a nice ASCII format.
@@ -68,32 +79,19 @@ class DLLBoard : public Board {
 
         std::string toSfen();
 
-        Tile* getTile(Coords _coords);
-
-        Coords getDimensions() const {
-            //TODO: implement
-            return std::make_pair(0u,0u);
-        };
+        // Gets the tile at _coords. 
+        // If _useInternal=true, it will get the tile whose m_coords=_coords.
+        // If _useInternal=false, it will get the tile whose displayed coords = _coords.
+        Tile* getTile(Coords _coords, bool _useInternal);
 
         PieceEnum getPiece(size_t _f, size_t _r) const {
             //TODO: implement
             return EMPTY;
         };
 
-        bool moveSelection(Coords _select1, Coords _select2, Coords _goal1) {
-            //TODO: implement
-            return false;
-        };
+        bool apply(Move _move);
 
-        bool movePiece(Coords _start, Coords _goal) {
-            //TODO: implement
-            return false;
-        };
-
-        bool undo(size_t _numMoves=1) {
-            //TODO: implement
-            return false;
-        };
+        bool undo(Move _move);
 
         uint64_t getHash() const {
             //TODO: implement
@@ -123,6 +121,36 @@ class DLLBoard : public Board {
         }
 
         void updateExtrema(const Coords& _new);
+
+        int staticEvaluation();
+
+        // For debugging purposes. Prints all pieces in the m_pieceLocations list
+        std::string printPieces() {
+            std::string result = "[";
+            for (int i = 1; i < NUM_PIECE_TYPES*2+1; i++) {
+                result += PIECE_LETTERS[i];
+                result += "=" + std::to_string(m_pieceLocations[i].size()) + "{";
+                for (Tile* t : m_pieceLocations[i]) {
+                    result += PIECE_LETTERS[t->m_contents];
+                    result += " ";
+                }
+                result += "} ";
+            }
+            result += "]";
+            return result;
+        }
+
+        std::vector<Move> getMoves(PieceColor _color);
+
+        // Gets the external coords of a given tile.
+        // External coords are used by things like moves and stuff.
+        // Assumes _tile is valid, and not nullpointer
+        Coords externalCoords(Tile* _tile) {
+            Coords ext = _tile->m_coords; // copy
+            ext.first -= m_minCoords.first;
+            ext.second -= m_minCoords.second;
+            return ext;
+        }
 };
 
 #endif

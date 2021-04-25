@@ -3,6 +3,9 @@
 
 #include "constants.h"
 #include "utils.h"
+#include "move.h"
+
+#include <vector>
 
 class BoardPrintSettings {
     public:
@@ -29,10 +32,6 @@ class Board {
         Coords m_minCoords;
         Coords m_maxCoords;
 
-        int m_movesSinceLastCapture; // 50 move rule
-        bool m_turnWhite; // whose turn it is
-        // std::stack<Move> moveHistory; // list of moves applied to starting FEN.
-
         int m_material; // changed material score to just be material for both
         uint64_t m_hashCode;
 
@@ -53,35 +52,48 @@ class Board {
         /**
          * Gets the size of the minimum rectangle needed to surround this board in its current configuration.
          */
-        virtual Coords getDimensions() const = 0;
+        virtual Coords getDimensions() const {
+            return std::make_pair(m_maxCoords.first - m_minCoords.first + 1, m_maxCoords.second - m_minCoords.second + 1);
+        };
 
         /**
          * Gets the piece at the rank and file, zero indexed from current bounds.
          */
         virtual PieceEnum getPiece(size_t _f, size_t _r) const = 0;
 
-        /**
-         * Attempt to move selection of tiles (_selectMinR, _selectMinF)-(_selectMaxR, _selectMaxF) to the new coords (_goalMinR, _goalMinF).
-         *                                        lower left corner           upper right corner                         lower left corner
-         * Returns false if the move is illegal.
-         */
-        virtual bool moveSelection(Coords _select1, Coords _select2, Coords _goal1) = 0;
+        // /**
+        //  * Attempt to move selection of tiles (_selectMinR, _selectMinF)-(_selectMaxR, _selectMaxF) to the new coords (_goalMinR, _goalMinF).
+        //  *                                        lower left corner           upper right corner                         lower left corner
+        //  * Returns false if the move is illegal.
+        //  */
+        // virtual bool moveSelection(Coords _select1, Coords _select2, Coords _goal1) = 0;
 
-        /**
-         * Attempt to move piece at (_startR, _startF) to the new Coords (_goalR, _goalF).
-         * Returns false if the move is illegal.
-         */
-        virtual bool movePiece(Coords _start, Coords _goal) = 0;
+        // /**
+        //  * Attempt to move piece at (_startR, _startF) to the new Coords (_goalR, _goalF).
+        //  * Returns false if the move is illegal.
+        //  */
+        // virtual bool movePiece(Coords _start, Coords _goal) = 0;
+
+        virtual bool apply(Move _move) = 0;
 
         /**
          * Undoes the last move(s) made on this board.
          */
-        virtual bool undo(size_t _numMoves=1) = 0;
+        virtual bool undo(Move _move) = 0;
 
         /**
          * Gets the hash of this configuration.
          */
         virtual uint64_t getHash() const = 0;
+
+        virtual int staticEvaluation() = 0;
+
+        // For debugging purposes.
+        virtual std::string printPieces() {
+            return "[Lol I'm just the parent class, I can't do this]";
+        }
+
+        virtual std::vector<Move> getMoves(PieceColor _color) = 0;
 
         // TODO: add some functions for moving tiles
 };

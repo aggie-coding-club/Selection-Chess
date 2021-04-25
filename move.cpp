@@ -34,7 +34,7 @@ std::string intToLetters(unsigned int _int) {
 }
 
 std::string Move::algebraic() {
-    return "";
+    return coordsToAlgebraic(m_startPos) + coordsToAlgebraic(m_endPos);
 }
 
 Move readLongAlgebraic(std::string _algebra) {
