@@ -11,7 +11,7 @@
 
 class Game {
     public:
-        Board* m_board;
+        Board* m_board = nullptr;
         std::stack<Move> m_moveHistory; // list of moves applied to starting FEN.
 
         short m_movesSinceLastCapture = 0; // 50 move rule
@@ -21,6 +21,7 @@ class Game {
          * Creates a new board from SFEN.
          */
         Game(const std::string _sfen);
+        void reset(const std::string _sfen);
 
         bool applyMove(Move _move);
 

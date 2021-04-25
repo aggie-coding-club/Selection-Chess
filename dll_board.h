@@ -139,6 +139,18 @@ class DLLBoard : public Board {
             result += "]";
             return result;
         }
+
+        std::vector<Move> getMoves(PieceColor _color);
+
+        // Gets the external coords of a given tile.
+        // External coords are used by things like moves and stuff.
+        // Assumes _tile is valid, and not nullpointer
+        Coords externalCoords(Tile* _tile) {
+            Coords ext = _tile->m_coords; // copy
+            ext.first -= m_minCoords.first;
+            ext.second -= m_minCoords.second;
+            return ext;
+        }
 };
 
 #endif

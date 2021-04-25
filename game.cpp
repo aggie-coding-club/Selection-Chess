@@ -5,9 +5,18 @@
 #include "dll_board.h"
 
 Game::Game(const std::string _sfen) {
+    reset(_sfen);
+}
+
+void Game::reset(const std::string _sfen) {
+    BoardPrintSettings ps;
+    if (m_board != nullptr) {
+        ps = m_board->m_printSettings;
+    }
     // TODO: implement
     // m_board = new ArrayBoard("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
     m_board = new DLLBoard(_sfen);
+    m_board->m_printSettings = ps;
     dout << "Game Constructed board" << std::endl;
 }
 
@@ -17,6 +26,7 @@ std::string Game::print() {
         result += "Last move: " + m_moveHistory.top().algebraic() + "\n";
     }
     result += "Moves since last capture: " + std::to_string(m_movesSinceLastCapture) + "\n";
+    result += "Estimated score for this position: " + std::to_string(m_board->staticEvaluation()) + "\n";
     result += m_turnWhite? "White's Turn\n" : "Black's Turn\n";
     return result;
 }

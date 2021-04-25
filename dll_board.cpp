@@ -115,10 +115,10 @@ void DLLBoard::init(const std::string _sfen) {
             for (int k = 0; k < num_empty_tiles; k++) {
                 Tile* newTile = new Tile(EMPTY, currentFR);
                 updateExtrema(currentFR);
-                currentFR.first++;
                 newTile->SetAdjacent(LEFT, getTile(std::make_pair(currentFR.first - 1, currentFR.second), true));
                 newTile->SetAdjacent(UP, getTile(std::make_pair(currentFR.first, currentFR.second + 1), true));
                 m_tiles.push_back(newTile);
+                currentFR.first++;
             }
             // dout << "Empty tiles added" << std::endl;
             continue;
@@ -129,9 +129,9 @@ void DLLBoard::init(const std::string _sfen) {
         if (thisTile != INVALID) {
             Tile* newTile = new Tile(thisTile, currentFR);
             updateExtrema(currentFR);
-            currentFR.first++;
             newTile->SetAdjacent(LEFT, getTile(std::make_pair(currentFR.first - 1, currentFR.second), true));
             newTile->SetAdjacent(UP, getTile(std::make_pair(currentFR.first, currentFR.second + 1), true));
+            currentFR.first++;
             m_tiles.push_back(newTile);
             m_pieceLocations[thisTile].push_back(newTile);
             continue;
@@ -379,7 +379,7 @@ void DLLBoard::updateExtrema(const Coords& _new) {
 }
 
 bool DLLBoard::apply(Move _move) {
-    tdout << "applying move " << _move.algebraic() << std::endl;
+    // tdout << "applying move " << _move.algebraic() << std::endl;
     Tile* startTile = getTile(_move.m_startPos, false);
     Tile* endTile = getTile(_move.m_endPos, false);
 
@@ -403,7 +403,7 @@ bool DLLBoard::apply(Move _move) {
 };
 
 bool DLLBoard::undo(Move _move) {
-    tdout << "undoing move " << _move.algebraic() << std::endl;
+    // tdout << "undoing move " << _move.algebraic() << std::endl;
     Tile* startTile = getTile(_move.m_startPos, false);
     Tile* endTile = getTile(_move.m_endPos, false);
 
@@ -427,6 +427,40 @@ bool DLLBoard::undo(Move _move) {
 };
 
 int DLLBoard::staticEvaluation() {
-    //TODO:
-    return 0;
+    //TODO: this is just a dumb implementation to test if minmax works. Find a better implementation in the future.
+    int staticValue = 0;
+    for (int i = 1; i < NUM_PIECE_TYPES*2+1; i++) {
+        staticValue += PIECE_VALUES[i] * m_pieceLocations[i].size();
+        for (Tile* t : m_pieceLocations[i]) {
+            // add 20 centipawns for being on 'even' coordinates
+            if ((t->m_coords.first + t->m_coords.second) % 2 == 0) {
+                staticValue += 20 * (isWhite(i) ? 1 : -1); // negate if black
+            }
+        }
+    }
+    return staticValue;
+}
+
+std::vector<Move> DLLBoard::getMoves(PieceColor _color) {
+    // TODO: assumes all pieces can move 1 tile forward, back, left, or right, for the sake of testing minmax.
+    std::vector<Move> legalMoves;
+    for (int pieceType = (_color==WHITE ? W_PAWN : B_PAWN); pieceType < NUM_PIECE_TYPES*2+1; pieceType+=2) { // iterate over pieces of _color in piece list
+        for (Tile* t : m_pieceLocations[pieceType]) { // for all tiles of pieces of this type
+            for (int direction = LEFT; direction <= DOWN; direction++) { // iterate over 4 directions
+                if (t->HasAdjacent(direction)) {
+                    // check if empty
+                    if (t->m_adjacents[direction]->m_contents == EMPTY) {
+                        Move newMove(externalCoords(t), externalCoords(t->m_adjacents[direction]));
+                        legalMoves.push_back(newMove);
+                    // check if capture
+                    } else if (isPiece(t->m_adjacents[direction]->m_contents) && (isWhite(t->m_contents) != isWhite(t->m_adjacents[direction]->m_contents))) {
+                        Move newMove(externalCoords(t), externalCoords(t->m_adjacents[direction]));
+                        newMove.m_capture = t->m_adjacents[direction]->m_contents;
+                        legalMoves.push_back(newMove);
+                    }
+                }
+            }
+        }
+    }
+    return legalMoves;
 }

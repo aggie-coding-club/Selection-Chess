@@ -5,6 +5,8 @@
 #include "utils.h"
 #include "move.h"
 
+#include <vector>
+
 class BoardPrintSettings {
     public:
     bool m_showCoords = false;
@@ -91,6 +93,7 @@ class Board {
             return "[Lol I'm just the parent class, I can't do this]";
         }
 
+        virtual std::vector<Move> getMoves(PieceColor _color) = 0;
 
         // TODO: add some functions for moving tiles
 };

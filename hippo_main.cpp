@@ -6,9 +6,48 @@
 #include "game.h"
 
 #include <iostream>
+#include <algorithm>
+#include <limits>
 
 // TODO: async search tree functions
 const size_t MAX_MESSAGE = sizeof(size_t);
+
+std::pair<int,Move> minmax(Game* _game, int _depth, int _alpha, int _beta, std::string& _history="") {
+    if (_depth == 0) {// or if in stale/checkmate.
+        int value = _game->m_board->staticEvaluation();
+        return std::make_pair(value, Move());
+    }
+
+    std::vector<Move> legalMoves = _game->m_board->getMoves(_game->m_turnWhite? WHITE : BLACK);
+    std::string depthPadding = std::string(_depth-1, '\t');
+    if (_game->m_turnWhite) {
+        auto bestResult = std::make_pair(std::numeric_limits<int>::min(), Move());
+        for (Move m : legalMoves) {
+            _game->applyMove(m);
+            auto result = minmax(_game, _depth-1, -_beta, -_alpha, _history);
+            _history += depthPadding + std::to_string(result.first) + " " + m.algebraic() + '\n';
+            _game->undoMove(1);
+            if (result.first > bestResult.first) { // white tries to maximize
+                bestResult.first = result.first;
+                bestResult.second = m;
+            }
+        }
+        return bestResult;
+    } else {
+        auto bestResult = std::make_pair(std::numeric_limits<int>::max(), Move());
+        for (Move m : legalMoves) {
+            _game->applyMove(m);
+            auto result = minmax(_game, _depth-1, -_beta, -_alpha, _history);
+            _history += depthPadding + std::to_string(result.first) + " " + m.algebraic() + '\n';
+            _game->undoMove(1);
+            if (result.first < bestResult.first) { // black tries to minimize
+                bestResult.first = result.first;
+                bestResult.second = m;
+            }
+        }
+        return bestResult;
+    }
+}
 
 int xboardLoop() {
     std::string cmd;
@@ -37,7 +76,7 @@ int xboardLoop() {
 }
 int testMode() {
     std::string cmd;
-    Game game("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1"); // engine's memory of the board
+    Game game("rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR w 0 1"); // engine's memory of the board
     game.m_board->m_printSettings.m_tileFillChar = '-';
     game.m_board->m_printSettings.m_height = 1;
     game.m_board->m_printSettings.m_width = 1;
@@ -72,6 +111,43 @@ int testMode() {
     game.undoMove(2);
     std::cout << game.print() << std::endl;
     std::cout << game.m_board->printPieces() << std::endl;
+
+    game.reset("P2/1K1/1pk w 0 1"); // simple case to play with
+    std::cout << game.print() << std::endl;
+
+    std::string negaHistory = "";
+    std::cout << "Testing minmax depth 1" << std::endl;
+    auto result = minmax(&game, 1, 0, 0, negaHistory);
+    std::cout << negaHistory;
+    std::cout << "At depth 1, score is " << result.first << " and best move is " << result.second.algebraic() << std::endl;
+    negaHistory = "";
+
+    game.m_turnWhite = false;
+    std::cout << "Testing minmax depth 1" << std::endl;
+    result = minmax(&game, 1, 0, 0, negaHistory);
+    std::cout << negaHistory;
+    std::cout << "At depth 1, score is " << result.first << " and best move is " << result.second.algebraic() << std::endl;
+    negaHistory = "";
+
+    std::cout << "Testing minmax depth 2" << std::endl;
+    result = minmax(&game, 2, 0, 0, negaHistory);
+    std::cout << negaHistory;
+    std::cout << "At depth 2, score is " << result.first << " and best move is " << result.second.algebraic() << std::endl;
+    negaHistory = "";
+
+    std::cout << "Testing minmax depth 3" << std::endl;
+    result = minmax(&game, 3, 0, 0, negaHistory);
+    std::cout << negaHistory;
+    std::cout << "At depth 3, score is " << result.first << " and best move is " << result.second.algebraic() << std::endl;
+    negaHistory = "";
+
+    game.m_turnWhite = true;
+
+    std::cout << "Testing minmax depth 3" << std::endl;
+    result = minmax(&game, 3, 0, 0, negaHistory);
+    std::cout << negaHistory;
+    std::cout << "At depth 3, score is " << result.first << " and best move is " << result.second.algebraic() << std::endl;
+    negaHistory = "";
 
     std::cout << "Done testing" << std::endl;
     return 0;
