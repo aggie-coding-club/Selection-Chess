@@ -32,8 +32,12 @@ class DLLBoard : public Board {
         /* ------- independent fields, provide necessary information about board ------- */
         std::vector<Tile*> m_tiles; // Every tile, which contains piece and coords.
         
-        /** For looking up where pieces are at by their type and color. */
-        std::vector<Tile*> pieceLocations[2 * NUM_PIECE_TYPES];
+        /** 
+         * For looking up where pieces are at by their type and color. 
+         * Organized in same order as PieceEnum: 
+         *      since PieceEnum starts pieces on 1, the zero element of this is a placeholder.
+        */
+        std::vector<Tile*> m_pieceLocations[NUM_PIECE_TYPES * 2+1];
 
         /** 
          * Creates a new board from SFEN.
@@ -60,6 +64,12 @@ class DLLBoard : public Board {
          * Returns false if it does not find such a piece to remove.
          */
         bool removePieceFromPL(PieceEnum _piece, Tile* _location);
+        /** 
+         * Adds the piece at location for type piece.
+         */
+        void addPieceToPL(PieceEnum _piece, Tile* _location) {
+            m_pieceLocations[_piece].push_back(_location);
+        }
 
         /** 
          * Print the current tiles and pieces in a nice ASCII format.
@@ -111,6 +121,24 @@ class DLLBoard : public Board {
         }
 
         void updateExtrema(const Coords& _new);
+
+        int staticEvaluation();
+
+        // For debugging purposes. Prints all pieces in the m_pieceLocations list
+        std::string printPieces() {
+            std::string result = "[";
+            for (int i = 1; i < NUM_PIECE_TYPES*2+1; i++) {
+                result += PIECE_LETTERS[i];
+                result += "=" + std::to_string(m_pieceLocations[i].size()) + "{";
+                for (Tile* t : m_pieceLocations[i]) {
+                    result += PIECE_LETTERS[t->m_contents];
+                    result += " ";
+                }
+                result += "} ";
+            }
+            result += "]";
+            return result;
+        }
 };
 
 #endif

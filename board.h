@@ -84,6 +84,14 @@ class Board {
          */
         virtual uint64_t getHash() const = 0;
 
+        virtual int staticEvaluation() = 0;
+
+        // For debugging purposes.
+        virtual std::string printPieces() {
+            return "[Lol I'm just the parent class, I can't do this]";
+        }
+
+
         // TODO: add some functions for moving tiles
 };
 

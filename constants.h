@@ -15,7 +15,7 @@ enum : CustomException {EXCP_ENGINE_DIED=101};
  * We also use this so that this enum can be directly used as an array index for pieces
 */
 typedef unsigned char PieceEnum;
-enum : PieceEnum {EMPTY=0, W_PAWN, B_PAWN, W_ROOK, B_ROOK, W_KNIGHT, B_KNIGHT, W_BISHOP, B_BISHOP, W_QUEEN, B_QUEEN, W_KING, B_KING, INVALID};
+enum : PieceEnum {EMPTY=0, W_PAWN=1, B_PAWN, W_ROOK, B_ROOK, W_KNIGHT, B_KNIGHT, W_BISHOP, B_BISHOP, W_QUEEN, B_QUEEN, W_KING, B_KING, INVALID};
 
 typedef unsigned char PieceType;
 enum : PieceType {PAWN, ROOK, KNIGHT, BISHOP, QUEEN, KING};

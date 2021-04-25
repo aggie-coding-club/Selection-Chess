@@ -75,6 +75,11 @@ class ArrayBoard : public Board {
             //TODO: implement
             return 0u;
         };
+
+        int staticEvaluation() {
+            return 0;
+        }
+
 };
 
 #endif

@@ -48,23 +48,30 @@ int testMode() {
     Move m1(std::make_pair(1,0), std::make_pair(0, 2));
     game.applyMove(m1);
     std::cout << game.print() << std::endl;
+    std::cout << game.m_board->printPieces() << std::endl;
 
     Move m2(std::make_pair(0, 2), std::make_pair(2, 1));
     m2.m_capture = W_PAWN;
     game.applyMove(m2);
     std::cout << game.print() << std::endl;
+    std::cout << game.m_board->printPieces() << std::endl;
 
     game.undoMove();
     std::cout << game.print() << std::endl;
+    std::cout << game.m_board->printPieces() << std::endl;
     game.undoMove();
     std::cout << game.print() << std::endl;
+    std::cout << game.m_board->printPieces() << std::endl;
 
     game.applyMove(m1);
     std::cout << game.print() << std::endl;
+    std::cout << game.m_board->printPieces() << std::endl;
     game.applyMove(m2);
     std::cout << game.print() << std::endl;
+    std::cout << game.m_board->printPieces() << std::endl;
     game.undoMove(2);
     std::cout << game.print() << std::endl;
+    std::cout << game.m_board->printPieces() << std::endl;
 
     std::cout << "Done testing" << std::endl;
     return 0;

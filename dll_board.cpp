@@ -133,6 +133,7 @@ void DLLBoard::init(const std::string _sfen) {
             newTile->SetAdjacent(LEFT, getTile(std::make_pair(currentFR.first - 1, currentFR.second), true));
             newTile->SetAdjacent(UP, getTile(std::make_pair(currentFR.first, currentFR.second + 1), true));
             m_tiles.push_back(newTile);
+            m_pieceLocations[thisTile].push_back(newTile);
             continue;
         } else {
             std::cerr << "Invalid piece symbol '" << c << "' in SFen!" << std::endl;
@@ -155,27 +156,26 @@ bool DLLBoard::operator==(const Board& _other) const {
 }
 
 bool DLLBoard::updatePieceInPL(PieceEnum _piece, Tile* _oldLocation, Tile* _newLocation) {
-    //TODO: re implement
-    // for (int i = 0; i < pieceNumbers[piece]; i++) { // loop for all pieces of type
-    //     if (pieceLocations[piece][i] == oldLocation) { // find the match
-    //         pieceLocations[piece][i] = newLocation;
-    //         return true;
-    //     }
-    // }
+    for (int i = 0; i < m_pieceLocations[_piece].size(); i++) { // loop for all pieces of type _piece
+        if (m_pieceLocations[_piece][i] == _oldLocation) { // find the match
+            m_pieceLocations[_piece][i] = _newLocation;
+            return true;
+        }
+    }
     return false;
 }
 
 bool DLLBoard::removePieceFromPL(PieceEnum _piece, Tile* _location) {
-    //TODO: re implement
-    // for (int i = 0; i < pieceNumbers[piece]; i++) { // loop for all pieces of type
-    //     if (pieceLocations[piece][i] == location) { // find the match
-    //         // override current position with last element in this row of PL
-    //         pieceLocations[piece][i] = pieceLocations[piece][pieceNumbers[piece] - 1];
-    //         // delete last element in this row of PL
-    //         pieceNumbers[piece]--;
-    //         return true;
-    //     }
-    // }
+    for (int i = 0; i < m_pieceLocations[_piece].size(); i++) { // loop for all pieces of type _piece
+        if (m_pieceLocations[_piece][i] == _location) { // find the match
+            m_pieceLocations[_piece].erase(m_pieceLocations[_piece].begin() + i);
+            // // override current position with last element in this row of PL
+            // m_pieceLocations[_piece][i] = m_pieceLocations[_piece][pieceNumbers[piece] - 1];
+            // // delete last element in this row of PL
+            // pieceNumbers[piece]--;
+            return true;
+        }
+    }
     return false;
 }
 
@@ -393,7 +393,11 @@ bool DLLBoard::apply(Move _move) {
         return false;
     }
     // Execute the move
+    if (isPiece(endTile->m_contents)) {
+        removePieceFromPL(endTile->m_contents, endTile);
+    }
     endTile->m_contents = startTile->m_contents;
+    updatePieceInPL(startTile->m_contents, startTile, endTile);
     startTile->m_contents = EMPTY;
     return true;
 };
@@ -413,7 +417,16 @@ bool DLLBoard::undo(Move _move) {
         return false;
     }
     // Execute the undo
+    updatePieceInPL(endTile->m_contents, endTile, startTile);
     startTile->m_contents = endTile->m_contents;
+    if (isPiece(_move.m_capture)) {
+        addPieceToPL(_move.m_capture, endTile);
+    }
     endTile->m_contents = _move.m_capture;
     return true;
 };
+
+int DLLBoard::staticEvaluation() {
+    //TODO:
+    return 0;
+}
