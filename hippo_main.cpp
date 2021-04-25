@@ -22,6 +22,9 @@ std::pair<int,Move> minmax(Game* _game, int _depth, std::string& _history) {
     std::vector<Move> legalMoves = _game->m_board->getMoves(_game->m_turn);
     std::string depthPadding = std::string(_depth-1, '\t');
     if (_game->m_turn == WHITE) {
+        if (legalMoves.size() == 0) { // FIXME: temporary hack to handle stalemates
+            return std::make_pair(-PIECE_VALUES[W_KING], Move());
+        }
         auto bestResult = std::make_pair(std::numeric_limits<int>::min(), Move());
         for (Move m : legalMoves) {
             _game->applyMove(m);
@@ -34,7 +37,10 @@ std::pair<int,Move> minmax(Game* _game, int _depth, std::string& _history) {
             }
         }
         return bestResult;
-    } else {
+    } else { // turn is black's
+        if (legalMoves.size() == 0) { // FIXME: temporary hack to handle stalemates
+            return std::make_pair(-PIECE_VALUES[B_KING], Move());
+        }
         auto bestResult = std::make_pair(std::numeric_limits<int>::max(), Move());
         for (Move m : legalMoves) {
             _game->applyMove(m);
@@ -53,7 +59,7 @@ std::pair<int,Move> minmax(Game* _game, int _depth, std::string& _history) {
 // Returns the benefit of the current position to the current player, and the best move.
 // E.g. if the position is valued at -100 centipawns and its blacks turn, 
 // it returns 100 centipawns plus the move that leads down that branch of the tree whose leaf has static eval of -100.
-std::pair<int,Move> negamax(Game* _game, int _depth, int _alpha, int _beta) {
+std::pair<int,Move> negamax(Game* _game, int _depth) {
     if (_depth == 0) {// or if in stale/checkmate.
         int value = _game->m_board->staticEvaluation();
         value *= _game->m_turn;
@@ -61,15 +67,51 @@ std::pair<int,Move> negamax(Game* _game, int _depth, int _alpha, int _beta) {
     }
 
     std::vector<Move> legalMoves = _game->m_board->getMoves(_game->m_turn);
+
+    if (legalMoves.size() == 0) { // FIXME: temporary hack to handle stalemates
+        return std::make_pair(-PIECE_VALUES[W_KING], Move());
+    }
+
     auto bestResult = std::make_pair(std::numeric_limits<int>::min(), Move());
     for (Move m : legalMoves) {
         _game->applyMove(m);
-        auto result = negamax(_game, _depth-1, -_beta, -_alpha);
+        auto result = negamax(_game, _depth-1);
         result.first = - result.first; // Benefit to our opponent is our detriment
         _game->undoMove(1);
         if (result.first > bestResult.first) { // maximize our benefit
             bestResult.first = result.first;
             bestResult.second = m;
+        }
+    }
+    return bestResult;
+}
+// Like negamax, but uses alpha-beta pruning
+std::pair<int,Move> negamaxAB(Game* _game, int _depth, int _alpha=std::numeric_limits<int>::min()+1, int _beta=std::numeric_limits<int>::max()-1) { // Note, we do the limit +- 1 to avoid any unexpected binary behavior. complement behavior
+    if (_depth == 0) {// or if in stale/checkmate.
+        int value = _game->m_board->staticEvaluation();
+        value *= _game->m_turn;
+        return std::make_pair(value, Move());
+    }
+
+    std::vector<Move> legalMoves = _game->m_board->getMoves(_game->m_turn);
+
+    if (legalMoves.size() == 0) { // FIXME: temporary hack to handle stalemates
+        return std::make_pair(-PIECE_VALUES[W_KING], Move());
+    }
+
+    auto bestResult = std::make_pair(std::numeric_limits<int>::min(), Move());
+    for (Move m : legalMoves) {
+        _game->applyMove(m);
+        auto result = negamaxAB(_game, _depth-1, -_beta, -_alpha);
+        result.first = - result.first; // Benefit to our opponent is our detriment
+        _game->undoMove(1);
+        if (result.first > bestResult.first) { // maximize our benefit
+            bestResult.first = result.first;
+            bestResult.second = m;
+        }
+        _alpha = std::max(_alpha, bestResult.first);
+        if (_alpha >= _beta) {
+            break;
         }
     }
     return bestResult;
@@ -154,8 +196,10 @@ int testMode() {
     result = minmax(&game, 3, negaHistory);
     std::cout << negaHistory;
     std::cout << "At depth 3, score is " << result.first << " and best move is " << result.second.algebraic() << std::endl;
-    result = negamax(&game, 3, 0, 0);
+    result = negamax(&game, 3);
     std::cout << "At depth 3, negmax found score is " << result.first << " and best move is " << result.second.algebraic() << std::endl;
+    result = negamaxAB(&game, 3);
+    std::cout << "At depth 3, negmaxAB found score is " << result.first << " and best move is " << result.second.algebraic() << std::endl;
     negaHistory = "";
 
     game.m_turn = WHITE;
@@ -164,8 +208,20 @@ int testMode() {
     result = minmax(&game, 3, negaHistory);
     std::cout << negaHistory;
     std::cout << "At depth 3, score is " << result.first << " and best move is " << result.second.algebraic() << std::endl;
-    result = negamax(&game, 3, 0, 0);
+    result = negamax(&game, 3);
     std::cout << "At depth 3, negmax found score is " << result.first << " and best move is " << result.second.algebraic() << std::endl;
+    result = negamaxAB(&game, 3);
+    std::cout << "At depth 3, negmaxAB found score is " << result.first << " and best move is " << result.second.algebraic() << std::endl;
+    negaHistory = "";
+
+    std::cout << "Testing minmax depth 8" << std::endl;
+    result = minmax(&game, 8, negaHistory);
+    // std::cout << negaHistory;
+    std::cout << "At depth 8, score is " << result.first << " and best move is " << result.second.algebraic() << std::endl;
+    result = negamax(&game, 8);
+    std::cout << "At depth 8, negmax found score is " << result.first << " and best move is " << result.second.algebraic() << std::endl;
+    result = negamaxAB(&game, 8);
+    std::cout << "At depth 8, negmaxAB found score is " << result.first << " and best move is " << result.second.algebraic() << std::endl;
     negaHistory = "";
 
     std::cout << "Done testing" << std::endl;
