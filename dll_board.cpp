@@ -51,8 +51,7 @@ void DLLBoard::sortByCoords(bool _priorityRank, bool _reverseFile, bool _reverse
 
 
 DLLBoard::DLLBoard() { }
-DLLBoard::DLLBoard(const std::string _sfen) {
-    DLLBoard();
+DLLBoard::DLLBoard(const std::string _sfen) : DLLBoard() {
     init(_sfen);
 }
 void DLLBoard::init(const std::string _sfen) {
@@ -378,30 +377,26 @@ void DLLBoard::updateExtrema(const Coords& _new) {
     m_maxCoords.second = std::max(m_maxCoords.second, _new.second);
 }
 
-bool DLLBoard::apply(Move* _move) {
+bool DLLBoard::apply(std::shared_ptr<Move> _move) {
     switch (_move->m_type) {
     case PIECE_MOVE:
-        return apply((PieceMove*) _move);
-        break;
-    
+        return apply(std::static_pointer_cast<PieceMove>(_move));    
     default:
         dout << "FEATURE NOT IMPLEMENTED YET. Unknown Move Type [" << _move->m_type << "]\n" << WHERE << std::endl;
-        break;
+        return false;
     }
 }
-bool DLLBoard::undo(Move* _move) {
+bool DLLBoard::undo(std::shared_ptr<Move> _move) {
     switch (_move->m_type) {
     case PIECE_MOVE:
-        return undo((PieceMove*) _move);
-        break;
-    
+        return undo(std::static_pointer_cast<PieceMove>(_move));
     default:
         dout << "FEATURE NOT IMPLEMENTED YET. Unknown Move Type [" << _move->m_type << "]\n" << WHERE << std::endl;
-        break;
+        return false;
     }
 }
 
-bool DLLBoard::apply(PieceMove* _move) {
+bool DLLBoard::apply(std::shared_ptr<PieceMove> _move) {
     // tdout << "applying move " << _move.algebraic() << std::endl;
     Tile* startTile = getTile(_move->m_startPos, false);
     Tile* endTile = getTile(_move->m_endPos, false);
@@ -425,7 +420,7 @@ bool DLLBoard::apply(PieceMove* _move) {
     return true;
 };
 
-bool DLLBoard::undo(PieceMove* _move) {
+bool DLLBoard::undo(std::shared_ptr<PieceMove> _move) {
     // tdout << "undoing move " << _move.algebraic() << std::endl;
     Tile* startTile = getTile(_move->m_startPos, false);
     Tile* endTile = getTile(_move->m_endPos, false);
@@ -464,22 +459,22 @@ int DLLBoard::staticEvaluation() {
     return staticValue;
 }
 
-std::vector<Move*> DLLBoard::getMoves(PieceColor _color) {
+std::vector<std::unique_ptr<Move>> DLLBoard::getMoves(PieceColor _color) {
     // TODO: assumes all pieces can move 1 tile forward, back, left, or right, for the sake of testing minmax.
-    std::vector<Move*> legalMoves;
+    std::vector<std::unique_ptr<Move>> legalMoves;
     for (int pieceType = (_color==WHITE ? W_PAWN : B_PAWN); pieceType < NUM_PIECE_TYPES*2+1; pieceType+=2) { // iterate over pieces of _color in piece list
         for (Tile* t : m_pieceLocations[pieceType]) { // for all tiles of pieces of this type
             for (int direction = LEFT; direction <= DOWN; direction++) { // iterate over 4 directions
                 if (t->HasAdjacent(direction)) {
                     // check if empty
                     if (t->m_adjacents[direction]->m_contents == EMPTY) {
-                        PieceMove* newMove = new PieceMove(externalCoords(t), externalCoords(t->m_adjacents[direction]));
-                        legalMoves.push_back(newMove);
+                        std::unique_ptr<PieceMove> newMove (new PieceMove(externalCoords(t), externalCoords(t->m_adjacents[direction])));
+                        legalMoves.push_back(std::move(newMove));
                     // check if capture
                     } else if (isPiece(t->m_adjacents[direction]->m_contents) && (isWhite(t->m_contents) != isWhite(t->m_adjacents[direction]->m_contents))) {
-                        PieceMove* newMove = new PieceMove(externalCoords(t), externalCoords(t->m_adjacents[direction]));
+                        std::unique_ptr<PieceMove> newMove (new PieceMove(externalCoords(t), externalCoords(t->m_adjacents[direction])));
                         newMove->m_capture = t->m_adjacents[direction]->m_contents;
-                        legalMoves.push_back(newMove);
+                        legalMoves.push_back(std::move(newMove));
                     }
                 }
             }

@@ -15,9 +15,9 @@ class PlayerRunner {
 
         virtual void quit() = 0;
 
-        virtual Move* getMove() = 0;
+        virtual std::unique_ptr<Move> getMove() = 0;
 
-        virtual bool setMove(Move* _move) = 0;
+        virtual bool setMove(std::unique_ptr<Move>& _move) = 0;
 
         virtual void run() = 0;
 };

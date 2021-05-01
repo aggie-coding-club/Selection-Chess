@@ -74,12 +74,12 @@ class Board {
         //  */
         // virtual bool movePiece(Coords _start, Coords _goal) = 0;
 
-        virtual bool apply(Move* _move) = 0;
+        virtual bool apply(std::shared_ptr<Move> _move) = 0;
 
         /**
          * Undoes the last move(s) made on this board.
          */
-        virtual bool undo(Move* _move) = 0;
+        virtual bool undo(std::shared_ptr<Move> _move) = 0;
 
         /**
          * Gets the hash of this configuration.
@@ -93,7 +93,7 @@ class Board {
             return "[Lol I'm just the parent class, I can't do this]";
         }
 
-        virtual std::vector<Move*> getMoves(PieceColor _color) = 0;
+        virtual std::vector<std::unique_ptr<Move>> getMoves(PieceColor _color) = 0;
 
         // TODO: add some functions for moving tiles
 };

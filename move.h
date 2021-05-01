@@ -6,6 +6,7 @@
 #include <sstream>
 #include <vector>
 #include <iostream>
+#include <memory>
 
 // Note: all of this object-orientatedness around the move class is for readibility.
 // I bet you can pack this functionality into a single Move object and not have to use the heap,
@@ -14,13 +15,15 @@
 // FIXME: Probably should use smart pointers for moves
 
 typedef int MoveType;
-enum : MoveType {PIECE_MOVE, TILE_MOVE, TILE_DELETION};
+enum : MoveType {INVALID_MOVE, PIECE_MOVE, TILE_MOVE, TILE_DELETION};
 
 // Abstract class for moves
 class Move {
     public:
-        virtual std::string algebraic() = 0;
-        MoveType m_type;
+        virtual std::string algebraic() {
+            return "[INVALID MOVE]";
+        };
+        MoveType m_type = INVALID_MOVE;
 };
 
 // When a piece is moved. This is the normal type of move.
@@ -89,7 +92,7 @@ class TileDeletion : public Move {
         std::string algebraic();
 };
 
-Move* readAlgebraic(std::string _algebra);
+std::unique_ptr<Move> readAlgebraic(std::string _algebra);
 
 std::string coordsToAlgebraic(Coords _coords, Coords _offset=std::make_pair(0,0));
 Coords algebraicToCoords(std::string _algebra, Coords _offset=std::make_pair(0,0));

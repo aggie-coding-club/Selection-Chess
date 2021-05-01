@@ -139,12 +139,12 @@ void EngineRunner::quit() {
     edout << "Done with boost code." << std::endl;
 }
 
-Move* EngineRunner::getMove() {
+std::unique_ptr<Move> EngineRunner::getMove() {
     edout << "getMove" << std::endl;
-    return new PieceMove();
+    return std::unique_ptr<Move>(nullptr);
 }
 
-bool EngineRunner::setMove(Move* _move) {
+bool EngineRunner::setMove(std::unique_ptr<Move>& _move) {
     return true;
 }
 

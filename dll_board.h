@@ -89,15 +89,15 @@ class DLLBoard : public Board {
             return EMPTY;
         };
 
-        bool apply(Move* _move);
-        bool apply(PieceMove* _move);
-        bool apply(TileMove* _move);
-        bool apply(TileDeletion* _move);
+        bool apply(std::shared_ptr<Move> _move);
+        bool apply(std::shared_ptr<PieceMove> _move);
+        bool apply(std::shared_ptr<TileMove> _move);
+        bool apply(std::shared_ptr<TileDeletion> _move);
 
-        bool undo(Move* _move);
-        bool undo(PieceMove* _move);
-        bool undo(TileMove* _move);
-        bool undo(TileDeletion* _move);
+        bool undo(std::shared_ptr<Move> _move);
+        bool undo(std::shared_ptr<PieceMove> _move);
+        bool undo(std::shared_ptr<TileMove> _move);
+        bool undo(std::shared_ptr<TileDeletion> _move);
 
         uint64_t getHash() const {
             //TODO: implement
@@ -146,7 +146,7 @@ class DLLBoard : public Board {
             return result;
         }
 
-        std::vector<Move*> getMoves(PieceColor _color);
+        std::vector<std::unique_ptr<Move>> getMoves(PieceColor _color);
 
         // Gets the external coords of a given tile.
         // External coords are used by things like moves and stuff.

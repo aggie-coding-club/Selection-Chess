@@ -47,13 +47,13 @@ std::string TileDeletion::algebraic() {
     return result;
 }
 
-Move* readLongAlgebraic(std::string _algebra) {
+std::unique_ptr<Move> readLongAlgebraic(std::string _algebra) {
     AlgebraicTokenizer tokenizer(_algebra);
     if (isalpha(tokenizer.peek()[0]) && isupper(tokenizer.peek()[0])) { // got a capital prefix
         if (tokenizer.peek() == "S") { // this is a tile selection move
             tokenizer.next();
             // TODO: clean this up
-            Move* move = new TileMove(
+            std::unique_ptr<Move> move (new TileMove(
                 std::make_pair(
                     lettersToInt(tokenizer.next()),
                     std::stoi(tokenizer.next())
@@ -66,12 +66,12 @@ Move* readLongAlgebraic(std::string _algebra) {
                     lettersToInt(tokenizer.next()),
                     std::stoi(tokenizer.next())
                 )
-            );
+            ));
             return move;
         }
     }
     // TODO: handle errors
-    return new PieceMove(
+    return std::unique_ptr<Move> (new PieceMove(
         std::make_pair(
             lettersToInt(tokenizer.next()),
             std::stoi(tokenizer.next())
@@ -80,7 +80,7 @@ Move* readLongAlgebraic(std::string _algebra) {
             lettersToInt(tokenizer.next()),
             std::stoi(tokenizer.next())
         )
-    );
+    ));
 }
 
 std::string coordsToAlgebraic(Coords _coords, Coords _offset) {

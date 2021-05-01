@@ -61,12 +61,12 @@ class ArrayBoard : public Board {
             return m_grid[_f + _r * m_grid_size];
         };
 
-        bool apply(Move* _move) {
+        bool apply(std::unique_ptr<Move>& _move) {
             //TODO: implement
             return false;
         };
 
-        bool undo(Move* _move) {
+        bool undo(std::unique_ptr<Move>& _move) {
             //TODO: implement
             return false;
         };

@@ -31,22 +31,23 @@ std::string Game::print() {
     return result;
 }
 
-bool Game::applyMove(Move* _move){
+bool Game::applyMove(std::shared_ptr<Move> _move){
     if (!m_board->apply(_move)) {
         return false;
     }
     m_turn = -m_turn;
     m_moveHistory.push(_move);
-    if (_move->m_type == PIECE_MOVE && ((PieceMove*)_move)->m_capture != EMPTY) {
+    if (_move->m_type == PIECE_MOVE && (std::static_pointer_cast<PieceMove>(_move))->m_capture != EMPTY) {
         m_movesSinceLastCapture = 0;
     } else {
         m_movesSinceLastCapture++;
     }
+    return true;
 };
 
 bool Game::undoMove(size_t _numMoves) {
     for (; _numMoves > 0; _numMoves--) {
-        Move* undone = m_moveHistory.top();
+        std::shared_ptr<Move> undone = m_moveHistory.top();
         if (!m_board->undo(undone)) {
             return false; // TODO: idk if I need to delete 'undone' here or not
         }
@@ -55,4 +56,5 @@ bool Game::undoMove(size_t _numMoves) {
         m_turn = -m_turn;
         // TODO: how do we restore moveSinceLastCapture?
     }
+    return true;
 };

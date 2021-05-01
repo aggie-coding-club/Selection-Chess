@@ -42,9 +42,9 @@ class EngineRunner : public PlayerRunner {
 
         void quit();
 
-        Move* getMove();
+        std::unique_ptr<Move> getMove();
 
-        bool setMove(Move* _move);
+        bool setMove(std::unique_ptr<Move>& _move);
 
         // fills m_cmdQueue as input comes in
         void run();
