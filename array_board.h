@@ -23,7 +23,7 @@ class ArrayBoard : public Board {
 
         short m_movesSinceLastCapture; // 50 move rule
         PieceColor m_turn; // whose turn it is
-        // std::stack<Move> moveHistory; // list of moves applied to starting FEN.
+        // std::stack<PieceMove> moveHistory; // list of moves applied to starting FEN.
 
         /* ------- dependent fields, store information about board that is derived from independent fields -------- */
         short m_material; // changed material score to just be material for both
@@ -61,12 +61,12 @@ class ArrayBoard : public Board {
             return m_grid[_f + _r * m_grid_size];
         };
 
-        bool apply(Move _move) {
+        bool apply(Move* _move) {
             //TODO: implement
             return false;
         };
 
-        bool undo(Move _move) {
+        bool undo(Move* _move) {
             //TODO: implement
             return false;
         };

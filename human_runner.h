@@ -40,9 +40,9 @@ class HumanRunner : public PlayerRunner {
 
         void quit();
 
-        Move getMove();
+        Move* getMove();
 
-        bool setMove(Move _move);
+        bool setMove(Move* _move);
 
         // fills m_cmdQueue as input comes in
         void run();

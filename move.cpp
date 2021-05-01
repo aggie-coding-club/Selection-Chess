@@ -33,14 +33,45 @@ std::string intToLetters(unsigned int _int) {
     return letters;
 }
 
-std::string Move::algebraic() {
+std::string PieceMove::algebraic() {
     return coordsToAlgebraic(m_startPos) + coordsToAlgebraic(m_endPos);
 }
+std::string TileMove::algebraic() {
+    return "S" + coordsToAlgebraic(m_selFirst) + coordsToAlgebraic(m_selSecond) + coordsToAlgebraic(m_destFirst);
+}
+std::string TileDeletion::algebraic() {
+    std::string result = "D";
+    for (Coords c : m_deleteCoords) {
+        result += coordsToAlgebraic(c);
+    }
+    return result;
+}
 
-Move readLongAlgebraic(std::string _algebra) {
+Move* readLongAlgebraic(std::string _algebra) {
     AlgebraicTokenizer tokenizer(_algebra);
+    if (isalpha(tokenizer.peek()[0]) && isupper(tokenizer.peek()[0])) { // got a capital prefix
+        if (tokenizer.peek() == "S") { // this is a tile selection move
+            tokenizer.next();
+            // TODO: clean this up
+            Move* move = new TileMove(
+                std::make_pair(
+                    lettersToInt(tokenizer.next()),
+                    std::stoi(tokenizer.next())
+                ),
+                std::make_pair(
+                    lettersToInt(tokenizer.next()),
+                    std::stoi(tokenizer.next())
+                ),
+                std::make_pair(
+                    lettersToInt(tokenizer.next()),
+                    std::stoi(tokenizer.next())
+                )
+            );
+            return move;
+        }
+    }
     // TODO: handle errors
-    return Move(
+    return new PieceMove(
         std::make_pair(
             lettersToInt(tokenizer.next()),
             std::stoi(tokenizer.next())
@@ -89,9 +120,14 @@ std::string AlgebraicTokenizer::next() {
     }
 
     char lookahead = m_stream.peek();
-    if (isalpha(lookahead)) {
-        return matchHomogenous(m_stream, isalpha);
-    } else if (isdigit(lookahead)) {
+    if (isalpha(lookahead)) { 
+        if (islower(lookahead)) { // lowercase letter is a file coord
+            return matchHomogenous(m_stream, isalpha);
+        }
+        m_stream.ignore(); // pop character
+        return std::string(1, lookahead);
+
+    } else if (isdigit(lookahead)) { // digit is a rank coord
         return matchHomogenous(m_stream, isdigit);
     } else {
         dout << WHERE << "Error: Unknown character in algebraic string '" << lookahead << "'" << std::endl;

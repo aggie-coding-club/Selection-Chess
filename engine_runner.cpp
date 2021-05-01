@@ -139,12 +139,12 @@ void EngineRunner::quit() {
     edout << "Done with boost code." << std::endl;
 }
 
-Move EngineRunner::getMove() {
+Move* EngineRunner::getMove() {
     edout << "getMove" << std::endl;
-    return Move();
+    return new PieceMove();
 }
 
-bool EngineRunner::setMove(Move _move) {
+bool EngineRunner::setMove(Move* _move) {
     return true;
 }
 

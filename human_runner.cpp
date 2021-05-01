@@ -18,13 +18,13 @@ void HumanRunner::quit() {
     m_alive = false;
 }
 
-Move HumanRunner::getMove() {
+Move* HumanRunner::getMove() {
     edout << "getMove" << std::endl;
     //TODO: literally get move from human
-    return Move();
+    return new PieceMove();
 }
 
-bool HumanRunner::setMove(Move _move) {
+bool HumanRunner::setMove(Move* _move) {
     return true;
 }
 

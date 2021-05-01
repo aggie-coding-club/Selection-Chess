@@ -46,14 +46,14 @@ int testMode() {
 
     std::cout << game.print() << std::endl;
 
-    Move m1(std::make_pair(1,0), std::make_pair(0, 2));
-    game.applyMove(m1);
+    PieceMove m1(std::make_pair(1,0), std::make_pair(0, 2));
+    game.applyMove(&m1);
     std::cout << game.print() << std::endl;
     std::cout << game.m_board->printPieces() << std::endl;
 
-    Move m2(std::make_pair(0, 2), std::make_pair(2, 1));
+    PieceMove m2(std::make_pair(0, 2), std::make_pair(2, 1));
     m2.m_capture = W_PAWN;
-    game.applyMove(m2);
+    game.applyMove(&m2);
     std::cout << game.print() << std::endl;
     std::cout << game.m_board->printPieces() << std::endl;
 
@@ -71,7 +71,7 @@ int testMode() {
     std::cout << "Testing minmax depth 1" << std::endl;
     auto result = minmax(&game, 1, negaHistory);
     std::cout << negaHistory;
-    std::cout << "At depth 1, score is " << result.first << " and best move is " << result.second.algebraic() << std::endl;
+    std::cout << "At depth 1, score is " << result.first << " and best move is " << result.second->algebraic() << std::endl;
     negaHistory = "";
 
     game.m_turn = BLACK;
@@ -79,11 +79,11 @@ int testMode() {
     std::cout << "Testing minmax depth 3" << std::endl;
     result = minmax(&game, 3, negaHistory);
     std::cout << negaHistory;
-    std::cout << "At depth 3, score is " << result.first << " and best move is " << result.second.algebraic() << std::endl;
+    std::cout << "At depth 3, score is " << result.first << " and best move is " << result.second->algebraic() << std::endl;
     result = negamax(&game, 3);
-    std::cout << "At depth 3, negmax found score is " << result.first << " and best move is " << result.second.algebraic() << std::endl;
+    std::cout << "At depth 3, negmax found score is " << result.first << " and best move is " << result.second->algebraic() << std::endl;
     result = negamaxAB(&game, 3);
-    std::cout << "At depth 3, negmaxAB found score is " << result.first << " and best move is " << result.second.algebraic() << std::endl;
+    std::cout << "At depth 3, negmaxAB found score is " << result.first << " and best move is " << result.second->algebraic() << std::endl;
     negaHistory = "";
 
     game.m_turn = WHITE;
@@ -91,21 +91,21 @@ int testMode() {
     std::cout << "Testing minmax depth 3" << std::endl;
     result = minmax(&game, 3, negaHistory);
     std::cout << negaHistory;
-    std::cout << "At depth 3, score is " << result.first << " and best move is " << result.second.algebraic() << std::endl;
+    std::cout << "At depth 3, score is " << result.first << " and best move is " << result.second->algebraic() << std::endl;
     result = negamax(&game, 3);
-    std::cout << "At depth 3, negmax found score is " << result.first << " and best move is " << result.second.algebraic() << std::endl;
+    std::cout << "At depth 3, negmax found score is " << result.first << " and best move is " << result.second->algebraic() << std::endl;
     result = negamaxAB(&game, 3);
-    std::cout << "At depth 3, negmaxAB found score is " << result.first << " and best move is " << result.second.algebraic() << std::endl;
+    std::cout << "At depth 3, negmaxAB found score is " << result.first << " and best move is " << result.second->algebraic() << std::endl;
     negaHistory = "";
 
     std::cout << "Testing minmax depth 8" << std::endl;
     result = minmax(&game, 8, negaHistory);
     // std::cout << negaHistory;
-    std::cout << "At depth 8, score is " << result.first << " and best move is " << result.second.algebraic() << std::endl;
+    std::cout << "At depth 8, score is " << result.first << " and best move is " << result.second->algebraic() << std::endl;
     result = negamax(&game, 8);
-    std::cout << "At depth 8, negmax found score is " << result.first << " and best move is " << result.second.algebraic() << std::endl;
+    std::cout << "At depth 8, negmax found score is " << result.first << " and best move is " << result.second->algebraic() << std::endl;
     result = negamaxAB(&game, 8);
-    std::cout << "At depth 8, negmaxAB found score is " << result.first << " and best move is " << result.second.algebraic() << std::endl;
+    std::cout << "At depth 8, negmaxAB found score is " << result.first << " and best move is " << result.second->algebraic() << std::endl;
     negaHistory = "";
 
     std::cout << "Done testing" << std::endl;

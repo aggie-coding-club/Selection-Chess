@@ -115,7 +115,7 @@ int main(int argc, char *argv[]) {
     c2 = algebraicToCoords(coordsToAlgebraic(c2));
     dout << c1.first << ", " << c1.second << std::endl;
     dout << c2.first << ", " << c2.second << std::endl;
-    Move m1(c1, c2);
+    PieceMove m1(c1, c2);
     dout << m1.algebraic() << std::endl;
     dout << "Done with all tests" << std::endl;
 

@@ -378,18 +378,41 @@ void DLLBoard::updateExtrema(const Coords& _new) {
     m_maxCoords.second = std::max(m_maxCoords.second, _new.second);
 }
 
-bool DLLBoard::apply(Move _move) {
+bool DLLBoard::apply(Move* _move) {
+    switch (_move->m_type) {
+    case PIECE_MOVE:
+        return apply((PieceMove*) _move);
+        break;
+    
+    default:
+        dout << "FEATURE NOT IMPLEMENTED YET. Unknown Move Type [" << _move->m_type << "]\n" << WHERE << std::endl;
+        break;
+    }
+}
+bool DLLBoard::undo(Move* _move) {
+    switch (_move->m_type) {
+    case PIECE_MOVE:
+        return undo((PieceMove*) _move);
+        break;
+    
+    default:
+        dout << "FEATURE NOT IMPLEMENTED YET. Unknown Move Type [" << _move->m_type << "]\n" << WHERE << std::endl;
+        break;
+    }
+}
+
+bool DLLBoard::apply(PieceMove* _move) {
     // tdout << "applying move " << _move.algebraic() << std::endl;
-    Tile* startTile = getTile(_move.m_startPos, false);
-    Tile* endTile = getTile(_move.m_endPos, false);
+    Tile* startTile = getTile(_move->m_startPos, false);
+    Tile* endTile = getTile(_move->m_endPos, false);
 
     // Check this is valid
     if (startTile == nullptr || endTile == nullptr) {
-        dout << "# INVALID MOVE, TILE MISSING " << _move.algebraic() << std::endl;
+        dout << "# INVALID MOVE, TILE MISSING " << _move->algebraic() << std::endl;
         return false;
     }
-    if (endTile->m_contents != _move.m_capture) {
-        dout << "# INVALID MOVE, CAPTURE MISMATCH " << _move.algebraic() << std::endl;
+    if (endTile->m_contents != _move->m_capture) {
+        dout << "# INVALID MOVE, CAPTURE MISMATCH " << _move->algebraic() << std::endl;
         return false;
     }
     // Execute the move
@@ -402,27 +425,27 @@ bool DLLBoard::apply(Move _move) {
     return true;
 };
 
-bool DLLBoard::undo(Move _move) {
+bool DLLBoard::undo(PieceMove* _move) {
     // tdout << "undoing move " << _move.algebraic() << std::endl;
-    Tile* startTile = getTile(_move.m_startPos, false);
-    Tile* endTile = getTile(_move.m_endPos, false);
+    Tile* startTile = getTile(_move->m_startPos, false);
+    Tile* endTile = getTile(_move->m_endPos, false);
 
     // Check this is valid
     if (startTile == nullptr || endTile == nullptr) {
-        dout << "# INVALID UNDO, TILE MISSING " << _move.algebraic() << std::endl;
+        dout << "# INVALID UNDO, TILE MISSING " << _move->algebraic() << std::endl;
         return false;
     }
     if (startTile->m_contents != EMPTY) {
-        dout << "# INVALID UNDO, MOVING FROM OCCUPIED SQUARE " << _move.algebraic() << std::endl;
+        dout << "# INVALID UNDO, MOVING FROM OCCUPIED SQUARE " << _move->algebraic() << std::endl;
         return false;
     }
     // Execute the undo
     updatePieceInPL(endTile->m_contents, endTile, startTile);
     startTile->m_contents = endTile->m_contents;
-    if (isPiece(_move.m_capture)) {
-        addPieceToPL(_move.m_capture, endTile);
+    if (isPiece(_move->m_capture)) {
+        addPieceToPL(_move->m_capture, endTile);
     }
-    endTile->m_contents = _move.m_capture;
+    endTile->m_contents = _move->m_capture;
     return true;
 };
 
@@ -441,21 +464,21 @@ int DLLBoard::staticEvaluation() {
     return staticValue;
 }
 
-std::vector<Move> DLLBoard::getMoves(PieceColor _color) {
+std::vector<Move*> DLLBoard::getMoves(PieceColor _color) {
     // TODO: assumes all pieces can move 1 tile forward, back, left, or right, for the sake of testing minmax.
-    std::vector<Move> legalMoves;
+    std::vector<Move*> legalMoves;
     for (int pieceType = (_color==WHITE ? W_PAWN : B_PAWN); pieceType < NUM_PIECE_TYPES*2+1; pieceType+=2) { // iterate over pieces of _color in piece list
         for (Tile* t : m_pieceLocations[pieceType]) { // for all tiles of pieces of this type
             for (int direction = LEFT; direction <= DOWN; direction++) { // iterate over 4 directions
                 if (t->HasAdjacent(direction)) {
                     // check if empty
                     if (t->m_adjacents[direction]->m_contents == EMPTY) {
-                        Move newMove(externalCoords(t), externalCoords(t->m_adjacents[direction]));
+                        PieceMove* newMove = new PieceMove(externalCoords(t), externalCoords(t->m_adjacents[direction]));
                         legalMoves.push_back(newMove);
                     // check if capture
                     } else if (isPiece(t->m_adjacents[direction]->m_contents) && (isWhite(t->m_contents) != isWhite(t->m_adjacents[direction]->m_contents))) {
-                        Move newMove(externalCoords(t), externalCoords(t->m_adjacents[direction]));
-                        newMove.m_capture = t->m_adjacents[direction]->m_contents;
+                        PieceMove* newMove = new PieceMove(externalCoords(t), externalCoords(t->m_adjacents[direction]));
+                        newMove->m_capture = t->m_adjacents[direction]->m_contents;
                         legalMoves.push_back(newMove);
                     }
                 }

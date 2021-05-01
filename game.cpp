@@ -23,7 +23,7 @@ void Game::reset(const std::string _sfen) {
 std::string Game::print() {
     std::string result = m_board->getAsciiBoard();
     if (!m_moveHistory.empty()) {
-        result += "Last move: " + m_moveHistory.top().algebraic() + "\n";
+        result += "Last move: " + m_moveHistory.top()->algebraic() + "\n";
     }
     result += "Moves since last capture: " + std::to_string(m_movesSinceLastCapture) + "\n";
     result += "Estimated score for this position: " + std::to_string(m_board->staticEvaluation()) + "\n";
@@ -31,13 +31,13 @@ std::string Game::print() {
     return result;
 }
 
-bool Game::applyMove(Move _move){
+bool Game::applyMove(Move* _move){
     if (!m_board->apply(_move)) {
         return false;
     }
     m_turn = -m_turn;
     m_moveHistory.push(_move);
-    if (_move.m_capture != EMPTY) {
+    if (_move->m_type == PIECE_MOVE && ((PieceMove*)_move)->m_capture != EMPTY) {
         m_movesSinceLastCapture = 0;
     } else {
         m_movesSinceLastCapture++;
@@ -46,12 +46,13 @@ bool Game::applyMove(Move _move){
 
 bool Game::undoMove(size_t _numMoves) {
     for (; _numMoves > 0; _numMoves--) {
-        Move undone = m_moveHistory.top();
+        Move* undone = m_moveHistory.top();
         if (!m_board->undo(undone)) {
-            return false;
+            return false; // TODO: idk if I need to delete 'undone' here or not
         }
+        m_moveHistory.pop();
+        // delete undone; // TODO: not sure if we should delete this here? Yeah we probably should use smart pointers
         m_turn = -m_turn;
         // TODO: how do we restore moveSinceLastCapture?
-        m_moveHistory.pop();
     }
 };
