@@ -57,8 +57,6 @@ std::string matchWordToken(std::istream& _stream) {
     }
 }
 
-CmdTokenizer::CmdTokenizer(std::string _string) : m_stream(_string) { }
-
 std::string CmdTokenizer::next() {
     if (m_hasPeeked) {
         m_hasPeeked = false;
@@ -87,12 +85,4 @@ std::string CmdTokenizer::next() {
     } else {
         return matchWordToken(m_stream);
     }
-}
-
-std::string CmdTokenizer::peek() {
-    if (!m_hasPeeked) {
-        m_peeked = next();
-        m_hasPeeked = true;
-    }
-    return m_peeked;
 }

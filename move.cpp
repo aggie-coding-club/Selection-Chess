@@ -159,10 +159,3 @@ Coords AlgebraicTokenizer::nextCoords() {
     return std::make_pair(lettersToInt(letters), (unsigned int) std::stoi(numbers));
 }
 
-std::string AbstractTokenizer::peek() {
-    if (!m_hasPeeked) {
-        m_peeked = next();
-        m_hasPeeked = true;
-    }
-    return m_peeked;
-}

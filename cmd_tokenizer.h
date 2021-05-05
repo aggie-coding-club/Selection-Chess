@@ -1,20 +1,17 @@
-#ifndef TOKENIZER_H
-#define TOKENIZER_H
+#ifndef CMD_TOKENIZER_H
+#define CMD_TOKENIZER_H
 
+#include "tokenizer.h"
 #include "constants.h"
 
-#include <sstream>
-
-class CmdTokenizer {
-    protected:
-        std::stringstream m_stream;
-        std::string m_peeked;
-        bool m_hasPeeked = false;
+// Tokenizer for parsing commands sent to GUI from engine
+class CmdTokenizer : public AbstractTokenizer {
     public:
-        CmdTokenizer (std::string _string);
+        CmdTokenizer (std::string _string) : AbstractTokenizer(_string) {};
         std::string next();
-        std::string peek();
 };
 
+// TODO: probably provide another tokenizer for commands from engine to GUI here. 
+// It'll share much of the same code, so we can probably just put it in this file.
 
 #endif

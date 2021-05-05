@@ -2,6 +2,7 @@
 #define MOVE_H
 
 #include "constants.h"
+#include "tokenizer.h"
 
 #include <sstream>
 #include <vector>
@@ -103,26 +104,6 @@ std::unique_ptr<Move> readAlgebraic(std::string _algebra);
 
 std::string coordsToAlgebraic(Coords _coords, Coords _offset=std::make_pair(0,0));
 Coords algebraicToCoords(std::string _algebra, Coords _offset=std::make_pair(0,0));
-
-//TODO: move this class somewhere better, and make CmdTokenizer used in xboard commands a child of it
-class AbstractTokenizer {
-    protected:
-        std::stringstream m_stream;
-        std::string m_peeked;
-        bool m_hasPeeked = false;
-    public:
-        AbstractTokenizer(std::string _string) : m_stream(_string) { };
-
-        // gets the next lexeme and pops it
-        virtual std::string next() = 0;
-        // gets the next lexeme without popping it
-        std::string peek();
-
-        // returns if m_stream is emptied
-        virtual bool hasNext() {
-            return m_hasPeeked || m_stream.peek() != EOF;
-        }
-};
 
 class AlgebraicTokenizer : public AbstractTokenizer {
     public:
