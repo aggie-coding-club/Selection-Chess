@@ -1,8 +1,8 @@
-#include "tokenizer.h"
+#include "cmd_tokenizer.h"
 #include "constants.h"
 #include "utils.h"
 
-// Note: since Tokenizer is only being called on strings created from std::getline(), 
+// Note: since CmdTokenizer is only being called on strings created from std::getline(), 
 // then anything here relating to '\n' is unecessary complexity.
 // TODO: if this newline complexity is not used in the future, 
 // we should probably remove it.
@@ -57,9 +57,9 @@ std::string matchWordToken(std::istream& _stream) {
     }
 }
 
-Tokenizer::Tokenizer(std::string _string) : m_stream(_string) { }
+CmdTokenizer::CmdTokenizer(std::string _string) : m_stream(_string) { }
 
-std::string Tokenizer::next() {
+std::string CmdTokenizer::next() {
     if (m_hasPeeked) {
         m_hasPeeked = false;
         return m_peeked;
@@ -89,7 +89,7 @@ std::string Tokenizer::next() {
     }
 }
 
-std::string Tokenizer::peek() {
+std::string CmdTokenizer::peek() {
     if (!m_hasPeeked) {
         m_peeked = next();
         m_hasPeeked = true;

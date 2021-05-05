@@ -6,7 +6,7 @@
 #include "human_runner.h"
 
 // only here for the debug test
-#include "tokenizer.h" 
+#include "cmd_tokenizer.h" 
 #include "move.h"
 
 #include <cstdint>
@@ -89,14 +89,14 @@ bool debugTests() {
     std::cout << game.print() << std::endl;
     dout << "Successfully exited" << std::endl;
 
-    dout << "testing Tokenizer..." << std::endl;
-    Tokenizer t("feature done=0 myname=\"Jeff\" debug=1 done=1");
+    dout << "testing CmdTokenizer..." << std::endl;
+    CmdTokenizer t("feature done=0 myname=\"Jeff\" debug=1 done=1");
     std::string token;
     do {
         token = t.next();
         dout << "\t[" << token << "]" << std::endl;
     } while (token.front() != EOF);
-    dout << "done testing Tokenizer" << std::endl;
+    dout << "done testing CmdTokenizer" << std::endl;
 
     dout << "Testing overriding initialization" << std::endl;
     std::cout << game.print() << std::endl;

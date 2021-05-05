@@ -104,7 +104,7 @@ std::unique_ptr<Move> readAlgebraic(std::string _algebra);
 std::string coordsToAlgebraic(Coords _coords, Coords _offset=std::make_pair(0,0));
 Coords algebraicToCoords(std::string _algebra, Coords _offset=std::make_pair(0,0));
 
-//TODO: move this class somewhere better, and make Tokenizer used in xboard commands a child of it
+//TODO: move this class somewhere better, and make CmdTokenizer used in xboard commands a child of it
 class AbstractTokenizer {
     protected:
         std::stringstream m_stream;

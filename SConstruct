@@ -32,7 +32,7 @@ gui = env.Program(compiled_path + 'SelChessGui', Split(
     'gui_main.cpp utils.cpp '
     'dll_board.cpp array_board.cpp '
     'game.cpp move.cpp '
-    'engine_runner.cpp human_runner.cpp tokenizer.cpp'
+    'engine_runner.cpp human_runner.cpp cmd_tokenizer.cpp'
 ))
 engine = env.Program(compiled_path + 'engines/Hippocrene', Split(
     'hippo_main.cpp utils.cpp '
