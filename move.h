@@ -60,9 +60,17 @@ class TileMove : public Move {
         // Bottom left corner of the destination for our selection, use to tell where to move the board to
         Coords m_destFirst;
 
-        TileMove (Coords _selBottomLeft, Coords _selTopRight, Coords _destBottomLeft)
-         : m_selFirst(_selBottomLeft), m_selSecond(_selTopRight), m_destFirst(_destBottomLeft) {
-            TileMove();
+        // The symmetry operators applied to this move.
+        // The absolute value of this specifies how many rotations to apply,
+        // and the sign specifies whether to mirror about the vertical after the rotations.
+        // Valid values range from -4 to 4, excluding 0. (Note we don't use 0 because -0=0)
+        // TODO: use this member
+        int m_symmetry = 4;
+
+        TileMove (Coords _selBottomLeft, Coords _selTopRight, Coords _destBottomLeft) : TileMove() {
+            m_selFirst = _selBottomLeft;
+            m_selSecond = _selTopRight;
+            m_destFirst = _destBottomLeft;
         }
         TileMove() {
             m_type = TILE_MOVE;
@@ -77,13 +85,12 @@ class TileDeletion : public Move {
         std::vector<Coords> m_deleteCoords;
 
         // Constructor for multiple coords
-        TileDeletion (std::vector<Coords> _deleteCoords) : m_deleteCoords(_deleteCoords) {
-            TileDeletion();
+        TileDeletion (std::vector<Coords> _deleteCoords) : TileDeletion() {
+            m_deleteCoords = _deleteCoords;
         }
         // Constructor for one coord
-        TileDeletion (Coords _deleteCoord) {
+        TileDeletion (Coords _deleteCoord) : TileDeletion() {
             m_deleteCoords.push_back(_deleteCoord);
-            TileDeletion();
         }
         TileDeletion() {
             m_type = TILE_DELETION;
@@ -105,14 +112,24 @@ class AbstractTokenizer {
         bool m_hasPeeked = false;
     public:
         AbstractTokenizer(std::string _string) : m_stream(_string) { };
+
+        // gets the next lexeme and pops it
         virtual std::string next() = 0;
+        // gets the next lexeme without popping it
         std::string peek();
+
+        // returns if m_stream is emptied
+        virtual bool hasNext() {
+            return m_hasPeeked || m_stream.peek() != EOF;
+        }
 };
 
 class AlgebraicTokenizer : public AbstractTokenizer {
     public:
         AlgebraicTokenizer(std::string _string) : AbstractTokenizer(_string) {}
+        // returns the next lexeme in the algebraic string. If we have reached the end of the string, return empty string.
         std::string next();
+        Coords nextCoords();
 };
 
 

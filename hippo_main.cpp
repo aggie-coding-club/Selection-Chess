@@ -8,7 +8,6 @@
 
 #include <iostream>
 
-// TODO: async search tree functions
 const size_t MAX_MESSAGE = sizeof(size_t);
 
 int xboardLoop() {

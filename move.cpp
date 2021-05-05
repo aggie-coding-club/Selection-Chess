@@ -37,7 +37,14 @@ std::string PieceMove::algebraic() {
     return coordsToAlgebraic(m_startPos) + coordsToAlgebraic(m_endPos);
 }
 std::string TileMove::algebraic() {
-    return "S" + coordsToAlgebraic(m_selFirst) + coordsToAlgebraic(m_selSecond) + coordsToAlgebraic(m_destFirst);
+    std::string result = "S" + coordsToAlgebraic(m_selFirst) + coordsToAlgebraic(m_selSecond) + coordsToAlgebraic(m_destFirst);
+    if (abs(m_symmetry) < 4) {
+        result += "R" + std::to_string(abs(m_symmetry));
+    }
+    if (m_symmetry < 0) {
+        result += "F";
+    }
+    return result;
 }
 std::string TileDeletion::algebraic() {
     std::string result = "D";
@@ -47,40 +54,51 @@ std::string TileDeletion::algebraic() {
     return result;
 }
 
-std::unique_ptr<Move> readLongAlgebraic(std::string _algebra) {
+std::unique_ptr<Move> readAlgebraic(std::string _algebra) {
+    dout << "readAlgebraic(" << _algebra << ")" << std::endl;
     AlgebraicTokenizer tokenizer(_algebra);
+
     if (isalpha(tokenizer.peek()[0]) && isupper(tokenizer.peek()[0])) { // got a capital prefix
+
         if (tokenizer.peek() == "S") { // this is a tile selection move
-            tokenizer.next();
-            // TODO: clean this up
-            std::unique_ptr<Move> move (new TileMove(
-                std::make_pair(
-                    lettersToInt(tokenizer.next()),
-                    std::stoi(tokenizer.next())
-                ),
-                std::make_pair(
-                    lettersToInt(tokenizer.next()),
-                    std::stoi(tokenizer.next())
-                ),
-                std::make_pair(
-                    lettersToInt(tokenizer.next()),
-                    std::stoi(tokenizer.next())
-                )
-            ));
+            tokenizer.next(); // eat the S
+            Coords f = tokenizer.nextCoords(); Coords s = tokenizer.nextCoords(); Coords d = tokenizer.nextCoords(); // We declare them before passing as params to make sure order of operations is OK
+            std::unique_ptr<TileMove> move = std::make_unique<TileMove>(f, s, d);
+            if (tokenizer.hasNext()) { // Using symmetry modifier(s)
+                if (tokenizer.peek() == "R") { // Rotation
+                    dout << "has rotation" << std::endl;
+                    tokenizer.next(); // eat the R
+                    int numRotations = std::stoi(tokenizer.next());
+                    numRotations %= 4;
+                    if (numRotations == 0) numRotations = 4;
+                    move->m_symmetry = numRotations;
+                }
+                if (tokenizer.hasNext()) {
+                    if (tokenizer.peek() == "F") { // reFlection/Flip. Note we don't care if we eat the F here since it is last character.
+                        dout << "has flip" << std::endl;
+                        move->m_symmetry *= -1;
+                    } else {
+                        dout << "UNKNOWN SUFFIX '" << tokenizer.peek() << "'" << WHERE << std::endl;
+                    }
+                }
+            }
             return move;
+
+        } else if (tokenizer.peek() == "D") { // this is a tile deletion move
+            tokenizer.next(); // eat the D
+            std::vector<Coords> deletions;
+            while (tokenizer.hasNext()) {
+                deletions.push_back(tokenizer.nextCoords());
+            }
+            return std::make_unique<TileDeletion>(deletions);
+
+        } else {
+            dout << "UNKNOWN PREFIX '" << tokenizer.peek() << "' " << WHERE << std::endl;
         }
     }
-    // TODO: handle errors
-    return std::unique_ptr<Move> (new PieceMove(
-        std::make_pair(
-            lettersToInt(tokenizer.next()),
-            std::stoi(tokenizer.next())
-        ),
-        std::make_pair(
-            lettersToInt(tokenizer.next()),
-            std::stoi(tokenizer.next())
-        )
-    ));
+    // If no prefix, then this is a piece move
+    Coords f = tokenizer.nextCoords(); Coords s = tokenizer.nextCoords(); // We declare them before passing as params to make sure order of operations is OK
+    return std::make_unique<PieceMove>(f, s);
 }
 
 std::string coordsToAlgebraic(Coords _coords, Coords _offset) {
@@ -133,6 +151,12 @@ std::string AlgebraicTokenizer::next() {
         dout << WHERE << "Error: Unknown character in algebraic string '" << lookahead << "'" << std::endl;
         return "[ERROR!]";
     }
+}
+Coords AlgebraicTokenizer::nextCoords() {
+    //TODO: handle errors
+    std::string letters = next();
+    std::string numbers = next();
+    return std::make_pair(lettersToInt(letters), (unsigned int) std::stoi(numbers));
 }
 
 std::string AbstractTokenizer::peek() {

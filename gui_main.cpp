@@ -16,6 +16,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+// Forward declarations
+bool debugTests();
+
 bool addEngine(std::string _enginePath, EngineRunner*& engineColor) {
     dout << "here we would start the engine process " << _enginePath << " and do some stuff to it" << std::endl;
     engineColor = new EngineRunner();
@@ -66,6 +69,12 @@ int main(int argc, char *argv[]) {
     // whiteEngine->init()
     // blackEngine->init()
 
+    debugTests();
+
+    return 0;
+}
+
+bool debugTests() {
     // Debugging prints, // TODO: remove later
     // DLLBoard guiBoard = DLLBoard("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
     // ArrayBoard guiBoard = ArrayBoard("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
@@ -117,8 +126,22 @@ int main(int argc, char *argv[]) {
     dout << c2.first << ", " << c2.second << std::endl;
     PieceMove m1(c1, c2);
     dout << m1.algebraic() << std::endl;
+    dout << "Testing readAlgebraic" << std::endl;
+    std::unique_ptr<Move> readMove = readAlgebraic(m1.algebraic());
+    dout << readMove->algebraic() << " with type " << readMove->m_type << std::endl;
+    readMove = readAlgebraic("Sp2r2d8");
+    dout << readMove->algebraic() << " with type " << readMove->m_type << std::endl;
+    readMove = readAlgebraic("Dp2r2b5");
+    dout << readMove->algebraic() << " with type " << readMove->m_type << std::endl;
+    readMove = readAlgebraic("Sp2r2b5F");
+    dout << readMove->algebraic() << " with type " << readMove->m_type << std::endl;
+    readMove = readAlgebraic("Sp2r2b5R2");
+    dout << readMove->algebraic() << " with type " << readMove->m_type << std::endl;
+    readMove = readAlgebraic("Sp2r2b5R2F");
+    dout << readMove->algebraic() << " with type " << readMove->m_type << std::endl;
+
     dout << "Done with all tests" << std::endl;
 
-    return 0;
+    return true;
 }
 
