@@ -37,7 +37,7 @@ std::string PieceMove::algebraic() {
     return coordsToAlgebraic(m_startPos) + coordsToAlgebraic(m_endPos);
 }
 std::string TileMove::algebraic() {
-    std::string result = "S" + coordsToAlgebraic(m_selFirst) + coordsToAlgebraic(m_selSecond) + coordsToAlgebraic(m_destFirst);
+    std::string result = "S" + coordsToAlgebraic(m_selFirst) + coordsToAlgebraic(m_selSecond) + signedCoordsToAlgebraic(m_translation);
     if (abs(m_symmetry) < 4) {
         result += "R" + std::to_string(abs(m_symmetry));
     }
@@ -62,7 +62,7 @@ std::unique_ptr<Move> readAlgebraic(std::string _algebra) {
 
         if (tokenizer.peek() == "S") { // this is a tile selection move
             tokenizer.next(); // eat the S
-            Coords f = tokenizer.nextCoords(); Coords s = tokenizer.nextCoords(); Coords d = tokenizer.nextCoords(); // We declare them before passing as params to make sure order of operations is OK
+            Coords f = tokenizer.nextCoords(); Coords s = tokenizer.nextCoords(); Coords d = tokenizer.nextSignedCoords();
             std::unique_ptr<TileMove> move = std::make_unique<TileMove>(f, s, d);
             if (tokenizer.hasNext()) { // Using symmetry modifier(s)
                 if (tokenizer.peek() == "R") { // Rotation
@@ -104,6 +104,11 @@ std::unique_ptr<Move> readAlgebraic(std::string _algebra) {
 std::string coordsToAlgebraic(Coords _coords, Coords _offset) {
     //TODO: implement _offset if its needed
     return intToLetters(_coords.first) + std::to_string(_coords.second);
+}
+std::string signedCoordsToAlgebraic(SignedCoords _coords) {
+    //TODO: implement _offset if its needed
+    return (_coords.first  >= 0? "+" : "") + std::to_string(_coords.first) + 
+           (_coords.second >= 0? "+" : "") + std::to_string(_coords.second);
 }
 
 Coords algebraicToCoords(std::string _algebra, Coords _offset) {
@@ -147,6 +152,11 @@ std::string AlgebraicTokenizer::next() {
 
     } else if (isdigit(lookahead)) { // digit is a rank coord
         return matchHomogenous(m_stream, isdigit);
+
+    } else if (std::string("-+").find(lookahead) != std::string::npos) { // other permissible single-character lexemes
+        m_stream.ignore(); // pop character
+        return std::string(1, lookahead);
+
     } else {
         dout << WHERE << "Error: Unknown character in algebraic string '" << lookahead << "'" << std::endl;
         return "[ERROR!]";
@@ -157,5 +167,15 @@ Coords AlgebraicTokenizer::nextCoords() {
     std::string letters = next();
     std::string numbers = next();
     return std::make_pair(lettersToInt(letters), (unsigned int) std::stoi(numbers));
+}
+SignedCoords AlgebraicTokenizer::nextSignedCoords() {
+    //TODO: handle errors
+    std::string coordStr = next();
+    coordStr += next();
+    int firstCoords = std::stoi(coordStr);
+    coordStr = next();
+    coordStr += next();
+    int secondCoords = std::stoi(coordStr);
+    return std::make_pair(firstCoords, secondCoords);
 }
 

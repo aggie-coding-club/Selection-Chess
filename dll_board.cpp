@@ -13,7 +13,13 @@
 // FIXME: clear up coordinates naming convention. XY is ambiguous, should switch to rank-file.
 
 void Tile::SetAdjacent(DirectionEnum _dir, Tile* _adj) {
+    // break old connection if there is one
+    if (m_adjacents[_dir] != nullptr) {
+        m_adjacents[_dir]->m_adjacents[flipDirection(_dir)] = nullptr;
+    }
+    // update our side of the connection
     m_adjacents[_dir] = _adj;
+    // create their side of the connection
     if (_adj != nullptr) {
         _adj->m_adjacents[flipDirection(_dir)] = this;
     }
@@ -380,7 +386,9 @@ void DLLBoard::updateExtrema(const Coords& _new) {
 bool DLLBoard::apply(std::shared_ptr<Move> _move) {
     switch (_move->m_type) {
     case PIECE_MOVE:
-        return apply(std::static_pointer_cast<PieceMove>(_move));    
+        return apply(std::static_pointer_cast<PieceMove>(_move));
+    case TILE_MOVE:
+        return apply(std::static_pointer_cast<TileMove>(_move));
     default:
         dout << "FEATURE NOT IMPLEMENTED YET. Unknown Move Type [" << _move->m_type << "]\n" << WHERE << std::endl;
         return false;
@@ -390,6 +398,8 @@ bool DLLBoard::undo(std::shared_ptr<Move> _move) {
     switch (_move->m_type) {
     case PIECE_MOVE:
         return undo(std::static_pointer_cast<PieceMove>(_move));
+    case TILE_MOVE:
+        return undo(std::static_pointer_cast<TileMove>(_move));
     default:
         dout << "FEATURE NOT IMPLEMENTED YET. Unknown Move Type [" << _move->m_type << "]\n" << WHERE << std::endl;
         return false;
@@ -443,6 +453,57 @@ bool DLLBoard::undo(std::shared_ptr<PieceMove> _move) {
     endTile->m_contents = _move->m_capture;
     return true;
 };
+
+bool DLLBoard::apply(std::shared_ptr<TileMove> _move) {
+    tdout << "applying move " << _move->algebraic() << std::endl;
+    std::vector<Tile*> selection;
+
+    // Get the Internal Coords (IC) of the range of tiles in this selection
+    Coords moveSelFirstIC = _move->m_selFirst + m_minCoords;
+    Coords moveSelSecondIC = _move->m_selSecond + m_minCoords;
+
+    for (Tile* tile : m_tiles) {
+        if ( // check if this tile is in the selection
+            // compare first coord
+            !coordGreaterThan(moveSelFirstIC.first, tile->m_coords.first, m_minCoords.first) && // selFirst <= tile
+            !coordGreaterThan(tile->m_coords.first, moveSelSecondIC.first, m_minCoords.first) && // tile <= selSecond
+            // compare second coord
+            !coordGreaterThan(moveSelFirstIC.second, tile->m_coords.second, m_minCoords.second) && // selFirst <= tile
+            !coordGreaterThan(tile->m_coords.second, moveSelSecondIC.second, m_minCoords.second) // tile <= selSecond
+        ) {
+            tdout << "selection includes " << tile->m_coords.first << ", " << tile->m_coords.second << std::endl;
+            selection.push_back(tile);
+        }
+    }
+
+    for (Tile* tile : selection) {
+        // Get displacement of move
+        tile->m_coords += _move->m_translation;
+
+        // break old connections on edge pieces and add new ones
+        if (tile->m_coords.first == moveSelFirstIC.first) {
+            tile->SetAdjacent(LEFT, getTile(tile->m_coords + DIRECTION_SIGNS[LEFT], true)); // TODO: there must be a more efficient way of getting these new adjacencies, right?
+        }
+        if (tile->m_coords.first == moveSelSecondIC.first) {
+            tile->SetAdjacent(RIGHT, getTile(tile->m_coords + DIRECTION_SIGNS[RIGHT], true));
+        }
+        if (tile->m_coords.second == moveSelFirstIC.second) {
+            tile->SetAdjacent(DOWN, getTile(tile->m_coords + DIRECTION_SIGNS[DOWN], true));
+        }
+        if (tile->m_coords.second == moveSelSecondIC.second) {
+            tile->SetAdjacent(UP, getTile(tile->m_coords + DIRECTION_SIGNS[UP], true));
+        }
+    }
+    // TODO: update m_minCoords and m_maxCoords
+    // TODO: create some way of checking if all connections are valid
+
+    return true;
+};
+
+bool DLLBoard::undo(std::shared_ptr<TileMove> _move) {
+    //TODO:
+    return false;
+}
 
 int DLLBoard::staticEvaluation() {
     //TODO: this is just a dumb implementation to test if minmax works. Find a better implementation in the future.

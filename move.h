@@ -55,11 +55,11 @@ class TileMove : public Move {
         Coords m_selSecond;
 
         // Note: the ability to delete entire sections can be coded into here
-        // // If true, ignore m_destFirst and just delete tiles in selection.
+        // // If true, ignore m_translation and just delete tiles in selection.
         // bool m_isDeletion;
 
-        // Bottom left corner of the destination for our selection, use to tell where to move the board to
-        Coords m_destFirst;
+        // Translation of selection
+        SignedCoords m_translation;
 
         // The symmetry operators applied to this move.
         // The absolute value of this specifies how many rotations to apply,
@@ -68,10 +68,10 @@ class TileMove : public Move {
         // TODO: use this member
         int m_symmetry = 4;
 
-        TileMove (Coords _selBottomLeft, Coords _selTopRight, Coords _destBottomLeft) : TileMove() {
+        TileMove (Coords _selBottomLeft, Coords _selTopRight, SignedCoords _translation) : TileMove() {
             m_selFirst = _selBottomLeft;
             m_selSecond = _selTopRight;
-            m_destFirst = _destBottomLeft;
+            m_translation = _translation;
         }
         TileMove() {
             m_type = TILE_MOVE;
@@ -105,12 +105,17 @@ std::unique_ptr<Move> readAlgebraic(std::string _algebra);
 std::string coordsToAlgebraic(Coords _coords, Coords _offset=std::make_pair(0,0));
 Coords algebraicToCoords(std::string _algebra, Coords _offset=std::make_pair(0,0));
 
+std::string signedCoordsToAlgebraic(SignedCoords _coords);
+
 class AlgebraicTokenizer : public AbstractTokenizer {
     public:
         AlgebraicTokenizer(std::string _string) : AbstractTokenizer(_string) {}
         // returns the next lexeme in the algebraic string. If we have reached the end of the string, return empty string.
         std::string next();
+        // assuming the next sequence is a coords (e.g. ab15), return the coord
         Coords nextCoords();
+        // assuming the next sequence is a signedcoords (e.g. +10-2), return the signed coord
+        SignedCoords nextSignedCoords();
 };
 
 

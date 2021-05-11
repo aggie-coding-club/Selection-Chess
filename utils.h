@@ -108,13 +108,29 @@ DirectionEnum flipDirection(DirectionEnum _dir);
 
 // ----------- operators on coords ----------- //
 
-// inline coords operator+(const coords & _l,const coords & _r) {   
-//     return std::make_pair(_l.first + _r.first, _l.second + _r.second);                                    
-// } 
-
-// inline coords operator-(const coords & _l,const coords & _r) {   
+// inline Coords operator-(const Coords & _l,const Coords & _r) {   
 //     return std::make_pair(_l.first - _r.first, _l.second - _r.second);                                    
 // } 
+
+inline Coords& operator+=(Coords & _l, const Coords & _r) {
+    _l.first += _r.first;
+    _l.second += _r.second;
+    return _l;
+} 
+
+inline Coords operator+(Coords _l, const Coords & _r) {   
+    return _l += _r;
+} 
+
+inline Coords& operator+=(Coords & _l, const SignedCoords & _r) {
+    _l.first += _r.first;
+    _l.second += _r.second;
+    return _l;
+} 
+
+inline Coords operator+(Coords _l, const SignedCoords & _r) {   
+    return _l += _r;
+} 
 
 inline std::ostream& operator<<(std::ostream& _stream, const Coords& _coords) {
     _stream << "(" << _coords.first << ", " << _coords.second << ")";

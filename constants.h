@@ -6,6 +6,7 @@
 #define STARTING_MATERIAL 0 //FIXME: make constant type
 
 typedef std::pair<unsigned int, unsigned int> Coords;
+typedef std::pair<int, int> SignedCoords;
 
 typedef int CustomException;
 enum : CustomException {EXCP_ENGINE_DIED=101};

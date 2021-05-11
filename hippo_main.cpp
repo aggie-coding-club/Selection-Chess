@@ -106,6 +106,15 @@ int testMode() {
     std::cout << "At depth 8, negmaxAB found score is " << result.first << " and best move is " << result.second->algebraic() << std::endl;
     negaHistory = "";
 
+    std::cout << "Testing TileMoves" << std::endl;
+    game.reset("rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR w 0 1");
+    std::cout << game.print() << std::endl;
+
+    if (!game.applyMove(readAlgebraic("Sp2r2-9-3"))) {
+        std::cout << "ERROR! Could not apply move " << WHERE << std::endl;
+    }
+    std::cout << game.print() << std::endl;
+
     std::cout << "Done testing" << std::endl;
     return 0;
 }
