@@ -63,6 +63,9 @@ DLLBoard::DLLBoard(const std::string _sfen) : DLLBoard() {
 void DLLBoard::init(const std::string _sfen) {
     // delete old info, in case init called multiple times.
     m_tiles.clear();
+    for (auto tileVector : m_extremaTiles) {
+        tileVector.clear();
+    }
 
     // Parse position section (until first space)
 
@@ -476,9 +479,24 @@ bool DLLBoard::apply(std::shared_ptr<TileMove> _move) {
         }
     }
 
+    // FIXME: does not update extrema in the case that we remove the last extrema tile. Need to keep a list of all extrema tiles.
+
+
     for (Tile* tile : selection) {
         // Get displacement of move
         tile->m_coords += _move->m_translation;
+
+    // FIXME: complete this section which checks if the new location of the tile updates the extrema. Probably should merge with updateExtrema function.
+    //     // check if this is a new extrema
+    //     // check first coord
+    //     if (_move->m_translation.first < 0) { // left move
+            
+    //     } else if (_move->m_translation.first > 0) { // right move
+    //         if (coordGreaterThan(tile->m_coords.first, m_maxCoords.first, m_minCoords.first)) {
+    //             m_maxCoords.first = tile->m_coords.first;
+    //         }
+    //     }
+
 
         // break old connections on edge pieces and add new ones
         if (tile->m_coords.first == moveSelFirstIC.first) {

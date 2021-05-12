@@ -29,8 +29,18 @@ class Tile {
 
 class DLLBoard : public Board {
     public:
-        /* ------- independent fields, provide necessary information about board ------- */
-        std::vector<Tile*> m_tiles; // Every tile, which contains piece and coords.
+        // Every tile, which contains piece and coords.
+        std::vector<Tile*> m_tiles;
+
+        // Tiles which are at the max or min coords in an axis.
+        // indexed by the direction in which they are an extrema, 
+        // i.e. UP DOWN LEFT RIGHT
+        std::vector<Tile*> m_extremaTiles[4];
+        /* FIXME: oh god how on earth do I keep track of this? When this naturally empties (TileMove removes last tile with extrema coord), then we somehow have to get 
+         * all of the new tiles at the new extrema, and the only way we can look that up is by coords which is really dumb.
+         * I don't see how the natural conclusion isn't to just use arrays, and try and use the sparseness to come up with some clever tricks.
+        */
+
         
         /** 
          * For looking up where pieces are at by their type and color. 
