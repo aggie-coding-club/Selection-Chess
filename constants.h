@@ -33,7 +33,7 @@ const std::string PIECE_LETTERS = ".PpRrNnBbQqKk?";
 */
 typedef unsigned char DirectionEnum;
 enum : DirectionEnum {LEFT, RIGHT, UP, DOWN, DOWN_LEFT, UP_RIGHT, DOWN_RIGHT, UP_LEFT};
-static const std::pair<int,int> DIRECTION_SIGNS[] = {
+static const SignedCoords DIRECTION_SIGNS[] = {
     std::make_pair(-1,0), std::make_pair(1,0),
     std::make_pair(0,1), std::make_pair(0,-1),
     std::make_pair(-1,-1), std::make_pair(1,1),

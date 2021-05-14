@@ -33,6 +33,7 @@ void ArrayBoard::updateExtrema(const ModCoords& _new) {
 }
 
 void ArrayBoard::init(const std::string _sfen) {
+    resetPL();
     int i; // which character of _sfen we are on
     tdout << "running ArrayBoard::init" << std::endl;
 
@@ -136,7 +137,7 @@ void ArrayBoard::init(const std::string _sfen) {
             i = j-1;
 
             for (int k = 0; k < num_empty_tiles; k++) {
-                m_grid[toIndex(currentFR, true)] = EMPTY;
+                m_grid[toIndex(currentFR)] = EMPTY;
                 updateExtrema(currentFR);
                 ++currentFR.first;
             }
@@ -144,9 +145,9 @@ void ArrayBoard::init(const std::string _sfen) {
         }
 
         PieceEnum thisTile = getPieceFromChar(c, ' '); // We look for empty as ' ' to ensure we never find empty this way, just in case.
-        m_grid[toIndex(currentFR, true)] = thisTile;
+        m_grid[toIndex(currentFR)] = thisTile;
+        addPieceToPL(thisTile, currentFR);
         updateExtrema(currentFR);
-        m_pieceLocations[thisTile].push_back(currentFR);
         ++currentFR.first;
     }
     // Parse remaining fields
@@ -156,21 +157,165 @@ void ArrayBoard::init(const std::string _sfen) {
 }
 
 bool ArrayBoard::updatePieceInPL(PieceEnum _piece, ModCoords _oldLocation, ModCoords _newLocation) {
-    //TODO: re implement
-    // for (int i = 0; i < pieceNumbers[piece]; i++) { // loop for all pieces of type
-    //     if (pieceLocations[piece][i] == oldLocation) { // find the match
-    //         pieceLocations[piece][i] = newLocation;
-    //         return true;
-    //     }
-    // }
+    for (int i = 0; i < m_pieceLocations[_piece].size(); i++) { // loop for all pieces of type _piece
+        if (m_pieceLocations[_piece][i] == _oldLocation) { // find the match
+            m_pieceLocations[_piece][i] = _newLocation;
+            return true;
+        }
+    }
     return false;
 }
 
-size_t ArrayBoard::toIndex(ModCoords _coords, bool _useInternal) {
-    if (!_useInternal) {
-        _coords.first -= m_minCoords.first;
-        _coords.second -= m_minCoords.second;
+bool ArrayBoard::removePieceFromPL(PieceEnum _piece, ModCoords _location) {
+    for (int i = 0; i < m_pieceLocations[_piece].size(); i++) { // loop for all pieces of type _piece
+        if (m_pieceLocations[_piece][i] == _location) { // find the match
+            m_pieceLocations[_piece].erase(m_pieceLocations[_piece].begin() + i);
+            return true;
+        }
     }
+    return false;
+}
+
+bool ArrayBoard::apply(std::shared_ptr<Move> _move) {
+    switch (_move->m_type) {
+    case PIECE_MOVE:
+        return apply(std::static_pointer_cast<PieceMove>(_move));
+    case TILE_MOVE:
+        return apply(std::static_pointer_cast<TileMove>(_move));
+    default:
+        dout << "FEATURE NOT IMPLEMENTED YET. Unknown Move Type [" << _move->m_type << "]\n" << WHERE << std::endl;
+        return false;
+    }
+}
+bool ArrayBoard::undo(std::shared_ptr<Move> _move) {
+    switch (_move->m_type) {
+    case PIECE_MOVE:
+        return undo(std::static_pointer_cast<PieceMove>(_move));
+    case TILE_MOVE:
+        return undo(std::static_pointer_cast<TileMove>(_move));
+    default:
+        dout << "FEATURE NOT IMPLEMENTED YET. Unknown Move Type [" << _move->m_type << "]\n" << WHERE << std::endl;
+        return false;
+    }
+}
+
+bool ArrayBoard::apply(std::shared_ptr<PieceMove> _move) {
+    // tdout << "applying move " << _move->algebraic() << std::endl;
+    ModCoords startCoords = toInternalCoords(_move->m_startPos);
+    ModCoords endCoords = toInternalCoords(_move->m_endPos);
+
+    // Execute the move
+    // Update PieceList
+    if (isPiece(m_grid[toIndex(endCoords)])) { // if a piece in endCoords, capture it
+        removePieceFromPL(m_grid[toIndex(endCoords)], endCoords);
+    }
+    updatePieceInPL(m_grid[toIndex(startCoords)], startCoords, endCoords);
+
+    // Update array
+    m_grid[toIndex(endCoords)] = m_grid[toIndex(startCoords)];
+    m_grid[toIndex(startCoords)] = EMPTY;
+    return true;
+};
+
+bool ArrayBoard::undo(std::shared_ptr<PieceMove> _move) {
+    // tdout << "undoing move " << _move->algebraic() << std::endl;
+    ModCoords startCoords = toInternalCoords(_move->m_startPos);
+    ModCoords endCoords = toInternalCoords(_move->m_endPos);
+
+    // Execute the undo
+    // Update PieceList
+    updatePieceInPL(m_grid[toIndex(endCoords)], endCoords, startCoords);
+    if (isPiece(_move->m_capture)) { // if a piece was captured, add it back
+        addPieceToPL(_move->m_capture, endCoords);
+    }
+    // Update array
+    m_grid[toIndex(startCoords)] = m_grid[toIndex(endCoords)];
+    m_grid[toIndex(endCoords)] = _move->m_capture; // Note this works since m_capture=EMPTY when no capture occurred
+    return true;
+};
+
+bool ArrayBoard::apply(std::shared_ptr<TileMove> _move) {
+    tdout << "applying move " << _move->algebraic() << std::endl;
+    // std::vector<Tile*> selection;
+
+    // // Get the Internal Coords (IC) of the range of tiles in this selection
+    // Coords moveSelFirstIC = _move->m_selFirst + m_minCoords;
+    // Coords moveSelSecondIC = _move->m_selSecond + m_minCoords;
+
+    // for (Tile* tile : m_tiles) {
+    //     if ( // check if this tile is in the selection
+    //         // compare first coord
+    //         !coordGreaterThan(moveSelFirstIC.first, tile->m_coords.first, m_minCoords.first) && // selFirst <= tile
+    //         !coordGreaterThan(tile->m_coords.first, moveSelSecondIC.first, m_minCoords.first) && // tile <= selSecond
+    //         // compare second coord
+    //         !coordGreaterThan(moveSelFirstIC.second, tile->m_coords.second, m_minCoords.second) && // selFirst <= tile
+    //         !coordGreaterThan(tile->m_coords.second, moveSelSecondIC.second, m_minCoords.second) // tile <= selSecond
+    //     ) {
+    //         tdout << "selection includes " << tile->m_coords.first << ", " << tile->m_coords.second << std::endl;
+    //         selection.push_back(tile);
+    //     }
+    // }
+
+    // // FIXME: does not update extrema in the case that we remove the last extrema tile. Need to keep a list of all extrema tiles.
+
+
+    // for (Tile* tile : selection) {
+    //     // Get displacement of move
+    //     tile->m_coords += _move->m_translation;
+
+    // // FIXME: complete this section which checks if the new location of the tile updates the extrema. Probably should merge with updateExtrema function.
+    // //     // check if this is a new extrema
+    // //     // check first coord
+    // //     if (_move->m_translation.first < 0) { // left move
+            
+    // //     } else if (_move->m_translation.first > 0) { // right move
+    // //         if (coordGreaterThan(tile->m_coords.first, m_maxCoords.first, m_minCoords.first)) {
+    // //             m_maxCoords.first = tile->m_coords.first;
+    // //         }
+    // //     }
+
+
+    //     // break old connections on edge pieces and add new ones
+    //     if (tile->m_coords.first == moveSelFirstIC.first) {
+    //         tile->SetAdjacent(LEFT, getTile(tile->m_coords + DIRECTION_SIGNS[LEFT], true)); // TODO: there must be a more efficient way of getting these new adjacencies, right?
+    //     }
+    //     if (tile->m_coords.first == moveSelSecondIC.first) {
+    //         tile->SetAdjacent(RIGHT, getTile(tile->m_coords + DIRECTION_SIGNS[RIGHT], true));
+    //     }
+    //     if (tile->m_coords.second == moveSelFirstIC.second) {
+    //         tile->SetAdjacent(DOWN, getTile(tile->m_coords + DIRECTION_SIGNS[DOWN], true));
+    //     }
+    //     if (tile->m_coords.second == moveSelSecondIC.second) {
+    //         tile->SetAdjacent(UP, getTile(tile->m_coords + DIRECTION_SIGNS[UP], true));
+    //     }
+    // }
+    // // TODO: update m_minCoords and m_maxCoords
+    // // TODO: create some way of checking if all connections are valid
+
+    return false;
+};
+
+bool ArrayBoard::undo(std::shared_ptr<TileMove> _move) {
+    //TODO:
+    return false;
+}
+
+// Convert external coords to internal, e.g. (0,0) will be converted to m_minCoords
+ModCoords ArrayBoard::toInternalCoords(Coords _extern) {
+    ModCoords intern(_extern);
+    intern.first += m_minCoords.first;
+    intern.second += m_minCoords.second;
+    return intern;
+}
+// Convert internal coords to external, e.g. m_minCoords will be converted to (0,0)
+Coords ArrayBoard::toExternalCoords(ModCoords _intern) {
+    _intern.first -= m_minCoords.first;
+    _intern.second -= m_minCoords.second;
+    Coords external(_intern.first.m_value, _intern.second.m_value);
+    return external;
+}
+
+size_t ArrayBoard::toIndex(ModCoords _coords) {
     return _coords.first.m_value + m_grid_size * _coords.second.m_value;
 }
 
@@ -186,7 +331,7 @@ StandardArray ArrayBoard::standardArray() {
         coords.first = m_minCoords.first; // reset each loop to start at beginning of the row
         // iterate over columns
         for (; coords.first != m_maxCoords.first+1; ++coords.first) {
-            sa.m_array[i++] = m_grid[toIndex(coords, true)];
+            sa.m_array[i++] = m_grid[toIndex(coords)];
         }
     }
     return sa;
@@ -197,9 +342,48 @@ std::string ArrayBoard::dumpAsciiArray() {
     for (int row = 0; row < m_grid_size; ++row) {
         result += "\n";
         for (int col = 0; col < m_grid_size; ++col) {
-            result += getCharFromPiece(m_grid[toIndex(std::make_pair(col, row), true)], '=', '.');
+            result += getCharFromPiece(m_grid[toIndex(std::make_pair(col, row))], '=', '.');
         }
     }
     result += "\n]";
     return result;
+}
+
+int ArrayBoard::staticEvaluation() {
+    //TODO: this is just a dumb implementation to test if minmax works. Find a better implementation in the future.
+    int staticValue = 0;
+    for (int i = 1; i < NUM_PIECE_TYPES*2+1; i++) {
+        staticValue += PIECE_VALUES[i] * m_pieceLocations[i].size();
+        for (ModCoords t : m_pieceLocations[i]) {
+            // add 20 centipawns for being on 'even' coordinates
+            if ((t.first + t.second).m_value % 2 == 0) {
+                staticValue += 20 * (isWhite(i) ? 1 : -1); // negate if black
+            }
+        }
+    }
+    return staticValue;
+}
+
+std::vector<std::unique_ptr<Move>> ArrayBoard::getMoves(PieceColor _color) {
+    // TODO: assumes all pieces can move 1 tile forward, back, left, or right, for the sake of testing minmax.
+    std::vector<std::unique_ptr<Move>> legalMoves;
+    for (int pieceType = (_color==WHITE ? W_PAWN : B_PAWN); pieceType < NUM_PIECE_TYPES*2+1; pieceType+=2) { // iterate over pieces of _color in piece list
+        for (ModCoords startCoords : m_pieceLocations[pieceType]) { // for all coords of pieces of this type
+            for (int direction = LEFT; direction <= DOWN; direction++) { // iterate over 4 directions
+                ModCoords endCoords = startCoords + DIRECTION_SIGNS[direction];
+                // check if empty
+                if (m_grid[toIndex(endCoords)] == EMPTY) {
+                    std::unique_ptr<PieceMove> newMove (new PieceMove(toExternalCoords(startCoords), toExternalCoords(endCoords)));
+                    legalMoves.push_back(std::move(newMove));
+                // check if capture
+                } else if (isPiece(m_grid[toIndex(endCoords)]) // Are we moving onto another piece
+                && (isWhite(m_grid[toIndex(startCoords)]) != isWhite(m_grid[toIndex(endCoords)]))) { // Is this an enemy piece
+                    std::unique_ptr<PieceMove> newMove (new PieceMove(toExternalCoords(startCoords), toExternalCoords(endCoords)));
+                    newMove->m_capture = m_grid[toIndex(endCoords)];
+                    legalMoves.push_back(std::move(newMove));
+                }
+            }
+        }
+    }
+    return legalMoves;
 }

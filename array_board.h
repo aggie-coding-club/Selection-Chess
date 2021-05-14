@@ -40,49 +40,84 @@ class ArrayBoard : public Board {
         StandardArray standardArray();
 
         /** 
+         * Clears entire piece list
+         */
+        void resetPL() {
+            for (PieceEnum _piece = 0; _piece < 2 * NUM_PIECE_TYPES + 1; _piece++) { // loop for all lists
+                m_pieceLocations[_piece].clear();
+            }
+        }
+
+        /** 
          * Update the position oldLocation to be newLocation for type piece.
-         * Give (only) one of the locations as (-1,-1) for adding or removing a piece.
          * Returns false if it does not find such a piece to update.
          */
         bool updatePieceInPL(PieceEnum _piece, ModCoords _oldLocation, ModCoords _newLocation);
+
+        /** 
+         * Remove the piece at location for type piece.
+         * Returns false if it does not find such a piece to remove.
+         */
+        bool removePieceFromPL(PieceEnum _piece, ModCoords _location);
+        /** 
+         * Adds the piece at location for type piece.
+         */
+        void addPieceToPL(PieceEnum _piece, ModCoords _location) {
+            m_pieceLocations[_piece].push_back(_location);
+        }
+
 
         PieceEnum getPiece(size_t _f, size_t _r) const {
             return m_grid[_f + _r * m_grid_size];
         };
 
-        bool apply(std::shared_ptr<Move> _move) {
-            //TODO: implement
-            return false;
-        };
+        bool apply(std::shared_ptr<Move> _move);
+        bool apply(std::shared_ptr<PieceMove> _move);
+        bool apply(std::shared_ptr<TileMove> _move);
+        bool apply(std::shared_ptr<TileDeletion> _move);
 
-        bool undo(std::shared_ptr<Move> _move) {
-            //TODO: implement
-            return false;
-        };
+        bool undo(std::shared_ptr<Move> _move);
+        bool undo(std::shared_ptr<PieceMove> _move);
+        bool undo(std::shared_ptr<TileMove> _move);
+        bool undo(std::shared_ptr<TileDeletion> _move);
 
         Coords getDimensions() const {
             // Just taking the m_value here is OK because this distance is not affected by modulus, so it is guaranteed result to be a normal positive number.
             return std::make_pair((m_maxCoords.first - m_minCoords.first + 1).m_value, (m_maxCoords.second - m_minCoords.second + 1).m_value);
         };
 
-        std::vector<std::unique_ptr<Move>> getMoves(PieceColor _color) {
-            //TODO: implement
-            std::vector<std::unique_ptr<Move>> a;
-            return a;
-        };
-
-        int staticEvaluation() {
-            return 0;
+        // For debugging purposes. Prints all pieces in the m_pieceLocations list
+        std::string printPieces() {
+            std::string result = "[";
+            for (int i = 1; i < NUM_PIECE_TYPES*2+1; i++) {
+                result += PIECE_LETTERS[i];
+                result += "=" + std::to_string(m_pieceLocations[i].size()) + "{";
+                for (ModCoords& t : m_pieceLocations[i]) {
+                    result += PIECE_LETTERS[m_grid[toIndex(t)]];
+                    result += " ";
+                }
+                result += "} ";
+            }
+            result += "]";
+            return result;
         }
+
+        std::vector<std::unique_ptr<Move>> getMoves(PieceColor _color);
+
+        int staticEvaluation();
 
         // Just print the entire contents of the array as-is.
         // For debugging purposes only.
         std::string dumpAsciiArray();
 
-        // Gets the index of m_grid corresponding to _coords. 
-        // If _useInternal=true, it will get (0,0) as 0th index.
-        // If _useInternal=false, it will get m_minCoords as 0th index.
-        size_t toIndex(ModCoords _coords, bool _useInternal);
+        // Gets the index of m_grid corresponding to _coords. Takes internal Coords as input.
+        size_t toIndex(ModCoords _coords);
+
+        // Convert external coords to internal, e.g. (0,0) will be converted to m_minCoords
+        ModCoords toInternalCoords(Coords _extern);
+        // Convert internal coords to external, e.g. m_minCoords will be converted to (0,0)
+        Coords toExternalCoords(ModCoords _intern);
+
     protected: //TODO: sort some more stuff into protected?
         // check if adding a tile at _new ModCoords will update m_minCoords or m_maxCoords
         void ArrayBoard::updateExtrema(const ModCoords& _new);
@@ -103,5 +138,28 @@ class ArrayBoard : public Board {
         }
 
 };
+
+inline bool operator==(const ModCoords& _mc1, const ModCoords& _mc2) {
+    return (_mc1.first == _mc2.first) && (_mc1.second == _mc2.second);
+}
+inline ModCoords& operator+=(ModCoords& _mc1, const SignedCoords& _diff) {
+    _mc1.first += _diff.first;
+    _mc1.second += _diff.second;
+    return _mc1;
+}
+inline ModCoords& operator-=(ModCoords& _mc1, const SignedCoords& _diff) {
+    _mc1.first -= _diff.first;
+    _mc1.second -= _diff.second;
+    return _mc1;
+}
+inline ModCoords operator+(ModCoords _mc1, const SignedCoords& _diff) {
+    return _mc1 += _diff;
+}
+inline ModCoords operator+(const SignedCoords& _diff, ModCoords _mc1) {
+    return _mc1 += _diff;
+}
+inline ModCoords operator-(ModCoords _mc1, const SignedCoords& _diff) {
+    return _mc1 -= _diff;
+}
 
 #endif

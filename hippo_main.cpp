@@ -45,6 +45,7 @@ int testMode() {
 
     std::cout << game.print() << std::endl;
 
+    std::cout << "Testing applying moves" << std::endl;
     game.applyMove(std::shared_ptr<Move>(new PieceMove(std::make_pair(1,0), std::make_pair(0, 2))));
     std::cout << game.print() << std::endl;
     std::cout << game.m_board->printPieces() << std::endl;
@@ -55,12 +56,16 @@ int testMode() {
     std::cout << game.print() << std::endl;
     std::cout << game.m_board->printPieces() << std::endl;
 
+    std::cout << "Testing undoing moves" << std::endl;
+
     game.undoMove();
     std::cout << game.print() << std::endl;
     std::cout << game.m_board->printPieces() << std::endl;
     game.undoMove();
     std::cout << game.print() << std::endl;
     std::cout << game.m_board->printPieces() << std::endl;
+
+    std::cout << "Resetting to a simpler board" << std::endl;
 
     game.reset("P2/1K1/1pk w 0 1"); // simple case to play with
     std::cout << game.print() << std::endl;

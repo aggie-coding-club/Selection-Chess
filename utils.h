@@ -72,7 +72,7 @@ std::string getUnicodeCharFromEnum(PieceEnum _enumValue, std::string _empty=" ")
 
 /** Is this a valid nonempty piece enum? */
 inline bool isPiece(PieceEnum spaceEnum) {
-    return spaceEnum != EMPTY; 
+    return spaceEnum != EMPTY && spaceEnum != INVALID; 
 }
 /** Assuming a valid nonempty piece enum, is the piece white or black? */
 inline bool isWhite(PieceEnum piece) {

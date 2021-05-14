@@ -45,10 +45,10 @@ class ModularInt {
             return *this;
         }
 
-        bool operator==(ModularInt& _other) const {
+        bool operator==(const ModularInt& _other) const {
             return m_value == _other.m_value;
         }
-        bool operator!=(ModularInt& _other) const {
+        bool operator!=(const ModularInt& _other) const {
             return m_value != _other.m_value;
         }
 
