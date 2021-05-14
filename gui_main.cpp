@@ -75,19 +75,25 @@ int main(int argc, char *argv[]) {
 }
 
 bool debugTests() {
+    dout << "running debug tests" << std::endl;
     // Debugging prints, // TODO: remove later
+
+    dout << "testing StandardArray object " << std::endl;
+    StandardArray sa ("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
+    dout << sa.dumpAsciiArray() << std::endl; // TODO: low priority: idk if this means I got something flipped somewhere, probably does.
+
     // DLLBoard guiBoard = DLLBoard("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
     // ArrayBoard guiBoard = ArrayBoard("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
     Game game = Game("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
+
+    dout << "created Game object" << std::endl;
 
     // Change display settings like this:
     game.m_board->m_printSettings.m_width = 2;
     game.m_board->m_printSettings.m_tileFillChar = '`';
     game.m_board->m_printSettings.m_showCoords = true;
 
-
     std::cout << game.print() << std::endl;
-    dout << "Successfully exited" << std::endl;
 
     dout << "testing CmdTokenizer..." << std::endl;
     CmdTokenizer t("feature done=0 myname=\"Jeff\" debug=1 done=1");

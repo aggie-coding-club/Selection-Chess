@@ -99,7 +99,7 @@ void DLLBoard::init(const std::string _sfen) {
                 std::cerr << "Expected ')' after non tile sequence in SFen!" << std::endl;
                 throw "Expected ')' after non tile sequence in SFen!";
             }
-            // If it is the ege case where there is no numbers, i.e. "()", we can skip this part
+            // If it is the edge case where there is no numbers, i.e. "()", we can skip this part
             if (j != i+1) {
                 // Get the next characters as integer
                 int num_no_tiles = std::stoi(_sfen.substr(i+1, j)); //i+1 to ignore '('

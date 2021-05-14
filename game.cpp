@@ -15,13 +15,14 @@ void Game::reset(const std::string _sfen) {
     }
     // TODO: implement
     // m_board = new ArrayBoard("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
-    m_board = new DLLBoard(_sfen);
+    m_board = new ArrayBoard(_sfen);
     m_board->m_printSettings = ps;
     dout << "Game Constructed board" << std::endl;
 }
 
 std::string Game::print() {
     std::string result = m_board->getAsciiBoard();
+    result += m_board->toSfen() + "\n";
     if (!m_moveHistory.empty()) {
         result += "Last move: " + m_moveHistory.top()->algebraic() + "\n";
     }

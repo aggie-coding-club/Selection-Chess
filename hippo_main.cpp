@@ -13,7 +13,7 @@ const size_t MAX_MESSAGE = sizeof(size_t);
 int xboardLoop() {
     std::string cmd;
     // init shared variables, mutexes, etc.
-    DLLBoard eBoard; // engine's memory of the board
+    ArrayBoard eBoard; // engine's memory of the board
 
     while (true) {
         if (std::getline(std::cin, cmd)) {

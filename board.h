@@ -18,6 +18,25 @@ class BoardPrintSettings {
     m_showCoords(_showCoords), m_width(_width), m_height(_height), m_tileFillChar(_tileFillChar) {}
 };
 
+// TODO: I feel like this object can be designed better...
+// TODO: implement functionality around this object
+class StandardArray {
+    public:
+    Coords m_dimensions;
+    std::vector<PieceEnum> m_array;
+
+    StandardArray();
+    // Creates a new empty array of size
+    StandardArray(Coords _size);
+    // Creates new array from sfen
+    StandardArray(std::string _sfen);
+    ~StandardArray();
+
+    // Just print the entire contents of the array as-is.
+    // For debugging purposes only.
+    std::string dumpAsciiArray();
+};
+
 class Board {
     public:
         BoardPrintSettings m_printSettings;
@@ -35,19 +54,19 @@ class Board {
         int m_material; // changed material score to just be material for both
         uint64_t m_hashCode;
 
-        virtual std::string toSfen() = 0;
+        virtual std::string toSfen();
 
         /**
          * Boards are equal if all independent fields except moveHistory are equal. 
          * Note that comparing the hashes is MUCH faster that this, and should be used to compare boards
          * for most practical purposes. Really, this is just here to test if the hash function is working.
          */
-        virtual bool operator==(const Board& _other) const = 0;
+        virtual bool operator==(const Board& _other) const;
 
         /** 
          * Print the current tiles and pieces in a nice ASCII format.
          */
-        virtual std::string getAsciiBoard() = 0;
+        virtual std::string getAsciiBoard();
 
         /**
          * Gets the size of the minimum rectangle needed to surround this board in its current configuration.
@@ -84,7 +103,7 @@ class Board {
         /**
          * Gets the hash of this configuration.
          */
-        virtual uint64_t getHash() const = 0;
+        virtual uint64_t getHash() const;
 
         virtual int staticEvaluation() = 0;
 
@@ -94,6 +113,13 @@ class Board {
         }
 
         virtual std::vector<std::unique_ptr<Move>> getMoves(PieceColor _color) = 0;
+
+        // Gets the standard array of this board. This is the smallest sized array (namely, size getDimensions())
+        // that contains all pieces. Indexed by (file + rank*getDimensions().first). Used for printing, hashing, etc.
+        // TODO: once the standardArrays are better working, then require this as a function
+        virtual StandardArray standardArray() = 0;
+
+        //TODO: unvirtual getAscii and toSfen using new standardArray
 
         // TODO: add some functions for moving tiles
 };

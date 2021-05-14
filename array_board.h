@@ -4,80 +4,102 @@
 #include "constants.h"
 #include "board.h"
 #include "move.h"
+#include "modular_int.h"
 
 #include <cstdint>
 #include <stack>
 #include <vector>
 #include <string>
 
+typedef std::pair<ModularInt, ModularInt> ModCoords;
+
 class ArrayBoard : public Board {
     public:
-        /* ------- independent fields, provide necessary information about board ------- */
-        PieceEnum* m_grid;
-        size_t m_grid_size; // max number of tiles the grid can contain, and also the length and height of the grid.
+        PieceEnum* m_grid = nullptr;
+        // max number of tiles the grid can contain, and also the length and height of the grid.
+        size_t m_grid_size; 
 
         // minimum x and y of this board. Because of wrap-around, the literal min integer value is not 
         // guaranteed to be the furtherest "left" or "down".
-        Coords m_minCoords;
-        Coords m_maxCoords;
-
-        short m_movesSinceLastCapture; // 50 move rule
-        PieceColor m_turn; // whose turn it is
-        // std::stack<PieceMove> moveHistory; // list of moves applied to starting FEN.
-
-        /* ------- dependent fields, store information about board that is derived from independent fields -------- */
-        short m_material; // changed material score to just be material for both
-        uint64_t m_hashCode;
+        // Also note that these overshadow variables of Board, which are of type Coords. //FIXME: this is bad design and should be addressed
+        ModCoords m_minCoords;
+        ModCoords m_maxCoords;
         
-        /** For looking up where pieces are at by their type and color. */
-        std::vector<Coords> pieceLocations[2 * NUM_PIECE_TYPES];
+        /** For looking up where pieces are at by their type and color. 
+         * Organized in same order as PieceEnum: 
+         *      since PieceEnum starts pieces on 1, the zero element of this is a placeholder.
+        */
+        std::vector<ModCoords> m_pieceLocations[2 * NUM_PIECE_TYPES+1];
 
-        /** 
-         * Creates a new board from SFEN.
-         */
-        ArrayBoard(const std::string _sfen);
+        ArrayBoard() { };
+        void init(const std::string _sfen);
+        ArrayBoard(const std::string _sfen) : ArrayBoard() {
+            init(_sfen);
+        }
 
-        /**
-         * Boards are equal if all independent fields except moveHistory are equal. 
-         * Note that comparing the hashes is MUCH faster that this, and should be used to compare boards
-         * for most practical purposes. Really, this is just here to test if the hash function is working.
-         */
-        bool operator==(const Board& _other) const;
+        StandardArray standardArray();
 
         /** 
          * Update the position oldLocation to be newLocation for type piece.
          * Give (only) one of the locations as (-1,-1) for adding or removing a piece.
          * Returns false if it does not find such a piece to update.
          */
-        bool updatePieceInPL(PieceEnum _piece, Coords _oldLocation, Coords _newLocation);
-
-        /** 
-         * Print the current tiles and pieces in a nice ASCII format.
-         * @warning: If the board's tiles have errors in their adjacents arrays, this method may have unexpected behavior
-         */
-        std::string getAsciiBoard();
+        bool updatePieceInPL(PieceEnum _piece, ModCoords _oldLocation, ModCoords _newLocation);
 
         PieceEnum getPiece(size_t _f, size_t _r) const {
             return m_grid[_f + _r * m_grid_size];
         };
 
-        bool apply(std::unique_ptr<Move>& _move) {
+        bool apply(std::shared_ptr<Move> _move) {
             //TODO: implement
             return false;
         };
 
-        bool undo(std::unique_ptr<Move>& _move) {
+        bool undo(std::shared_ptr<Move> _move) {
             //TODO: implement
             return false;
         };
 
-        uint64_t getHash() const {
+        Coords getDimensions() const {
+            // Just taking the m_value here is OK because this distance is not affected by modulus, so it is guaranteed result to be a normal positive number.
+            return std::make_pair((m_maxCoords.first - m_minCoords.first + 1).m_value, (m_maxCoords.second - m_minCoords.second + 1).m_value);
+        };
+
+        std::vector<std::unique_ptr<Move>> getMoves(PieceColor _color) {
             //TODO: implement
-            return 0u;
+            std::vector<std::unique_ptr<Move>> a;
+            return a;
         };
 
         int staticEvaluation() {
             return 0;
+        }
+
+        // Just print the entire contents of the array as-is.
+        // For debugging purposes only.
+        std::string dumpAsciiArray();
+
+        // Gets the index of m_grid corresponding to _coords. 
+        // If _useInternal=true, it will get (0,0) as 0th index.
+        // If _useInternal=false, it will get m_minCoords as 0th index.
+        size_t toIndex(ModCoords _coords, bool _useInternal);
+    protected: //TODO: sort some more stuff into protected?
+        // check if adding a tile at _new ModCoords will update m_minCoords or m_maxCoords
+        void ArrayBoard::updateExtrema(const ModCoords& _new);
+
+        // // 'Less than' comparators for comparing ModCoords.
+        // bool compareFileInts(const ModularInt& _a, const ModularInt& _b) const {
+        //     return _a.lessThan(_b, m_minCoords.first);
+        // }
+        // bool compareRankInts(const ModularInt& _a, const ModularInt& _b) const {
+        //     return _a.lessThan(_b, m_minCoords.second);
+        // }
+        // Alternative version of above function
+        inline bool compareFileCoords(const ModCoords& _a, const ModCoords& _b) const {
+            return _a.first.lessThan(_b.first, m_minCoords.first);
+        }
+        inline bool compareRankCoords(const ModCoords& _a, const ModCoords& _b) const {
+            return _a.second.lessThan(_b.second, m_minCoords.second);
         }
 
 };

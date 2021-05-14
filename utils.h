@@ -8,6 +8,7 @@
 #include <sstream>
 #include <ios>
 #include <stdlib.h>
+#include <vector>
 
 // ----------- debugging macros ----------- //
 // dout macro 'debug output'
@@ -40,6 +41,14 @@ extern std::ostream g_nullout;
 
 // USAGE: returns a string describing where in the source code this macro is.
 #define WHERE (FORMAT("\tFile: " << __FILE__ << "\n\tLine: " << __LINE__ << std::endl))
+
+std::vector<std::string> split(const std::string str, const std::string regex_str);
+
+// Guarantees positive result congruent to i % n, except in case of an overflow.
+// See this post for more details: https://stackoverflow.com/questions/14997165/fastest-way-to-get-a-positive-modulo-in-c-c
+inline int positiveModulo(int i, int n) {
+    return (i % n + n) % n;
+}
 
 // ----------- PieceEnum functions ----------- //
 
