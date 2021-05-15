@@ -4,14 +4,17 @@
 #include "constants.h"
 #include "board.h"
 #include "move.h"
-#include "modular_int.h"
+#include "modular_int.hpp"
 
 #include <cstdint>
 #include <stack>
 #include <vector>
 #include <string>
 
-typedef std::pair<ModularInt, ModularInt> ModCoords;
+extern unsigned int ABModulus;
+
+typedef ModularInt<&ABModulus> ABModInt;
+typedef std::pair<ABModInt, ABModInt> ABModCoords;
 
 class ArrayBoard : public Board {
     public:
@@ -22,14 +25,14 @@ class ArrayBoard : public Board {
         // minimum x and y of this board. Because of wrap-around, the literal min integer value is not 
         // guaranteed to be the furtherest "left" or "down".
         // Also note that these overshadow variables of Board, which are of type Coords. //FIXME: this is bad design and should be addressed
-        ModCoords m_minCoords;
-        ModCoords m_maxCoords;
+        ABModCoords m_minCoords;
+        ABModCoords m_maxCoords;
         
         /** For looking up where pieces are at by their type and color. 
          * Organized in same order as PieceEnum: 
          *      since PieceEnum starts pieces on 1, the zero element of this is a placeholder.
         */
-        std::vector<ModCoords> m_pieceLocations[2 * NUM_PIECE_TYPES+1];
+        std::vector<ABModCoords> m_pieceLocations[2 * NUM_PIECE_TYPES+1];
 
         ArrayBoard() { };
         void init(const std::string _sfen);
@@ -52,17 +55,17 @@ class ArrayBoard : public Board {
          * Update the position oldLocation to be newLocation for type piece.
          * Returns false if it does not find such a piece to update.
          */
-        bool updatePieceInPL(PieceEnum _piece, ModCoords _oldLocation, ModCoords _newLocation);
+        bool updatePieceInPL(PieceEnum _piece, ABModCoords _oldLocation, ABModCoords _newLocation);
 
         /** 
          * Remove the piece at location for type piece.
          * Returns false if it does not find such a piece to remove.
          */
-        bool removePieceFromPL(PieceEnum _piece, ModCoords _location);
+        bool removePieceFromPL(PieceEnum _piece, ABModCoords _location);
         /** 
          * Adds the piece at location for type piece.
          */
-        void addPieceToPL(PieceEnum _piece, ModCoords _location) {
+        void addPieceToPL(PieceEnum _piece, ABModCoords _location) {
             m_pieceLocations[_piece].push_back(_location);
         }
 
@@ -92,7 +95,7 @@ class ArrayBoard : public Board {
             for (int i = 1; i < NUM_PIECE_TYPES*2+1; i++) {
                 result += PIECE_LETTERS[i];
                 result += "=" + std::to_string(m_pieceLocations[i].size()) + "{";
-                for (ModCoords& t : m_pieceLocations[i]) {
+                for (ABModCoords& t : m_pieceLocations[i]) {
                     result += PIECE_LETTERS[m_grid[toIndex(t)]];
                     result += " ";
                 }
@@ -111,54 +114,54 @@ class ArrayBoard : public Board {
         std::string dumpAsciiArray();
 
         // Gets the index of m_grid corresponding to _coords. Takes internal Coords as input.
-        size_t toIndex(ModCoords _coords);
+        size_t toIndex(ABModCoords _coords);
 
         // Convert external coords to internal, e.g. (0,0) will be converted to m_minCoords
-        ModCoords toInternalCoords(Coords _extern);
+        ABModCoords toInternalCoords(Coords _extern);
         // Convert internal coords to external, e.g. m_minCoords will be converted to (0,0)
-        Coords toExternalCoords(ModCoords _intern);
+        Coords toExternalCoords(ABModCoords _intern);
 
     protected: //TODO: sort some more stuff into protected?
-        // check if adding a tile at _new ModCoords will update m_minCoords or m_maxCoords
-        void ArrayBoard::updateExtrema(const ModCoords& _new);
+        // check if adding a tile at _new ABModCoords will update m_minCoords or m_maxCoords
+        void ArrayBoard::updateExtrema(const ABModCoords& _new);
 
-        // // 'Less than' comparators for comparing ModCoords.
-        // bool compareFileInts(const ModularInt& _a, const ModularInt& _b) const {
+        // // 'Less than' comparators for comparing ABModCoords.
+        // bool compareFileInts(const ABModInt& _a, const ABModInt& _b) const {
         //     return _a.lessThan(_b, m_minCoords.first);
         // }
-        // bool compareRankInts(const ModularInt& _a, const ModularInt& _b) const {
+        // bool compareRankInts(const ABModInt& _a, const ABModInt& _b) const {
         //     return _a.lessThan(_b, m_minCoords.second);
         // }
         // Alternative version of above function
-        inline bool compareFileCoords(const ModCoords& _a, const ModCoords& _b) const {
+        inline bool compareFileCoords(const ABModCoords& _a, const ABModCoords& _b) const {
             return _a.first.lessThan(_b.first, m_minCoords.first);
         }
-        inline bool compareRankCoords(const ModCoords& _a, const ModCoords& _b) const {
+        inline bool compareRankCoords(const ABModCoords& _a, const ABModCoords& _b) const {
             return _a.second.lessThan(_b.second, m_minCoords.second);
         }
 
 };
 
-inline bool operator==(const ModCoords& _mc1, const ModCoords& _mc2) {
+inline bool operator==(const ABModCoords& _mc1, const ABModCoords& _mc2) {
     return (_mc1.first == _mc2.first) && (_mc1.second == _mc2.second);
 }
-inline ModCoords& operator+=(ModCoords& _mc1, const SignedCoords& _diff) {
+inline ABModCoords& operator+=(ABModCoords& _mc1, const SignedCoords& _diff) {
     _mc1.first += _diff.first;
     _mc1.second += _diff.second;
     return _mc1;
 }
-inline ModCoords& operator-=(ModCoords& _mc1, const SignedCoords& _diff) {
+inline ABModCoords& operator-=(ABModCoords& _mc1, const SignedCoords& _diff) {
     _mc1.first -= _diff.first;
     _mc1.second -= _diff.second;
     return _mc1;
 }
-inline ModCoords operator+(ModCoords _mc1, const SignedCoords& _diff) {
+inline ABModCoords operator+(ABModCoords _mc1, const SignedCoords& _diff) {
     return _mc1 += _diff;
 }
-inline ModCoords operator+(const SignedCoords& _diff, ModCoords _mc1) {
+inline ABModCoords operator+(const SignedCoords& _diff, ABModCoords _mc1) {
     return _mc1 += _diff;
 }
-inline ModCoords operator-(ModCoords _mc1, const SignedCoords& _diff) {
+inline ABModCoords operator-(ABModCoords _mc1, const SignedCoords& _diff) {
     return _mc1 -= _diff;
 }
 

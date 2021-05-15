@@ -12,8 +12,11 @@
 #include <ctype.h>
 #include <limits.h>
 
+// arrayboard modulus
+unsigned int ABModulus;
+
 // This function is only meant to be used in init right now, unless it is cleaned up into something more general.
-void ArrayBoard::updateExtrema(const ModCoords& _new) {
+void ArrayBoard::updateExtrema(const ABModCoords& _new) {
     // FIXME: ugly hack to get min to update. Maybe this is clue to how to actually get min to update later on
     if (_new.first == m_minCoords.first-1) {
         m_minCoords.first = _new.first;
@@ -23,11 +26,11 @@ void ArrayBoard::updateExtrema(const ModCoords& _new) {
     }
 
     m_maxCoords.first = std::max(m_maxCoords.first, _new.first, 
-    [&](const ModularInt& _a, const ModularInt& _b) {
+    [&](const ABModInt& _a, const ABModInt& _b) {
         return _a.lessThan(_b, m_minCoords.first);
     });
     m_maxCoords.second = std::max(m_maxCoords.second, _new.second, 
-    [&](const ModularInt& _a, const ModularInt& _b) {
+    [&](const ABModInt& _a, const ABModInt& _b) {
         return _a.lessThan(_b, m_minCoords.second);
     });
 }
@@ -95,16 +98,16 @@ void ArrayBoard::init(const std::string _sfen) {
     }
 
     // set the class' modulus to match the wrap-around of our array.
-    ModularInt::modulus = m_grid_size;
+    ABModulus = m_grid_size;
 
     // ----------- loop through again to initialize the grid ----------- //
     tdout << "ArrayBoard::init counted " << m_grid_size << " size required and will now init" << std::endl;
 
     // some arbitrary starting point
-    const ModCoords STARTING_CORNER = std::make_pair(0, 0);
+    const ABModCoords STARTING_CORNER = std::make_pair(0, 0);
     m_minCoords = m_maxCoords = STARTING_CORNER; // TODO: remove STARTING CORNER, and just use m_minCoords?
 
-    ModCoords currentFR = STARTING_CORNER;
+    ABModCoords currentFR = STARTING_CORNER;
     for (i = 0; i < _sfen.length() && _sfen[i] != ' '; i++) {
         const char c = _sfen[i];
         if (c == '/') { // Next row
@@ -153,10 +156,10 @@ void ArrayBoard::init(const std::string _sfen) {
     // Parse remaining fields
     // TODO: implement
     dout << "min coords are " << m_minCoords.first << ", " << m_minCoords.second << " and max are " << m_maxCoords.first << ", " << m_maxCoords.second << std::endl;
-    dout << "Done parsing." << std::endl;
+    // dout << "Done parsing." << std::endl;
 }
 
-bool ArrayBoard::updatePieceInPL(PieceEnum _piece, ModCoords _oldLocation, ModCoords _newLocation) {
+bool ArrayBoard::updatePieceInPL(PieceEnum _piece, ABModCoords _oldLocation, ABModCoords _newLocation) {
     for (int i = 0; i < m_pieceLocations[_piece].size(); i++) { // loop for all pieces of type _piece
         if (m_pieceLocations[_piece][i] == _oldLocation) { // find the match
             m_pieceLocations[_piece][i] = _newLocation;
@@ -166,7 +169,7 @@ bool ArrayBoard::updatePieceInPL(PieceEnum _piece, ModCoords _oldLocation, ModCo
     return false;
 }
 
-bool ArrayBoard::removePieceFromPL(PieceEnum _piece, ModCoords _location) {
+bool ArrayBoard::removePieceFromPL(PieceEnum _piece, ABModCoords _location) {
     for (int i = 0; i < m_pieceLocations[_piece].size(); i++) { // loop for all pieces of type _piece
         if (m_pieceLocations[_piece][i] == _location) { // find the match
             m_pieceLocations[_piece].erase(m_pieceLocations[_piece].begin() + i);
@@ -201,8 +204,8 @@ bool ArrayBoard::undo(std::shared_ptr<Move> _move) {
 
 bool ArrayBoard::apply(std::shared_ptr<PieceMove> _move) {
     // tdout << "applying move " << _move->algebraic() << std::endl;
-    ModCoords startCoords = toInternalCoords(_move->m_startPos);
-    ModCoords endCoords = toInternalCoords(_move->m_endPos);
+    ABModCoords startCoords = toInternalCoords(_move->m_startPos);
+    ABModCoords endCoords = toInternalCoords(_move->m_endPos);
 
     // Execute the move
     // Update PieceList
@@ -219,8 +222,8 @@ bool ArrayBoard::apply(std::shared_ptr<PieceMove> _move) {
 
 bool ArrayBoard::undo(std::shared_ptr<PieceMove> _move) {
     // tdout << "undoing move " << _move->algebraic() << std::endl;
-    ModCoords startCoords = toInternalCoords(_move->m_startPos);
-    ModCoords endCoords = toInternalCoords(_move->m_endPos);
+    ABModCoords startCoords = toInternalCoords(_move->m_startPos);
+    ABModCoords endCoords = toInternalCoords(_move->m_endPos);
 
     // Execute the undo
     // Update PieceList
@@ -238,8 +241,8 @@ bool ArrayBoard::apply(std::shared_ptr<TileMove> _move) {
     tdout << "applying move " << _move->algebraic() << std::endl;
 
     // Get the Internal Coords of the range of tiles in this selection
-    ModCoords moveSelFirst = toInternalCoords(_move->m_selFirst);
-    ModCoords moveSelSecond = toInternalCoords(_move->m_selSecond);
+    ABModCoords moveSelFirst = toInternalCoords(_move->m_selFirst);
+    ABModCoords moveSelSecond = toInternalCoords(_move->m_selSecond);
 
     // FIXME: does not update extrema in the case that we remove the last extrema tile. Need to keep a list of all extrema tiles or something.
 
@@ -256,21 +259,21 @@ bool ArrayBoard::undo(std::shared_ptr<TileMove> _move) {
 }
 
 // Convert external coords to internal, e.g. (0,0) will be converted to m_minCoords
-ModCoords ArrayBoard::toInternalCoords(Coords _extern) {
-    ModCoords intern(_extern);
+ABModCoords ArrayBoard::toInternalCoords(Coords _extern) {
+    ABModCoords intern(_extern);
     intern.first += m_minCoords.first;
     intern.second += m_minCoords.second;
     return intern;
 }
 // Convert internal coords to external, e.g. m_minCoords will be converted to (0,0)
-Coords ArrayBoard::toExternalCoords(ModCoords _intern) {
+Coords ArrayBoard::toExternalCoords(ABModCoords _intern) {
     _intern.first -= m_minCoords.first;
     _intern.second -= m_minCoords.second;
     Coords external(_intern.first.m_value, _intern.second.m_value);
     return external;
 }
 
-size_t ArrayBoard::toIndex(ModCoords _coords) {
+size_t ArrayBoard::toIndex(ABModCoords _coords) {
     return _coords.first.m_value + m_grid_size * _coords.second.m_value;
 }
 
@@ -280,7 +283,7 @@ StandardArray ArrayBoard::standardArray() {
     StandardArray sa(dimensions);
 
     size_t i = 0; // current index of sa
-    ModCoords coords = std::make_pair(m_minCoords.first, m_maxCoords.second);
+    ABModCoords coords = std::make_pair(m_minCoords.first, m_maxCoords.second);
     // iterate over rows
     for (; coords.second != m_minCoords.second-1; --coords.second) {
         coords.first = m_minCoords.first; // reset each loop to start at beginning of the row
@@ -309,7 +312,7 @@ int ArrayBoard::staticEvaluation() {
     int staticValue = 0;
     for (int i = 1; i < NUM_PIECE_TYPES*2+1; i++) {
         staticValue += PIECE_VALUES[i] * m_pieceLocations[i].size();
-        for (ModCoords t : m_pieceLocations[i]) {
+        for (ABModCoords t : m_pieceLocations[i]) {
             // add 20 centipawns for being on 'even' coordinates
             if ((t.first + t.second).m_value % 2 == 0) {
                 staticValue += 20 * (isWhite(i) ? 1 : -1); // negate if black
@@ -323,9 +326,9 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMoves(PieceColor _color) {
     // TODO: assumes all pieces can move 1 tile forward, back, left, or right, for the sake of testing minmax.
     std::vector<std::unique_ptr<Move>> legalMoves;
     for (int pieceType = (_color==WHITE ? W_PAWN : B_PAWN); pieceType < NUM_PIECE_TYPES*2+1; pieceType+=2) { // iterate over pieces of _color in piece list
-        for (ModCoords startCoords : m_pieceLocations[pieceType]) { // for all coords of pieces of this type
+        for (ABModCoords startCoords : m_pieceLocations[pieceType]) { // for all coords of pieces of this type
             for (int direction = LEFT; direction <= DOWN; direction++) { // iterate over 4 directions
-                ModCoords endCoords = startCoords + DIRECTION_SIGNS[direction];
+                ABModCoords endCoords = startCoords + DIRECTION_SIGNS[direction];
                 // check if empty
                 if (m_grid[toIndex(endCoords)] == EMPTY) {
                     std::unique_ptr<PieceMove> newMove (new PieceMove(toExternalCoords(startCoords), toExternalCoords(endCoords)));

@@ -30,14 +30,12 @@ if int(debug):
 
 gui = env.Program(compiled_path + 'SelChessGui', Split(
     'gui_main.cpp utils.cpp ' # make sure these strings have trailing space so multiline string doesn't merge last item of this line with first item of next line
-    'modular_int.cpp '
     'dll_board.cpp array_board.cpp board.cpp '
     'game.cpp move.cpp '
     'engine_runner.cpp human_runner.cpp cmd_tokenizer.cpp'
 ))
 engine = env.Program(compiled_path + 'engines/Hippocrene', Split(
     'hippo_main.cpp utils.cpp '
-    'modular_int.cpp '
     'dll_board.cpp array_board.cpp board.cpp '
     'game.cpp move.cpp '
     'min_max.cpp'
