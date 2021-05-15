@@ -236,68 +236,23 @@ bool ArrayBoard::undo(std::shared_ptr<PieceMove> _move) {
 
 bool ArrayBoard::apply(std::shared_ptr<TileMove> _move) {
     tdout << "applying move " << _move->algebraic() << std::endl;
-    // std::vector<Tile*> selection;
 
-    // // Get the Internal Coords (IC) of the range of tiles in this selection
-    // Coords moveSelFirstIC = _move->m_selFirst + m_minCoords;
-    // Coords moveSelSecondIC = _move->m_selSecond + m_minCoords;
+    // Get the Internal Coords of the range of tiles in this selection
+    ModCoords moveSelFirst = toInternalCoords(_move->m_selFirst);
+    ModCoords moveSelSecond = toInternalCoords(_move->m_selSecond);
 
-    // for (Tile* tile : m_tiles) {
-    //     if ( // check if this tile is in the selection
-    //         // compare first coord
-    //         !coordGreaterThan(moveSelFirstIC.first, tile->m_coords.first, m_minCoords.first) && // selFirst <= tile
-    //         !coordGreaterThan(tile->m_coords.first, moveSelSecondIC.first, m_minCoords.first) && // tile <= selSecond
-    //         // compare second coord
-    //         !coordGreaterThan(moveSelFirstIC.second, tile->m_coords.second, m_minCoords.second) && // selFirst <= tile
-    //         !coordGreaterThan(tile->m_coords.second, moveSelSecondIC.second, m_minCoords.second) // tile <= selSecond
-    //     ) {
-    //         tdout << "selection includes " << tile->m_coords.first << ", " << tile->m_coords.second << std::endl;
-    //         selection.push_back(tile);
-    //     }
-    // }
+    // FIXME: does not update extrema in the case that we remove the last extrema tile. Need to keep a list of all extrema tiles or something.
 
-    // // FIXME: does not update extrema in the case that we remove the last extrema tile. Need to keep a list of all extrema tiles.
-
-
-    // for (Tile* tile : selection) {
-    //     // Get displacement of move
-    //     tile->m_coords += _move->m_translation;
-
-    // // FIXME: complete this section which checks if the new location of the tile updates the extrema. Probably should merge with updateExtrema function.
-    // //     // check if this is a new extrema
-    // //     // check first coord
-    // //     if (_move->m_translation.first < 0) { // left move
-            
-    // //     } else if (_move->m_translation.first > 0) { // right move
-    // //         if (coordGreaterThan(tile->m_coords.first, m_maxCoords.first, m_minCoords.first)) {
-    // //             m_maxCoords.first = tile->m_coords.first;
-    // //         }
-    // //     }
-
-
-    //     // break old connections on edge pieces and add new ones
-    //     if (tile->m_coords.first == moveSelFirstIC.first) {
-    //         tile->SetAdjacent(LEFT, getTile(tile->m_coords + DIRECTION_SIGNS[LEFT], true)); // TODO: there must be a more efficient way of getting these new adjacencies, right?
-    //     }
-    //     if (tile->m_coords.first == moveSelSecondIC.first) {
-    //         tile->SetAdjacent(RIGHT, getTile(tile->m_coords + DIRECTION_SIGNS[RIGHT], true));
-    //     }
-    //     if (tile->m_coords.second == moveSelFirstIC.second) {
-    //         tile->SetAdjacent(DOWN, getTile(tile->m_coords + DIRECTION_SIGNS[DOWN], true));
-    //     }
-    //     if (tile->m_coords.second == moveSelSecondIC.second) {
-    //         tile->SetAdjacent(UP, getTile(tile->m_coords + DIRECTION_SIGNS[UP], true));
-    //     }
-    // }
-    // // TODO: update m_minCoords and m_maxCoords
-    // // TODO: create some way of checking if all connections are valid
+    // TODO: update m_minCoords and m_maxCoords
 
     return false;
 };
 
 bool ArrayBoard::undo(std::shared_ptr<TileMove> _move) {
-    //TODO:
-    return false;
+    // Literally just move the selection back.
+    // FIXME: when m_minCoords update, we can't just do this since external to internal conversion depends on the previous min.
+    auto reverseMove = std::make_shared<TileMove>(_move->m_selFirst + _move->m_translation, _move->m_selSecond + _move->m_translation, -_move->m_translation);
+    return apply(reverseMove);
 }
 
 // Convert external coords to internal, e.g. (0,0) will be converted to m_minCoords

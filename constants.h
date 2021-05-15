@@ -8,6 +8,13 @@
 typedef std::pair<unsigned int, unsigned int> Coords;
 typedef std::pair<int, int> SignedCoords;
 
+// enable negation on signedCoords. //TODO: move elsewhere?
+inline SignedCoords operator-(SignedCoords _c) {
+    _c.first = -_c.first;
+    _c.second = -_c.second;
+    return _c;
+}
+
 typedef int CustomException;
 enum : CustomException {EXCP_ENGINE_DIED=101};
 
