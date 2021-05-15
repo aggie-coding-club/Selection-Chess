@@ -7,14 +7,13 @@
 // Arithmetic operations on objects of this class are done with a modulo, and always return type ModularInt.
 // m_value will always be a value in {0, 1, ..., modulus-1}.
 // To get back to normal arithmetic, get the m_value.
+// Templated by a pointer to the modulus. This means each class created from template has a modulus shared by all its objects, 
+// and that modulus can be modified.
+// The behavior for a ModularInt object is not defined when modulus changes during its existence.
 template <unsigned int* modulus>
 class ModularInt {
     public:
-        // // Note: because this is static, it is the modulus used for ALL ModularInts (across the same executable).
-        // // Only modify this when creating a new board.
-        // // The behavior for a ModularInt is not defined when modulus changes during its existence.
-        // static unsigned int modulus;
-
+        // Value stored by a specific object
         int m_value; // Even though this only contains nonnegative values, we keep it signed so it doesn't overflow on negative numbers.
 
         ModularInt(int _x);
@@ -67,12 +66,6 @@ class ModularInt {
             _os << _mi.m_value; // << " (mod " << *modulus << ")";
             return _os;
         }
-
-        // This conversion allows for some naughty behaviors that I don't like.
-        // operator int() const {
-        //     return m_value;
-        // }
-
 };
 
 template <unsigned int* modulus>
@@ -117,12 +110,6 @@ inline ModularInt<modulus> operator-(ModularInt<modulus> _mi1, ModularInt<modulu
     _mi1 -= _mi2;
     return _mi1;
 }
-
-// template <unsigned int* modulus>
-// inline std::ostream& operator<<(std::ostream& _os, const ModularInt<modulus>& _mi) {
-//     _os << _mi.m_value;
-//     return _os;
-// }
 
 template <unsigned int* modulus>
 inline bool ModularInt<modulus>::lessThan(ModularInt<modulus> _other, ModularInt<modulus> _relZero) const {
