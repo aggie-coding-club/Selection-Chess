@@ -10,7 +10,7 @@
 // Templated by a pointer to the modulus. This means each class created from template has a modulus shared by all its objects, 
 // and that modulus can be modified.
 // The behavior for a ModularInt object is not defined when modulus changes during its existence.
-template <unsigned int* modulus>
+template <unsigned int* modulus> // TODO: can I make this const or nah?
 class ModularInt {
     public:
         // Value stored by a specific object

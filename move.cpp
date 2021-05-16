@@ -6,10 +6,13 @@
 
 // Note: all of the error checks to make sure the format is correct can be ommited by a chess engine when it communicates with the gui, if it wants to.
 
+// Since the the sequence a,b,..,z,aa,ab,...,zz has 26*27 elements
+unsigned int DModulus = 26*27;
+
 // ----------- Conversions for the letter lexeme of algebraic notation ----------- //
-// a=0, ..., z=25, aa=26+0, ..., az=26+25, ba=2*26+0, ...
+// a=0, ..., z=25, aa=26+0, ..., az=26+25, ba=2*26+0, ..., zz=26*26+25
 // Note that upper case letters are prohibited
-unsigned int lettersToInt(std::string _letters) {
+DModInt lettersToInt(std::string _letters) {
     if (_letters.length() > 2) {
         dout << "ERROR: coords too big. " << WHERE << std::endl;
         return -1;
@@ -24,12 +27,12 @@ unsigned int lettersToInt(std::string _letters) {
     }
     return value;
 }
-std::string intToLetters(unsigned int _int) {
+std::string intToLetters(DModInt _int) {
     std::string letters = "";
-    if (_int >= 26) {
-        letters += (_int/26)+'a'-1;
+    if (_int.m_value >= 26) {
+        letters += (_int.m_value/26)+'a'-1;
     }
-    letters += (_int%26)+'a';
+    letters += (_int.m_value%26)+'a';
     return letters;
 }
 
@@ -48,7 +51,7 @@ std::string TileMove::algebraic() {
 }
 std::string TileDeletion::algebraic() {
     std::string result = "D";
-    for (Coords c : m_deleteCoords) {
+    for (DModCoords c : m_deleteCoords) {
         result += coordsToAlgebraic(c);
     }
     return result;
@@ -62,7 +65,7 @@ std::unique_ptr<Move> readAlgebraic(std::string _algebra) {
 
         if (tokenizer.peek() == "S") { // this is a tile selection move
             tokenizer.next(); // eat the S
-            Coords f = tokenizer.nextCoords(); Coords s = tokenizer.nextCoords(); Coords d = tokenizer.nextSignedCoords();
+            DModCoords f = tokenizer.nextCoords(); DModCoords s = tokenizer.nextCoords(); SignedCoords d = tokenizer.nextSignedCoords();
             std::unique_ptr<TileMove> move = std::make_unique<TileMove>(f, s, d);
             if (tokenizer.hasNext()) { // Using symmetry modifier(s)
                 if (tokenizer.peek() == "R") { // Rotation
@@ -86,7 +89,7 @@ std::unique_ptr<Move> readAlgebraic(std::string _algebra) {
 
         } else if (tokenizer.peek() == "D") { // this is a tile deletion move
             tokenizer.next(); // eat the D
-            std::vector<Coords> deletions;
+            std::vector<DModCoords> deletions;
             while (tokenizer.hasNext()) {
                 deletions.push_back(tokenizer.nextCoords());
             }
@@ -97,13 +100,13 @@ std::unique_ptr<Move> readAlgebraic(std::string _algebra) {
         }
     }
     // If no prefix, then this is a piece move
-    Coords f = tokenizer.nextCoords(); Coords s = tokenizer.nextCoords(); // We declare them before passing as params to make sure order of operations is OK
+    DModCoords f = tokenizer.nextCoords(); DModCoords s = tokenizer.nextCoords(); // We declare them before passing as params to make sure order of operations is OK
     return std::make_unique<PieceMove>(f, s);
 }
 
-std::string coordsToAlgebraic(Coords _coords, Coords _offset) {
+std::string coordsToAlgebraic(DModCoords _coords, DModCoords _offset) {
     //TODO: implement _offset if its needed
-    return intToLetters(_coords.first) + std::to_string(_coords.second);
+    return intToLetters(_coords.first) + std::to_string(_coords.second.m_value);
 }
 std::string signedCoordsToAlgebraic(SignedCoords _coords) {
     //TODO: implement _offset if its needed
@@ -111,7 +114,7 @@ std::string signedCoordsToAlgebraic(SignedCoords _coords) {
            (_coords.second >= 0? "+" : "") + std::to_string(_coords.second);
 }
 
-Coords algebraicToCoords(std::string _algebra, Coords _offset) {
+DModCoords algebraicToCoords(std::string _algebra, DModCoords _offset) {
     //TODO: implement _offset if its needed
     //TODO: handle errors
     AlgebraicTokenizer tokenizer(_algebra);
@@ -162,7 +165,7 @@ std::string AlgebraicTokenizer::next() {
         return "[ERROR!]";
     }
 }
-Coords AlgebraicTokenizer::nextCoords() {
+DModCoords AlgebraicTokenizer::nextCoords() {
     //TODO: handle errors
     std::string letters = next();
     std::string numbers = next();

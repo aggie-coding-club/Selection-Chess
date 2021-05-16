@@ -119,7 +119,7 @@ class ArrayBoard : public Board {
         // Convert external coords to internal, e.g. (0,0) will be converted to m_minCoords
         ABModCoords toInternalCoords(Coords _extern);
         // Convert internal coords to external, e.g. m_minCoords will be converted to (0,0)
-        Coords toExternalCoords(ABModCoords _intern);
+        Coords toStandardCoords(ABModCoords _intern);
 
     protected: //TODO: sort some more stuff into protected?
         // check if adding a tile at _new ABModCoords will update m_minCoords or m_maxCoords

@@ -122,8 +122,8 @@ bool debugTests() {
     dout << "Done testing int wrapping." << std::endl;
 
     dout << "Testing Algebraic Notation conversions... " << std::endl;
-    Coords c1 = std::make_pair(3,5);
-    Coords c2 = std::make_pair(129,50);
+    DModCoords c1 = std::make_pair(3,5);
+    DModCoords c2 = std::make_pair(129,50);
     dout << coordsToAlgebraic(c1) << std::endl;
     dout << coordsToAlgebraic(c2) << std::endl;
     c1 = algebraicToCoords(coordsToAlgebraic(c1));

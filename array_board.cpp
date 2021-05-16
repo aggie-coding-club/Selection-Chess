@@ -204,8 +204,8 @@ bool ArrayBoard::undo(std::shared_ptr<Move> _move) {
 
 bool ArrayBoard::apply(std::shared_ptr<PieceMove> _move) {
     // tdout << "applying move " << _move->algebraic() << std::endl;
-    ABModCoords startCoords = toInternalCoords(_move->m_startPos);
-    ABModCoords endCoords = toInternalCoords(_move->m_endPos);
+    ABModCoords startCoords = toInternalCoords(dModCoordsToStandard(_move->m_startPos));
+    ABModCoords endCoords = toInternalCoords(dModCoordsToStandard(_move->m_endPos));
 
     // Execute the move
     // Update PieceList
@@ -222,8 +222,8 @@ bool ArrayBoard::apply(std::shared_ptr<PieceMove> _move) {
 
 bool ArrayBoard::undo(std::shared_ptr<PieceMove> _move) {
     // tdout << "undoing move " << _move->algebraic() << std::endl;
-    ABModCoords startCoords = toInternalCoords(_move->m_startPos);
-    ABModCoords endCoords = toInternalCoords(_move->m_endPos);
+    ABModCoords startCoords = toInternalCoords(dModCoordsToStandard(_move->m_startPos));
+    ABModCoords endCoords = toInternalCoords(dModCoordsToStandard(_move->m_endPos));
 
     // Execute the undo
     // Update PieceList
@@ -241,8 +241,8 @@ bool ArrayBoard::apply(std::shared_ptr<TileMove> _move) {
     tdout << "applying move " << _move->algebraic() << std::endl;
 
     // Get the Internal Coords of the range of tiles in this selection
-    ABModCoords moveSelFirst = toInternalCoords(_move->m_selFirst);
-    ABModCoords moveSelSecond = toInternalCoords(_move->m_selSecond);
+    ABModCoords moveSelFirst = toInternalCoords(dModCoordsToStandard(_move->m_selFirst));
+    ABModCoords moveSelSecond = toInternalCoords(dModCoordsToStandard(_move->m_selSecond));
 
     // FIXME: does not update extrema in the case that we remove the last extrema tile. Need to keep a list of all extrema tiles or something.
 
@@ -266,7 +266,7 @@ ABModCoords ArrayBoard::toInternalCoords(Coords _extern) {
     return intern;
 }
 // Convert internal coords to external, e.g. m_minCoords will be converted to (0,0)
-Coords ArrayBoard::toExternalCoords(ABModCoords _intern) {
+Coords ArrayBoard::toStandardCoords(ABModCoords _intern) {
     _intern.first -= m_minCoords.first;
     _intern.second -= m_minCoords.second;
     Coords external(_intern.first.m_value, _intern.second.m_value);
@@ -331,12 +331,12 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMoves(PieceColor _color) {
                 ABModCoords endCoords = startCoords + DIRECTION_SIGNS[direction];
                 // check if empty
                 if (m_grid[toIndex(endCoords)] == EMPTY) {
-                    std::unique_ptr<PieceMove> newMove (new PieceMove(toExternalCoords(startCoords), toExternalCoords(endCoords)));
+                    std::unique_ptr<PieceMove> newMove (new PieceMove(toStandardCoords(startCoords), toStandardCoords(endCoords)));
                     legalMoves.push_back(std::move(newMove));
                 // check if capture
                 } else if (isPiece(m_grid[toIndex(endCoords)]) // Are we moving onto another piece
                 && (isWhite(m_grid[toIndex(startCoords)]) != isWhite(m_grid[toIndex(endCoords)]))) { // Is this an enemy piece
-                    std::unique_ptr<PieceMove> newMove (new PieceMove(toExternalCoords(startCoords), toExternalCoords(endCoords)));
+                    std::unique_ptr<PieceMove> newMove (new PieceMove(toStandardCoords(startCoords), toStandardCoords(endCoords)));
                     newMove->m_capture = m_grid[toIndex(endCoords)];
                     legalMoves.push_back(std::move(newMove));
                 }

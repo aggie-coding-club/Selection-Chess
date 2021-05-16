@@ -3,6 +3,7 @@
 
 #include "constants.h"
 #include "tokenizer.h"
+#include "modular_int.hpp"
 
 #include <sstream>
 #include <vector>
@@ -13,7 +14,13 @@
 // I bet you can pack this functionality into a single Move object and not have to use the heap,
 // but any way I can think of to do that is not going to both clean looking and easily understandable.
 
-// FIXME: Probably should use smart pointers for moves
+//TODO: surely there is a better place to put this
+// Modulus used by Displayed coords.
+extern unsigned int DModulus;
+typedef ModularInt<&DModulus> DModInt;
+typedef std::pair<DModInt, DModInt> DModCoords;
+
+// TODO: convert moves to use DModCoords.
 
 typedef int MoveType;
 enum : MoveType {INVALID_MOVE, PIECE_MOVE, TILE_MOVE, TILE_DELETION};
@@ -30,11 +37,11 @@ class Move {
 // When a piece is moved. This is the normal type of move.
 class PieceMove : public Move {
     public:
-        Coords m_startPos;
-        Coords m_endPos;
+        DModCoords m_startPos;
+        DModCoords m_endPos;
         PieceEnum m_capture;
 
-        PieceMove (Coords _startPos, Coords _endPos) : PieceMove() { 
+        PieceMove (DModCoords _startPos, DModCoords _endPos) : PieceMove() { 
             m_startPos =_startPos;
             m_endPos =_endPos;
             m_capture =EMPTY;
@@ -50,9 +57,9 @@ class PieceMove : public Move {
 class TileMove : public Move {
     public:
         // Bottom left corner of our selection, used to tell where our selection box is starting or minimum values of coords
-        Coords m_selFirst;
+        DModCoords m_selFirst;
         // Top right corner of our selection, used to determine how big our selection box is or maximum values of coords
-        Coords m_selSecond;
+        DModCoords m_selSecond;
 
         // Note: the ability to delete entire sections can be coded into here
         // // If true, ignore m_translation and just delete tiles in selection.
@@ -68,7 +75,7 @@ class TileMove : public Move {
         // TODO: use this member
         int m_symmetry = 4;
 
-        TileMove (Coords _selBottomLeft, Coords _selTopRight, SignedCoords _translation) : TileMove() {
+        TileMove (DModCoords _selBottomLeft, DModCoords _selTopRight, SignedCoords _translation) : TileMove() {
             m_selFirst = _selBottomLeft;
             m_selSecond = _selTopRight;
             m_translation = _translation;
@@ -83,14 +90,14 @@ class TileMove : public Move {
 // For cherry-picking tiles to delete, e.g. 'Delete a2, b6, and e10'.
 class TileDeletion : public Move {
     public:
-        std::vector<Coords> m_deleteCoords;
+        std::vector<DModCoords> m_deleteCoords;
 
         // Constructor for multiple coords
-        TileDeletion (std::vector<Coords> _deleteCoords) : TileDeletion() {
+        TileDeletion (std::vector<DModCoords> _deleteCoords) : TileDeletion() {
             m_deleteCoords = _deleteCoords;
         }
         // Constructor for one coord
-        TileDeletion (Coords _deleteCoord) : TileDeletion() {
+        TileDeletion (DModCoords _deleteCoord) : TileDeletion() {
             m_deleteCoords.push_back(_deleteCoord);
         }
         TileDeletion() {
@@ -102,8 +109,8 @@ class TileDeletion : public Move {
 
 std::unique_ptr<Move> readAlgebraic(std::string _algebra);
 
-std::string coordsToAlgebraic(Coords _coords, Coords _offset=std::make_pair(0,0));
-Coords algebraicToCoords(std::string _algebra, Coords _offset=std::make_pair(0,0));
+std::string coordsToAlgebraic(DModCoords _coords, DModCoords _offset=std::make_pair(0,0));
+DModCoords algebraicToCoords(std::string _algebra, DModCoords _offset=std::make_pair(0,0));
 
 std::string signedCoordsToAlgebraic(SignedCoords _coords);
 
@@ -113,13 +120,34 @@ class AlgebraicTokenizer : public AbstractTokenizer {
         // returns the next lexeme in the algebraic string. If we have reached the end of the string, return empty string.
         std::string next();
         // assuming the next sequence is a coords (e.g. ab15), return the coord
-        Coords nextCoords();
+        DModCoords nextCoords();
         // assuming the next sequence is a signedcoords (e.g. +10-2), return the signed coord
         SignedCoords nextSignedCoords();
 };
 
 
-unsigned int lettersToInt(std::string _letters);
-std::string intToLetters(unsigned int _int);
+DModInt lettersToInt(std::string _letters);
+std::string intToLetters(DModInt _int);
+
+// TODO: is there a more readable/concise way of doing this?
+inline DModCoords& operator+=(DModCoords& _mc1, const SignedCoords& _diff) {
+    _mc1.first += _diff.first;
+    _mc1.second += _diff.second;
+    return _mc1;
+}
+inline DModCoords& operator-=(DModCoords& _mc1, const SignedCoords& _diff) {
+    _mc1.first -= _diff.first;
+    _mc1.second -= _diff.second;
+    return _mc1;
+}
+inline DModCoords operator+(DModCoords _mc1, const SignedCoords& _diff) {
+    return _mc1 += _diff;
+}
+inline DModCoords operator+(const SignedCoords& _diff, DModCoords _mc1) {
+    return _mc1 += _diff;
+}
+inline DModCoords operator-(DModCoords _mc1, const SignedCoords& _diff) {
+    return _mc1 -= _diff;
+}
 
 #endif

@@ -48,7 +48,7 @@ class Board {
         // virtual Board(const std::string _sfen) = 0;
         // minimum x and y of this board. Because of wrap-around, the literal min integer value is not 
         // guaranteed to be the furtherest "left" or "down".
-        Coords m_minCoords;
+        Coords m_minCoords; // TODO: consider removing this? This seems too implementation specific now...
         Coords m_maxCoords;
 
         int m_material; // changed material score to just be material for both
@@ -62,6 +62,11 @@ class Board {
          * for most practical purposes. Really, this is just here to test if the hash function is working.
          */
         virtual bool operator==(const Board& _other) const;
+
+        // Which displayCoords map to standardArray's (0, 0)
+        DModCoords m_displayCoordsZero;
+        DModCoords standardToDModCoords(Coords _standard);
+        Coords dModCoordsToStandard(DModCoords _dMod);
 
         /** 
          * Print the current tiles and pieces in a nice ASCII format.

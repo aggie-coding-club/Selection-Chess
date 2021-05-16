@@ -411,8 +411,8 @@ bool DLLBoard::undo(std::shared_ptr<Move> _move) {
 
 bool DLLBoard::apply(std::shared_ptr<PieceMove> _move) {
     // tdout << "applying move " << _move.algebraic() << std::endl;
-    Tile* startTile = getTile(_move->m_startPos, false);
-    Tile* endTile = getTile(_move->m_endPos, false);
+    Tile* startTile = getTile(dModCoordsToStandard(_move->m_startPos), false);
+    Tile* endTile = getTile(dModCoordsToStandard(_move->m_endPos), false);
 
     // Check this is valid
     if (startTile == nullptr || endTile == nullptr) {
@@ -435,8 +435,8 @@ bool DLLBoard::apply(std::shared_ptr<PieceMove> _move) {
 
 bool DLLBoard::undo(std::shared_ptr<PieceMove> _move) {
     // tdout << "undoing move " << _move.algebraic() << std::endl;
-    Tile* startTile = getTile(_move->m_startPos, false);
-    Tile* endTile = getTile(_move->m_endPos, false);
+    Tile* startTile = getTile(dModCoordsToStandard(_move->m_startPos), false);
+    Tile* endTile = getTile(dModCoordsToStandard(_move->m_endPos), false);
 
     // Check this is valid
     if (startTile == nullptr || endTile == nullptr) {
@@ -462,8 +462,8 @@ bool DLLBoard::apply(std::shared_ptr<TileMove> _move) {
     std::vector<Tile*> selection;
 
     // Get the Internal Coords (IC) of the range of tiles in this selection
-    Coords moveSelFirstIC = _move->m_selFirst + m_minCoords;
-    Coords moveSelSecondIC = _move->m_selSecond + m_minCoords;
+    Coords moveSelFirstIC = dModCoordsToStandard(_move->m_selFirst) + m_minCoords;
+    Coords moveSelSecondIC = dModCoordsToStandard(_move->m_selSecond) + m_minCoords;
 
     for (Tile* tile : m_tiles) {
         if ( // check if this tile is in the selection

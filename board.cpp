@@ -337,3 +337,15 @@ std::string StandardArray::dumpAsciiArray() {
     result += "\n]";
     return result;
 }
+
+DModCoords Board::standardToDModCoords(Coords _standard) {
+    DModCoords dMod (_standard);
+    dMod.first += m_displayCoordsZero.first;
+    dMod.second += m_displayCoordsZero.second;
+    return dMod;
+}
+Coords Board::dModCoordsToStandard(DModCoords _dMod) {
+    _dMod.first -= m_displayCoordsZero.first;
+    _dMod.second -= m_displayCoordsZero.second;
+    return std::make_pair(_dMod.first.m_value, _dMod.second.m_value);
+}
