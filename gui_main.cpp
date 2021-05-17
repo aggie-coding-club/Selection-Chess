@@ -128,6 +128,7 @@ bool debugTests() {
     dout << coordsToAlgebraic(c2) << std::endl;
     c1 = algebraicToCoords(coordsToAlgebraic(c1));
     c2 = algebraicToCoords(coordsToAlgebraic(c2));
+    c2 = algebraicToCoords("zz999");
     dout << c1.first << ", " << c1.second << std::endl;
     dout << c2.first << ", " << c2.second << std::endl;
     PieceMove m1(c1, c2);

@@ -56,7 +56,7 @@ void DLLBoard::sortByCoords(bool _priorityRank, bool _reverseFile, bool _reverse
 }
 
 
-DLLBoard::DLLBoard() { }
+DLLBoard::DLLBoard() : Board() { }
 DLLBoard::DLLBoard(const std::string _sfen) : DLLBoard() {
     init(_sfen);
 }

@@ -96,7 +96,7 @@ std::string Board::getAsciiBoard() {
     std::string h_pad_right = std::string(m_printSettings.m_width / 2, m_printSettings.m_tileFillChar);
 
     // Margin drawing controls
-    const unsigned int LEFT_MARGIN_SIZE = 5; // width of left margin
+    const unsigned int LEFT_MARGIN_SIZE = 6; // width of left margin
     const unsigned int LEFT_MARGIN_PAD = 3; // space between left margin and leftmost tiles
     const char MARGIN_V_SEP = '|'; // vertical boundary for margin
     const char MARGIN_H_SEP = '='; // horizontal boundary for margin
@@ -169,7 +169,7 @@ std::string Board::getAsciiBoard() {
         // labels
         result += MARGIN_H_LABEL_DIV;
         for (auto xLabel = 0; xLabel != sa.m_dimensions.first; xLabel++) {
-            std::string labelString = intToLetters(xLabel);
+            std::string labelString = intToLetters(m_displayCoordsZero.first + xLabel);
             while (labelString.size() < m_printSettings.m_width) {
                 labelString += " "; // label filler
             }
@@ -186,7 +186,7 @@ std::string Board::getAsciiBoard() {
         if (m_printSettings.m_showCoords) {
             std::string leftMargin = std::string(1, MARGIN_V_SEP) + " ";
             if (i % (m_printSettings.m_height+1) == m_printSettings.m_height / 2 + 1) {
-                leftMargin += std::to_string(currentY--);
+                leftMargin += std::to_string((m_displayCoordsZero.second + currentY--).m_value);
             }
             while (leftMargin.size() < LEFT_MARGIN_SIZE) {
                 leftMargin += " ";

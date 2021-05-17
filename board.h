@@ -40,16 +40,20 @@ class StandardArray {
 class Board {
     public:
         BoardPrintSettings m_printSettings;
-        /** 
-         * Creates a new board from SFEN.
-         */
-        // virtual Board() = 0;
+
+        Board() : m_displayCoordsZero(std::make_pair(0,0)) { }
+
+        // Resets board from SFEN.
         virtual void init(const std::string _sfen) = 0;
         // virtual Board(const std::string _sfen) = 0;
         // minimum x and y of this board. Because of wrap-around, the literal min integer value is not 
         // guaranteed to be the furtherest "left" or "down".
         Coords m_minCoords; // TODO: consider removing this? This seems too implementation specific now...
         Coords m_maxCoords;
+
+        // Which displayCoords map to standardArray's (0, 0)
+        // Usually, should update whenever minCoords update.
+        DModCoords m_displayCoordsZero;
 
         int m_material; // changed material score to just be material for both
         uint64_t m_hashCode;
@@ -63,8 +67,6 @@ class Board {
          */
         virtual bool operator==(const Board& _other) const;
 
-        // Which displayCoords map to standardArray's (0, 0)
-        DModCoords m_displayCoordsZero;
         DModCoords standardToDModCoords(Coords _standard);
         Coords dModCoordsToStandard(DModCoords _dMod);
 

@@ -15,10 +15,15 @@
 // but any way I can think of to do that is not going to both clean looking and easily understandable.
 
 //TODO: surely there is a better place to put this
-// Modulus used by Displayed coords.
-extern unsigned int DModulus;
-typedef ModularInt<&DModulus> DModInt;
-typedef std::pair<DModInt, DModInt> DModCoords;
+// Modulus used by Displayed alphabet coord.
+extern unsigned int DAModulus;
+// Modular Int used by displayed alphabet coord, i.e. a,...,z,aa,ab,...,zz
+typedef ModularInt<&DAModulus> DAModInt;
+// Modulus used by Displayed numeric coord.
+extern unsigned int DDModulus;
+// Modular Int used by displayed numberic coord, i.e. 0,...,999
+typedef ModularInt<&DDModulus> DDModInt;
+typedef std::pair<DAModInt, DDModInt> DModCoords;
 
 // TODO: convert moves to use DModCoords.
 
@@ -126,8 +131,8 @@ class AlgebraicTokenizer : public AbstractTokenizer {
 };
 
 
-DModInt lettersToInt(std::string _letters);
-std::string intToLetters(DModInt _int);
+DAModInt lettersToInt(std::string _letters);
+std::string intToLetters(DAModInt _int);
 
 // TODO: is there a more readable/concise way of doing this?
 inline DModCoords& operator+=(DModCoords& _mc1, const SignedCoords& _diff) {

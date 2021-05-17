@@ -7,12 +7,14 @@
 // Note: all of the error checks to make sure the format is correct can be ommited by a chess engine when it communicates with the gui, if it wants to.
 
 // Since the the sequence a,b,..,z,aa,ab,...,zz has 26*27 elements
-unsigned int DModulus = 26*27;
+unsigned int DAModulus = 26*27;
+// 1000 is nice number, and is big enough.
+unsigned int DDModulus = 1000;
 
 // ----------- Conversions for the letter lexeme of algebraic notation ----------- //
 // a=0, ..., z=25, aa=26+0, ..., az=26+25, ba=2*26+0, ..., zz=26*26+25
 // Note that upper case letters are prohibited
-DModInt lettersToInt(std::string _letters) {
+DAModInt lettersToInt(std::string _letters) {
     if (_letters.length() > 2) {
         dout << "ERROR: coords too big. " << WHERE << std::endl;
         return -1;
@@ -27,7 +29,7 @@ DModInt lettersToInt(std::string _letters) {
     }
     return value;
 }
-std::string intToLetters(DModInt _int) {
+std::string intToLetters(DAModInt _int) {
     std::string letters = "";
     if (_int.m_value >= 26) {
         letters += (_int.m_value/26)+'a'-1;
