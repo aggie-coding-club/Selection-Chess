@@ -186,8 +186,10 @@ bool ArrayBoard::apply(std::shared_ptr<Move> _move) {
         return apply(std::static_pointer_cast<PieceMove>(_move));
     case TILE_MOVE:
         return apply(std::static_pointer_cast<TileMove>(_move));
+    case TILE_DELETION:
+        return apply(std::static_pointer_cast<TileDeletion>(_move));
     default:
-        dout << "FEATURE NOT IMPLEMENTED YET. Unknown Move Type [" << _move->m_type << "]\n" << WHERE << std::endl;
+        dout << "Unknown Move Type [" << _move->m_type << "]\n" << WHERE << std::endl;
         return false;
     }
 }
@@ -197,8 +199,10 @@ bool ArrayBoard::undo(std::shared_ptr<Move> _move) {
         return undo(std::static_pointer_cast<PieceMove>(_move));
     case TILE_MOVE:
         return undo(std::static_pointer_cast<TileMove>(_move));
+    case TILE_DELETION:
+        return undo(std::static_pointer_cast<TileDeletion>(_move));
     default:
-        dout << "FEATURE NOT IMPLEMENTED YET. Unknown Move Type [" << _move->m_type << "]\n" << WHERE << std::endl;
+        dout << "Unknown Move Type [" << _move->m_type << "]\n" << WHERE << std::endl;
         return false;
     }
 }
@@ -315,6 +319,72 @@ bool ArrayBoard::undo(std::shared_ptr<TileMove> _move) {
     DModCoords destSecond = _move->m_destFirst + translationDist;
     auto reverseMove = std::make_shared<TileMove>(_move->m_destFirst, destSecond, _move->m_selFirst);
     return apply(reverseMove);
+}
+
+bool ArrayBoard::apply(std::shared_ptr<TileDeletion> _move) {
+    tdout << "applying move " << _move->algebraic() << std::endl;
+    for (DModCoords& dModDeletion : _move->m_deleteCoords) {
+        ABModCoords deletionCoords = toInternalCoords(dModCoordsToStandard(dModDeletion));
+        // if (m_grid[toIndex(deletionCoords)] == EMPTY) { // TODO: check if empty. Want to make sure we can undo it if part way we find it is illegal move.
+        m_grid[toIndex(deletionCoords)] = INVALID;
+    }
+
+    // it is possible we cut off the min/max, so we need to update it accordingly
+    tdout << "minCoords=" << m_minCoords << " maxCoords=" << m_maxCoords << "before cut," << std::endl;
+    ABModCoords updatedMin = std::make_pair( //TODO: this is repeated code from getSelection -- consider making this into a function, as well as its counterpart in apply, too
+        nextTileByColOrder(std::make_pair(m_minCoords.first, 0), false).first, 
+        nextTileByRowOrder(std::make_pair(0, m_minCoords.second), false).second
+    );
+    ABModCoords updatedMax = std::make_pair(
+        nextTileByColOrder(std::make_pair(m_maxCoords.first, 0), true, true).first,
+        nextTileByRowOrder(std::make_pair(0, m_maxCoords.second), true, true).second
+    );
+    ABModCoords minUpdate = updatedMin - m_minCoords; // since we are cutting tiles, updatedMin >= m_minCoords aka change in min is positive.
+    m_displayCoordsZero += std::make_pair(minUpdate.first.m_value, minUpdate.second.m_value);
+    m_minCoords = updatedMin;
+    m_maxCoords = updatedMax;
+    tdout << "now minCoords=" << m_minCoords << " maxCoords=" << m_maxCoords << "before after the cut" << std::endl;
+
+    return true;
+}
+
+bool ArrayBoard::undo(std::shared_ptr<TileDeletion> _move) {
+    tdout << "applying move " << _move->algebraic() << std::endl;
+    // Note: this assumes that 2*[max number of tiles per deletion] + m_grid_size < 27*26 (the DModCoord space).
+    // TODO: would be nice if there was a better way to figure out which side it corresponds to easier than checking which is closer so our assumption is not needed.
+    for (DModCoords& dModAddition : _move->m_deleteCoords) {
+        // check if this addition would change m_minCoords
+        DModCoords dModMin = standardToDModCoords(toStandardCoords(m_minCoords));
+        DModCoords dModMax = standardToDModCoords(toStandardCoords(m_maxCoords));
+        // .first
+        if (!dModAddition.first.lessThanOrEqual(dModMax.first, dModMin.first)) { // check if this is outside of our current bounds
+            unsigned int distToMin = (dModMin.first - dModAddition.first).m_value;
+            unsigned int distToMax = (dModAddition.first - dModMax.first).m_value;
+            if (distToMin < distToMax) {
+                m_minCoords.first -= distToMin;
+                m_displayCoordsZero.first -= distToMin;
+            } else {
+                m_maxCoords.first += distToMax;
+            }
+        }
+        // .second
+        if (!dModAddition.second.lessThanOrEqual(dModMax.second, dModMin.second)) { // check if this is outside of our current bounds
+            unsigned int distToMin = (dModMin.second - dModAddition.second).m_value;
+            unsigned int distToMax = (dModAddition.second - dModMax.second).m_value;
+            if (distToMin < distToMax) {
+                m_minCoords.second -= distToMin;
+                m_displayCoordsZero.second -= distToMin;
+            } else {
+                m_maxCoords.second += distToMax;
+            }
+        }
+
+        // Now that m_minCoords is updated, this conversion is safe.
+        ABModCoords addedCoords = toInternalCoords(dModCoordsToStandard(dModAddition));
+        m_grid[toIndex(addedCoords)] = EMPTY;
+    }
+
+    return false;
 }
 
 // Convert external coords to internal, e.g. (0,0) will be converted to m_minCoords

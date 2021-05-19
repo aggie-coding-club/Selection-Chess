@@ -156,6 +156,29 @@ int testMode() {
     // std::cout << game.print() << std::endl;
     // ------------------------ //
 
+    std::cout << "Testing TileDeletions" << std::endl;
+
+    if (!game.applyMove(readAlgebraic("Dp2q2r2"))) {
+        std::cout << "ERROR! Could not apply move " << WHERE << std::endl;
+    }
+    std::cout << game.print() << std::endl;
+    // std::cout << dynamic_cast<ArrayBoard*>(game.m_board)->dumpAsciiArray() << std::endl;
+    game.undoMove();
+    std::cout << game.print() << std::endl;
+    // std::cout << dynamic_cast<ArrayBoard*>(game.m_board)->dumpAsciiArray() << std::endl;
+
+    if (!game.applyMove(readAlgebraic("Da0a1a2a3a4a5a6a7a3p3p4")))
+        std::cout << "ERROR! Could not apply move " << WHERE << std::endl;
+    std::cout << game.print() << std::endl;
+    game.undoMove();
+    std::cout << game.print() << std::endl;
+
+    if (!game.applyMove(readAlgebraic("Df0h0a0g0b0c0d0e0f7h7a7g7b7c7d7e7")))
+        std::cout << "ERROR! Could not apply move " << WHERE << std::endl;
+    std::cout << game.print() << std::endl;
+    game.undoMove();
+    std::cout << game.print() << std::endl;
+
     std::cout << "Done testing" << std::endl;
     return 0;
 }
