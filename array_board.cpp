@@ -11,6 +11,7 @@
 #include <iostream>
 #include <ctype.h>
 #include <limits.h>
+#include <tuple>
 
 // arrayboard modulus
 unsigned int ABModulus;
@@ -239,41 +240,99 @@ bool ArrayBoard::undo(std::shared_ptr<PieceMove> _move) {
 
 bool ArrayBoard::apply(std::shared_ptr<TileMove> _move) {
     tdout << "applying move " << _move->algebraic() << std::endl;
-
-    // Get the Internal Coords of the range of tiles in this selection
     ABModCoords moveSelFirst = toInternalCoords(dModCoordsToStandard(_move->m_selFirst));
     ABModCoords moveSelSecond = toInternalCoords(dModCoordsToStandard(_move->m_selSecond));
 
-    // FIXME: does not update extrema in the case that we remove the last extrema tile. Need to keep a list of all extrema tiles or something.
+    // ----------- Cut out the selection ----------- //
+    // Save old coords in case we have to undo the cut operation
+    ABModCoords oldMin = m_minCoords, oldMax = m_maxCoords; 
+    DModCoords oldDZero = m_displayCoordsZero;
+    StandardArray cut = getSelection(moveSelFirst, moveSelSecond, true);
+    // dout << "Cut out " << cut.dumpAsciiArray() << std::endl;
+    // dout << "Now board is \n" << getAsciiBoard() << std::endl;
 
-    // TODO: update m_minCoords and m_maxCoords
+    // ----------- Paste in the selection ----------- //
+    // Figure out if this move updates the minima
+    // Check if m_min - 1 is in the range of the destination rectangle. //TODO: document the proof that this works.
+    // We have to do this in DMod space so it does not depend on our board's minimum, because that is what we are trying to find.
+    DModCoords selectionSize = (_move->m_selSecond - _move->m_selFirst);
+    DModCoords dModDestSecond = _move->m_destFirst + selectionSize;
+    // What our m_minCoords is in DMod space
+    DModCoords minCoordsInDMod = standardToDModCoords(toStandardCoords(m_minCoords));
+    if ( //.first
+        (minCoordsInDMod.first - 1)
+        .lessThanOrEqual(dModDestSecond.first, _move->m_destFirst.first)) {
+            int difference = (minCoordsInDMod.first - _move->m_destFirst.first).m_value;
+            m_minCoords.first -= difference;
+            m_displayCoordsZero.first -= difference;
+    }
+    if ( //.second //TODO: combine these into one function somehow for readability
+        (minCoordsInDMod.second - 1)
+        .lessThanOrEqual(dModDestSecond.second, _move->m_destFirst.second)) {
+            int difference = (minCoordsInDMod.second - _move->m_destFirst.second).m_value;
+            m_minCoords.second -= difference;
+            m_displayCoordsZero.second -= difference;
+    }
+    
+    // Now that our m_minCoords is updated, these operations are valid.
+    ABModCoords moveDestFirst = toInternalCoords(dModCoordsToStandard(_move->m_destFirst));
+    ABModCoords moveDestSecond = toInternalCoords(dModCoordsToStandard(dModDestSecond));
 
-    return false;
+    // Update m_maxCoords now. Same idea as updating the m_minCoords, but we can do this in ABCoord space now.
+    if ( //.first
+        (m_maxCoords.first + 1)
+        .lessThanOrEqual(moveDestSecond.first, moveDestFirst.first)) {
+            int difference = (moveDestSecond.first - m_maxCoords.first).m_value;
+            m_maxCoords.first += difference;
+    }
+    if ( //.second
+        (m_maxCoords.second + 1)
+        .lessThanOrEqual(moveDestSecond.second, moveDestFirst.second)) {
+            int difference = (moveDestSecond.second - m_maxCoords.second).m_value;
+            m_maxCoords.second += difference;
+    }
+
+    // Check destination rectangle is empty
+    for (ABModCoords i = moveDestFirst; i.second != moveDestSecond.second + 1; ++i.second) { // iterate rows
+        for (i.first = moveDestFirst.first; i.first != moveDestSecond.first + 1; ++i.first) { // iterate columns
+            if (m_grid[toIndex(i)] != INVALID) {
+                dout << WHERE << "FOUND PIECE [" << getCharFromPiece(m_grid[toIndex(i)]) << "] in DESTINATION, at " << coordsToAlgebraic(standardToDModCoords(toStandardCoords(i))) << std::endl;
+                paste(cut, moveSelFirst); // paste back in original position
+                m_minCoords = oldMin;
+                m_maxCoords = oldMax;
+                m_displayCoordsZero = oldDZero;
+                return false;
+            }
+        }
+    }
+    paste(cut, moveDestFirst); // paste back in new position
+    return true;
 };
 
 bool ArrayBoard::undo(std::shared_ptr<TileMove> _move) {
     // Literally just move the selection back.
-    // FIXME: when m_minCoords update, we can't just do this since external to internal conversion depends on the previous min.
-    auto reverseMove = std::make_shared<TileMove>(_move->m_selFirst + _move->m_translation, _move->m_selSecond + _move->m_translation, -_move->m_translation);
+    DModCoords translationDist = (_move->m_selSecond - _move->m_selFirst);
+    DModCoords destSecond = _move->m_destFirst + translationDist;
+    auto reverseMove = std::make_shared<TileMove>(_move->m_destFirst, destSecond, _move->m_selFirst);
     return apply(reverseMove);
 }
 
 // Convert external coords to internal, e.g. (0,0) will be converted to m_minCoords
-ABModCoords ArrayBoard::toInternalCoords(Coords _extern) {
+ABModCoords ArrayBoard::toInternalCoords(Coords _extern) const {
     ABModCoords intern(_extern);
     intern.first += m_minCoords.first;
     intern.second += m_minCoords.second;
     return intern;
 }
 // Convert internal coords to external, e.g. m_minCoords will be converted to (0,0)
-Coords ArrayBoard::toStandardCoords(ABModCoords _intern) {
+Coords ArrayBoard::toStandardCoords(ABModCoords _intern) const {
     _intern.first -= m_minCoords.first;
     _intern.second -= m_minCoords.second;
     Coords external(_intern.first.m_value, _intern.second.m_value);
     return external;
 }
 
-size_t ArrayBoard::toIndex(ABModCoords _coords) {
+size_t ArrayBoard::toIndex(ABModCoords _coords) const {
     return _coords.first.m_value + m_grid_size * _coords.second.m_value;
 }
 
@@ -295,7 +354,7 @@ StandardArray ArrayBoard::standardArray() {
     return sa;
 }
 
-std::string ArrayBoard::dumpAsciiArray() {
+std::string ArrayBoard::dumpAsciiArray() const {
     std::string result = "[";
     for (int row = 0; row < m_grid_size; ++row) {
         result += "\n";
@@ -344,4 +403,93 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMoves(PieceColor _color) {
         }
     }
     return legalMoves;
+}
+
+StandardArray ArrayBoard::getSelection(const ABModCoords& _bl, const ABModCoords& _tr, bool _cut) { // TODO: consider merging with standardArray() ?
+    dout << "getting selection " << std::endl;
+    Coords dimensions = std::make_pair((_tr - _bl).first.m_value+1, (_tr - _bl).second.m_value+1);
+    // standard array we will return
+    StandardArray sa(dimensions);
+
+    // dout << "filling stdArray" << std::endl;
+    size_t i = 0; // current index of sa
+    ABModCoords coords = std::make_pair(_bl.first, _tr.second);
+    // iterate over rows
+    for (; coords.second != _bl.second-1; --coords.second) {
+        coords.first = _bl.first; // reset each loop to start at beginning of the row
+        // iterate over columns
+        for (; coords.first != _tr.first+1; ++coords.first) {
+            sa.m_array[i++] = m_grid[toIndex(coords)];
+            if (_cut) {
+                m_grid[toIndex(coords)] = INVALID;
+            }
+        }
+    }
+    if (_cut) {
+        // tdout << "minCoords=" << m_minCoords << " maxCoords=" << m_maxCoords << "before cut," << std::endl;
+        // it is possible we cut off the min/max, so we need to update it accordingly
+        ABModCoords updatedMin = std::make_pair(
+            nextTileByColOrder(std::make_pair(m_minCoords.first, 0), false).first, 
+            nextTileByRowOrder(std::make_pair(0, m_minCoords.second), false).second
+        );
+        ABModCoords updatedMax = std::make_pair(
+            nextTileByColOrder(std::make_pair(m_maxCoords.first, 0), true, true).first,
+            nextTileByRowOrder(std::make_pair(0, m_maxCoords.second), true, true).second
+        );
+        ABModCoords minUpdate = updatedMin - m_minCoords; // since we are cutting tiles, updatedMin >= m_minCoords aka change in min is positive.
+        m_displayCoordsZero += std::make_pair(minUpdate.first.m_value, minUpdate.second.m_value);
+        m_minCoords = updatedMin;
+        m_maxCoords = updatedMax;
+        // tdout << "now minCoords=" << m_minCoords << " maxCoords=" << m_maxCoords << "before after the cut" << std::endl;
+    }
+
+    // dout << "got selection " << std::endl;
+    return sa;
+}
+
+void ArrayBoard::paste(const StandardArray& _sa, const ABModCoords& _bl) {
+    ABModCoords tr = _bl + _sa.m_dimensions - std::make_pair(1,1);
+    size_t i = 0; // current index of sa
+
+    ABModCoords coords = std::make_pair(_bl.first, tr.second);
+    // iterate over rows
+    for (; coords.second != _bl.second-1; --coords.second) {
+        coords.first = _bl.first; // reset each loop to start at beginning of the row
+        // iterate over columns
+        for (; coords.first != tr.first+1; ++coords.first) {
+            m_grid[toIndex(coords)] = _sa.m_array[i++];
+        }
+    }
+}
+
+ABModCoords ArrayBoard::nextTileByRowOrder(const ABModCoords& _start, bool _reverse, bool _colReversed) const {
+    ABModCoords current = _start;
+    // tdout << "nextTiles search:" << current;
+    int rankIncr = (_reverse? -1:1);
+    int fileIncr = (_reverse? -1:1) * (_colReversed? -1:1);
+    while (m_grid[toIndex(current)] == INVALID) {
+        // check if reached end of row. If positive fileIncr, end of row is m_grid_size-1, otherwise end of row is 0
+        if (current.first.m_value == (fileIncr==1 ? m_grid_size-1 : 0)) { 
+            current.second += rankIncr;
+        }
+        current.first += fileIncr;
+        // tdout << current;
+    }
+    return current;
+}
+
+ABModCoords ArrayBoard::nextTileByColOrder(const ABModCoords& _start, bool _reverse, bool _rowReversed) const {
+    ABModCoords current = _start;
+    // tdout << "nextTiles search:" << current;
+    int fileIncr = (_reverse? -1:1);
+    int rankIncr = (_reverse? -1:1) * (_rowReversed? -1:1);
+    while (m_grid[toIndex(current)] == INVALID) {
+        // check if reached end of column. If positive rankIncr, end of column is m_grid_size-1, otherwise end of column is 0
+        if (current.second.m_value == (rankIncr==1 ? m_grid_size-1 : 0)) { 
+            current.first += fileIncr;
+        }
+        current.second += rankIncr;
+        // tdout << current;
+    }
+    return current;
 }

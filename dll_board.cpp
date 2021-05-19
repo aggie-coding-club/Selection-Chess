@@ -484,7 +484,7 @@ bool DLLBoard::apply(std::shared_ptr<TileMove> _move) {
 
     for (Tile* tile : selection) {
         // Get displacement of move
-        tile->m_coords += _move->m_translation;
+        // tile->m_coords += _move->m_translation;
 
     // FIXME: complete this section which checks if the new location of the tile updates the extrema. Probably should merge with updateExtrema function.
     //     // check if this is a new extrema

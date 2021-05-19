@@ -136,15 +136,15 @@ bool debugTests() {
     dout << "Testing readAlgebraic" << std::endl;
     std::unique_ptr<Move> readMove = readAlgebraic(m1.algebraic());
     dout << readMove->algebraic() << " with type " << readMove->m_type << std::endl;
-    readMove = readAlgebraic("Sp2r2-9-3");
+    readMove = readAlgebraic("Sp2r2g999");
     dout << readMove->algebraic() << " with type " << readMove->m_type << std::endl;
     readMove = readAlgebraic("Dp2r2b5");
     dout << readMove->algebraic() << " with type " << readMove->m_type << std::endl;
-    readMove = readAlgebraic("Sp2r2-9+6F");
+    readMove = readAlgebraic("Sp2r2g999F");
     dout << readMove->algebraic() << " with type " << readMove->m_type << std::endl;
-    readMove = readAlgebraic("Sp2r2-9+6R2");
+    readMove = readAlgebraic("Sp2r2g999R2");
     dout << readMove->algebraic() << " with type " << readMove->m_type << std::endl;
-    readMove = readAlgebraic("Sp2r2-9+6R2F");
+    readMove = readAlgebraic("Sp2r2g999R2F");
     dout << readMove->algebraic() << " with type " << readMove->m_type << std::endl;
 
     dout << "Done with all tests" << std::endl;

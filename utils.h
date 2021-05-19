@@ -50,6 +50,56 @@ inline int positiveModulo(int i, int n) {
     return (i % n + n) % n;
 }
 
+template <typename T, typename U>
+inline std::ostream& operator<<(std::ostream& _stream, const std::pair<T,U>& _coords) {
+    _stream << "(" << _coords.first << ", " << _coords.second << ")";
+    return _stream;
+}
+
+// Define element-wise arithmetic on std::pairs. // TODO: probably should define a new pair object
+template <typename T, typename U>
+std::pair<T,U>& operator+=(std::pair<T,U>& _l, const std::pair<T,U>& _r) {
+    _l.first += _r.first;
+    _l.second += _r.second;
+    return _l;
+}
+template <typename T, typename U>
+std::pair<T,U> operator+(std::pair<T,U> _l, const std::pair<T,U>& _r) {
+    return _l += _r;
+}
+template <typename T, typename U>
+std::pair<T,U>& operator-=(std::pair<T,U>& _l, const std::pair<T,U>& _r) {
+    _l.first -= _r.first;
+    _l.second -= _r.second;
+    return _l;
+}
+template <typename T, typename U>
+std::pair<T,U> operator-(std::pair<T,U> _l, const std::pair<T,U>& _r) {
+    return _l -= _r;
+}
+// std::pairs arithmetic on ints
+template <typename T, typename U>
+std::pair<T,U>& operator+=(std::pair<T,U>& _l, const std::pair<int,int>& _r) {
+    _l.first += _r.first;
+    _l.second += _r.second;
+    return _l;
+}
+template <typename T, typename U>
+std::pair<T,U> operator+(std::pair<T,U> _l, const std::pair<int,int>& _r) {
+    return _l += _r;
+}
+template <typename T, typename U>
+std::pair<T,U>& operator-=(std::pair<T,U>& _l, const std::pair<int,int>& _r) {
+    _l.first -= _r.first;
+    _l.second -= _r.second;
+    return _l;
+}
+template <typename T, typename U>
+std::pair<T,U> operator-(std::pair<T,U> _l, const std::pair<int,int>& _r) {
+    return _l -= _r;
+}
+
+
 // ----------- PieceEnum functions ----------- //
 
 /**
@@ -121,16 +171,6 @@ DirectionEnum flipDirection(DirectionEnum _dir);
 //     return std::make_pair(_l.first - _r.first, _l.second - _r.second);                                    
 // } 
 
-inline Coords& operator+=(Coords & _l, const Coords & _r) {
-    _l.first += _r.first;
-    _l.second += _r.second;
-    return _l;
-} 
-
-inline Coords operator+(Coords _l, const Coords & _r) {   
-    return _l += _r;
-} 
-
 inline Coords& operator+=(Coords & _l, const SignedCoords & _r) {
     _l.first += _r.first;
     _l.second += _r.second;
@@ -140,11 +180,6 @@ inline Coords& operator+=(Coords & _l, const SignedCoords & _r) {
 inline Coords operator+(Coords _l, const SignedCoords & _r) {   
     return _l += _r;
 } 
-
-inline std::ostream& operator<<(std::ostream& _stream, const Coords& _coords) {
-    _stream << "(" << _coords.first << ", " << _coords.second << ")";
-    return _stream;
-}
 //----------- Here are some function useful for coordinate wrapping ----------//
 
 // Compares which coords is more to the left or down from another coord, based on where the wrap-around happens (namely, at _relZero)

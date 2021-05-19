@@ -40,7 +40,7 @@ int testMode() {
     Game game("rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR w 0 1"); // engine's memory of the board
     game.m_board->m_printSettings.m_tileFillChar = '-';
     game.m_board->m_printSettings.m_height = 1;
-    game.m_board->m_printSettings.m_width = 1;
+    game.m_board->m_printSettings.m_width = 2;
     game.m_board->m_printSettings.m_showCoords = true;
 
     std::cout << game.print() << std::endl;
@@ -115,10 +115,46 @@ int testMode() {
     game.reset("rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR w 0 1");
     std::cout << game.print() << std::endl;
 
-    if (!game.applyMove(readAlgebraic("Sp2r2-9-3"))) {
+    if (!game.applyMove(readAlgebraic("Sp2r4g997"))) {
         std::cout << "ERROR! Could not apply move " << WHERE << std::endl;
     }
     std::cout << game.print() << std::endl;
+    // std::cout << dynamic_cast<ArrayBoard*>(game.m_board)->dumpAsciiArray() << std::endl;
+    game.undoMove();
+    std::cout << game.print() << std::endl;
+    // std::cout << dynamic_cast<ArrayBoard*>(game.m_board)->dumpAsciiArray() << std::endl;
+
+    // ----------- Additional tileMove test cases ----------- //
+    // if (!game.applyMove(readAlgebraic("Sp2r4zx2")))
+    //     std::cout << "ERROR! Could not apply move " << WHERE << std::endl;
+    // std::cout << game.print() << std::endl;
+    // game.undoMove();
+    // std::cout << game.print() << std::endl;
+
+    // if (!game.applyMove(readAlgebraic("Sp2r4zy8")))
+    //     std::cout << "ERROR! Could not apply move " << WHERE << std::endl;
+    // std::cout << game.print() << std::endl;
+    // game.undoMove();
+    // std::cout << game.print() << std::endl;
+
+    // if (!game.applyMove(readAlgebraic("Sp2r4p0")))
+    //     std::cout << "ERROR! Could not apply move " << WHERE << std::endl;
+    // std::cout << game.print() << std::endl;
+    // game.undoMove();
+    // std::cout << game.print() << std::endl;
+
+    // if (!game.applyMove(readAlgebraic("Sa0b7s0")))
+    //     std::cout << "ERROR! Could not apply move " << WHERE << std::endl;
+    // std::cout << game.print() << std::endl;
+    // game.undoMove();
+    // std::cout << game.print() << std::endl;
+
+    // if (!game.applyMove(readAlgebraic("Sd6g6k3")))
+    //     std::cout << "ERROR! Could not apply move " << WHERE << std::endl;
+    // std::cout << game.print() << std::endl;
+    // game.undoMove();
+    // std::cout << game.print() << std::endl;
+    // ------------------------ //
 
     std::cout << "Done testing" << std::endl;
     return 0;

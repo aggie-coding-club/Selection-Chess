@@ -70,8 +70,11 @@ class TileMove : public Move {
         // // If true, ignore m_translation and just delete tiles in selection.
         // bool m_isDeletion;
 
-        // Translation of selection
-        SignedCoords m_translation;
+        // Bottom left corner of our destination, AKA where a tile at m_selFirst gets mapped to.
+        DModCoords m_destFirst;
+
+        // // Translation of selection // Deprecated. //FIXME: this probably broke stuff in DLLBoard, watch out for that.
+        // SignedCoords m_translation;
 
         // The symmetry operators applied to this move.
         // The absolute value of this specifies how many rotations to apply,
@@ -80,10 +83,10 @@ class TileMove : public Move {
         // TODO: use this member
         int m_symmetry = 4;
 
-        TileMove (DModCoords _selBottomLeft, DModCoords _selTopRight, SignedCoords _translation) : TileMove() {
+        TileMove (DModCoords _selBottomLeft, DModCoords _selTopRight, DModCoords _destBottomLeft) : TileMove() {
             m_selFirst = _selBottomLeft;
             m_selSecond = _selTopRight;
-            m_translation = _translation;
+            m_destFirst = _destBottomLeft;
         }
         TileMove() {
             m_type = TILE_MOVE;
@@ -133,26 +136,5 @@ class AlgebraicTokenizer : public AbstractTokenizer {
 
 DAModInt lettersToInt(std::string _letters);
 std::string intToLetters(DAModInt _int);
-
-// TODO: is there a more readable/concise way of doing this?
-inline DModCoords& operator+=(DModCoords& _mc1, const SignedCoords& _diff) {
-    _mc1.first += _diff.first;
-    _mc1.second += _diff.second;
-    return _mc1;
-}
-inline DModCoords& operator-=(DModCoords& _mc1, const SignedCoords& _diff) {
-    _mc1.first -= _diff.first;
-    _mc1.second -= _diff.second;
-    return _mc1;
-}
-inline DModCoords operator+(DModCoords _mc1, const SignedCoords& _diff) {
-    return _mc1 += _diff;
-}
-inline DModCoords operator+(const SignedCoords& _diff, DModCoords _mc1) {
-    return _mc1 += _diff;
-}
-inline DModCoords operator-(DModCoords _mc1, const SignedCoords& _diff) {
-    return _mc1 -= _diff;
-}
 
 #endif

@@ -29,12 +29,12 @@ class ModularInt {
             m_value = positiveModulo(m_value, *modulus);
             return *this;
         }
-        ModularInt& operator+=(ModularInt _x) {
+        ModularInt& operator+=(const ModularInt _x) {
             m_value += _x.m_value;
             m_value = positiveModulo(m_value, *modulus);
             return *this;
         }
-        ModularInt& operator-=(ModularInt _x) {
+        ModularInt& operator-=(const ModularInt _x) {
             m_value -= _x.m_value;
             m_value = positiveModulo(m_value, *modulus);
             return *this;

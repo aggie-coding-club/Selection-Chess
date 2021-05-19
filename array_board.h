@@ -111,19 +111,24 @@ class ArrayBoard : public Board {
 
         // Just print the entire contents of the array as-is.
         // For debugging purposes only.
-        std::string dumpAsciiArray();
+        std::string dumpAsciiArray() const;
 
         // Gets the index of m_grid corresponding to _coords. Takes internal Coords as input.
-        size_t toIndex(ABModCoords _coords);
+        size_t toIndex(ABModCoords _coords) const;
 
         // Convert external coords to internal, e.g. (0,0) will be converted to m_minCoords
-        ABModCoords toInternalCoords(Coords _extern);
+        ABModCoords toInternalCoords(Coords _extern) const;
         // Convert internal coords to external, e.g. m_minCoords will be converted to (0,0)
-        Coords toStandardCoords(ABModCoords _intern);
+        Coords toStandardCoords(ABModCoords _intern) const;
 
     protected: //TODO: sort some more stuff into protected?
         // check if adding a tile at _new ABModCoords will update m_minCoords or m_maxCoords
         void ArrayBoard::updateExtrema(const ABModCoords& _new);
+
+        // Get the next coords at or after _start, sorted by row order. Assumes board is non-empty
+        ABModCoords nextTileByRowOrder(const ABModCoords& _start, bool _reverse=false, bool _colReversed=false) const;
+        // Get the next coords at or after _start, sorted by column order. Assumes board is non-empty
+        ABModCoords nextTileByColOrder(const ABModCoords& _start, bool _reverse=false, bool _rowReversed=false) const;
 
         // // 'Less than' comparators for comparing ABModCoords.
         // bool compareFileInts(const ABModInt& _a, const ABModInt& _b) const {
@@ -140,11 +145,15 @@ class ArrayBoard : public Board {
             return _a.second.lessThan(_b.second, m_minCoords.second);
         }
 
+        // Copy the tiles from bottom left _bl to top right _tr into a standardarray. If _cut=true, remove the original copied section.
+        StandardArray getSelection(const ABModCoords& _bl, const ABModCoords& _tr, bool _cut=false);
+
+        // Paste the tiles from _sa into our grid, matching bottom left _bl to bottom left of _sa.
+        // WARNING: does not update m_minCoords, m_maxCoords, pieceList, or any other member besides m_grid!
+        void paste(const StandardArray& _sa, const ABModCoords& _bl);
+
 };
 
-inline bool operator==(const ABModCoords& _mc1, const ABModCoords& _mc2) {
-    return (_mc1.first == _mc2.first) && (_mc1.second == _mc2.second);
-}
 inline ABModCoords& operator+=(ABModCoords& _mc1, const SignedCoords& _diff) {
     _mc1.first += _diff.first;
     _mc1.second += _diff.second;

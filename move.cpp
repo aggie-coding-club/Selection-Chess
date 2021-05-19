@@ -42,7 +42,7 @@ std::string PieceMove::algebraic() {
     return coordsToAlgebraic(m_startPos) + coordsToAlgebraic(m_endPos);
 }
 std::string TileMove::algebraic() {
-    std::string result = "S" + coordsToAlgebraic(m_selFirst) + coordsToAlgebraic(m_selSecond) + signedCoordsToAlgebraic(m_translation);
+    std::string result = "S" + coordsToAlgebraic(m_selFirst) + coordsToAlgebraic(m_selSecond) + coordsToAlgebraic(m_destFirst);
     if (abs(m_symmetry) < 4) {
         result += "R" + std::to_string(abs(m_symmetry));
     }
@@ -67,7 +67,7 @@ std::unique_ptr<Move> readAlgebraic(std::string _algebra) {
 
         if (tokenizer.peek() == "S") { // this is a tile selection move
             tokenizer.next(); // eat the S
-            DModCoords f = tokenizer.nextCoords(); DModCoords s = tokenizer.nextCoords(); SignedCoords d = tokenizer.nextSignedCoords();
+            DModCoords f = tokenizer.nextCoords(); DModCoords s = tokenizer.nextCoords(); DModCoords d = tokenizer.nextCoords();
             std::unique_ptr<TileMove> move = std::make_unique<TileMove>(f, s, d);
             if (tokenizer.hasNext()) { // Using symmetry modifier(s)
                 if (tokenizer.peek() == "R") { // Rotation
