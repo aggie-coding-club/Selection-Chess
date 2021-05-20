@@ -34,9 +34,9 @@ class ArrayBoard : public Board {
         */
         std::vector<ABModCoords> m_pieceLocations[2 * NUM_PIECE_TYPES+1];
 
-        ArrayBoard() : Board() { };
+        ArrayBoard(Ruleset& _ruleset) : Board(_ruleset) { };
         void init(const std::string _sfen);
-        ArrayBoard(const std::string _sfen) : ArrayBoard() {
+        ArrayBoard(Ruleset& _ruleset, const std::string _sfen) : ArrayBoard(_ruleset) {
             init(_sfen);
         }
 
@@ -83,6 +83,11 @@ class ArrayBoard : public Board {
         bool undo(std::shared_ptr<PieceMove> _move);
         bool undo(std::shared_ptr<TileMove> _move);
         bool undo(std::shared_ptr<TileDeletion> _move);
+
+        bool isLegal(std::shared_ptr<Move> _move);
+        bool isLegal(std::shared_ptr<PieceMove> _move);
+        bool isLegal(std::shared_ptr<TileMove> _move);
+        bool isLegal(std::shared_ptr<TileDeletion> _move);
 
         Coords getDimensions() const {
             // Just taking the m_value here is OK because this distance is not affected by modulus, so it is guaranteed result to be a normal positive number.

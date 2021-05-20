@@ -387,6 +387,46 @@ bool ArrayBoard::undo(std::shared_ptr<TileDeletion> _move) {
     return false;
 }
 
+bool ArrayBoard::isLegal(std::shared_ptr<Move> _move) {
+    switch (_move->m_type) {
+    case PIECE_MOVE:
+        return isLegal(std::static_pointer_cast<PieceMove>(_move));
+    case TILE_MOVE:
+        return isLegal(std::static_pointer_cast<TileMove>(_move));
+    case TILE_DELETION:
+        return isLegal(std::static_pointer_cast<TileDeletion>(_move));
+    default:
+        dout << "Unknown Move Type [" << _move->m_type << "]\n" << WHERE << std::endl;
+        return false;
+    }
+}
+bool ArrayBoard::isLegal(std::shared_ptr<PieceMove> _move) {
+    //TODO: implement
+    return true;
+}
+bool ArrayBoard::isLegal(std::shared_ptr<TileMove> _move) {
+    // check selection rectangle is not oversized //TODO:
+    // check space we are copying to is actually empty. Handle the coords conversions. //TODO:
+    // check that connectedness is maintained //TODO:
+    return true;
+}
+bool ArrayBoard::isLegal(std::shared_ptr<TileDeletion> _move) {
+    // check number of deletions OK
+    if (_move->m_deleteCoords.empty()) {
+        return false;
+    }
+    if (_move->m_deleteCoords.size() > m_rules.numDeletionsPerTurn) {
+        return false;
+    }
+    // check there are actually EMPTY tiles to delete at given coords //TODO
+    // for (DModCoords& delCoords : _move->m_deleteCoords) {
+    //     if ()
+    // }
+    // check deletions do not break connectedness //TODO
+
+    return true;
+}
+
 // Convert external coords to internal, e.g. (0,0) will be converted to m_minCoords
 ABModCoords ArrayBoard::toInternalCoords(Coords _extern) const {
     ABModCoords intern(_extern);

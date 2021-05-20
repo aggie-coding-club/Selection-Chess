@@ -2,7 +2,6 @@
 #include "constants.h"
 #include "utils.h"
 #include "array_board.h"
-#include "dll_board.h"
 
 Game::Game(const std::string _sfen) {
     reset(_sfen);
@@ -15,7 +14,7 @@ void Game::reset(const std::string _sfen) {
     }
     // TODO: implement
     // m_board = new ArrayBoard("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
-    m_board = new ArrayBoard(_sfen);
+    m_board = new ArrayBoard(Ruleset(), _sfen);
     m_board->m_printSettings = ps;
     dout << "Game Constructed board" << std::endl;
 }

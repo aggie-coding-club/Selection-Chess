@@ -1,4 +1,3 @@
-#include "dll_board.h"
 #include "array_board.h"
 #include "utils.h"
 #include "constants.h"
@@ -13,7 +12,6 @@ const size_t MAX_MESSAGE = sizeof(size_t);
 int xboardLoop() {
     std::string cmd;
     // init shared variables, mutexes, etc.
-    ArrayBoard eBoard; // engine's memory of the board
 
     while (true) {
         if (std::getline(std::cin, cmd)) {

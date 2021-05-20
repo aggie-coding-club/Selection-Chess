@@ -12,10 +12,15 @@
 class Game {
     public:
         Board* m_board = nullptr;
-        std::stack<std::shared_ptr<Move>> m_moveHistory; // list of moves applied to starting FEN.
+        // list of moves applied to starting FEN.
+        std::stack<std::shared_ptr<Move>> m_moveHistory; 
 
-        short m_movesSinceLastCapture = 0; // 50 move rule
-        PieceColor m_turn = WHITE; // whose turn it is
+        // 50 move rule
+        short m_movesSinceLastCapture = 0; 
+        // whose turn it is
+        PieceColor m_turn = WHITE;
+        // What rules we are playing with
+        Ruleset m_rules;
         
         /** 
          * Creates a new board from SFEN.

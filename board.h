@@ -41,7 +41,7 @@ class Board {
     public:
         BoardPrintSettings m_printSettings;
 
-        Board() : m_displayCoordsZero(std::make_pair(0,0)) { }
+        Board(Ruleset& _ruleset) : m_displayCoordsZero(std::make_pair(0,0)), m_rules(_ruleset) { }
 
         // Resets board from SFEN.
         virtual void init(const std::string _sfen) = 0;
@@ -57,6 +57,8 @@ class Board {
 
         int m_material; // changed material score to just be material for both
         uint64_t m_hashCode;
+
+        const Ruleset& m_rules;
 
         virtual std::string toSfen();
 

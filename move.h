@@ -25,7 +25,18 @@ extern unsigned int DDModulus;
 typedef ModularInt<&DDModulus> DDModInt;
 typedef std::pair<DAModInt, DDModInt> DModCoords;
 
-// TODO: convert moves to use DModCoords.
+// TODO: this really needs a new file
+class Ruleset {
+    public:
+    // How many tiles can be deleted using TileDeletion in a single move
+    int numDeletionsPerTurn = 1;
+    // Allow TileMoves to rotate the moved piece
+    bool allowRotations = false;
+    // Allow TileMoves to mirror the moved piece
+    bool allowReflections = false;
+    // TODO: information about how pieces move can be put here I think
+    // TODO: maybe timing info can be put here too?
+};
 
 typedef int MoveType;
 enum : MoveType {INVALID_MOVE, PIECE_MOVE, TILE_MOVE, TILE_DELETION};
