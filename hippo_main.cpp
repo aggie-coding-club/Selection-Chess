@@ -68,6 +68,14 @@ int testMode() {
     game.reset("P2/1K1/1pk w 0 1"); // simple case to play with
     std::cout << game.print() << std::endl;
 
+    std::cout << "Possible moves: [" << std::flush;
+    auto moves = game.m_board->getMoves(game.m_turn);
+    for (auto &move : moves) {
+        std::cout << move->algebraic() << ", ";
+    }
+    std::cout << "\b\b] \b" << std::endl;
+    return 0;
+
     std::string negaHistory = "";
     std::cout << "Testing minmax depth 1" << std::endl;
     auto result = minmax(&game, 1, negaHistory);

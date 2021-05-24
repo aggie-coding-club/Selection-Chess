@@ -34,7 +34,7 @@ class ArrayBoard : public Board {
         */
         std::vector<ABModCoords> m_pieceLocations[2 * NUM_PIECE_TYPES+1];
 
-        ArrayBoard(Ruleset& _ruleset) : Board(_ruleset) { };
+        explicit ArrayBoard(Ruleset& _ruleset) : Board(_ruleset) { };
         void init(const std::string _sfen);
         ArrayBoard(Ruleset& _ruleset, const std::string _sfen) : ArrayBoard(_ruleset) {
             init(_sfen);

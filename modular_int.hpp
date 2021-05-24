@@ -47,6 +47,7 @@ class ModularInt {
             m_value = positiveModulo(m_value - 1, *modulus);
             return *this;
         }
+        // TODO: maybe add postfix operators?
 
         bool operator==(const ModularInt& _other) const {
             return m_value == _other.m_value;

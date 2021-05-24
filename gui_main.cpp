@@ -57,19 +57,17 @@ int main(int argc, char *argv[]) {
             std::cerr << "Could not add engine at '" << argv[2] << "'!" << std::endl;
             exit(EXIT_FAILURE);
         }
+    } else if (argc == 2 && std::string(argv[1]) == "test") {
+        debugTests();
     } else {
         std::cerr << "Incorrect number of params. Usage:\n\t" << argv[0] << " <player> <player>\n"
         "where <player> is either the path to a chess engine, or is the string 'human' to indicate manual entry will be used for that color.\n"
-        "Note that the first <player> is who plays white, and the second is who plays black." << std::endl;
+        "Note that the first <player> is who plays white, and the second is who plays black.\n"
+        "Alternative usage:\n\t" << argv[0] << " test\nTo run debugging tests." << std::endl;
         exit(EXIT_FAILURE);
     }
 
     // TODO: spin up input thread / Godot interface
-
-    // whiteEngine->init()
-    // blackEngine->init()
-
-    debugTests();
 
     return 0;
 }

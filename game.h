@@ -3,6 +3,7 @@
 
 #include "constants.h"
 #include "board.h"
+#include "ruleset.h"
 
 #include <cstdint>
 #include <stack>
@@ -25,7 +26,7 @@ class Game {
         /** 
          * Creates a new board from SFEN.
          */
-        Game(const std::string _sfen);
+        explicit Game(const std::string _sfen);
         void reset(const std::string _sfen);
 
         bool applyMove(std::shared_ptr<Move> _move);

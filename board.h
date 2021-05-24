@@ -4,6 +4,7 @@
 #include "constants.h"
 #include "utils.h"
 #include "move.h"
+#include "ruleset.h"
 
 #include <vector>
 

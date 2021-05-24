@@ -407,7 +407,7 @@ bool ArrayBoard::isLegal(std::shared_ptr<PieceMove> _move) {
 bool ArrayBoard::isLegal(std::shared_ptr<TileMove> _move) {
     // check selection rectangle is not oversized //TODO:
     // check space we are copying to is actually empty. Handle the coords conversions. //TODO:
-    // check that connectedness is maintained //TODO:
+    // check that connectedness is maintained //TODO: I think "Maintenance of a minimum spanning forest in a dynamic plane graph" by Eppstein et al. may give optimal results, although its probably easier to just run A* or smth
     return true;
 }
 bool ArrayBoard::isLegal(std::shared_ptr<TileDeletion> _move) {
@@ -492,26 +492,76 @@ int ArrayBoard::staticEvaluation() {
 }
 
 std::vector<std::unique_ptr<Move>> ArrayBoard::getMoves(PieceColor _color) {
+    std::vector<std::unique_ptr<Move>> legalMoves; // TODO: a lot of legality checks are missing rn. Especially ensuring connectedness of board.
+    // ----------- PieceMoves ----------- //
     // TODO: assumes all pieces can move 1 tile forward, back, left, or right, for the sake of testing minmax.
-    std::vector<std::unique_ptr<Move>> legalMoves;
     for (int pieceType = (_color==WHITE ? W_PAWN : B_PAWN); pieceType < NUM_PIECE_TYPES*2+1; pieceType+=2) { // iterate over pieces of _color in piece list
         for (ABModCoords startCoords : m_pieceLocations[pieceType]) { // for all coords of pieces of this type
+
             for (int direction = LEFT; direction <= DOWN; direction++) { // iterate over 4 directions
                 ABModCoords endCoords = startCoords + DIRECTION_SIGNS[direction];
                 // check if empty
                 if (m_grid[toIndex(endCoords)] == EMPTY) {
-                    std::unique_ptr<PieceMove> newMove (new PieceMove(toStandardCoords(startCoords), toStandardCoords(endCoords)));
+                    std::unique_ptr<PieceMove> newMove (new PieceMove(standardToDModCoords(toStandardCoords(startCoords)), standardToDModCoords(toStandardCoords(endCoords))));//FIXME: gross syntax, need shorter expression
                     legalMoves.push_back(std::move(newMove));
                 // check if capture
                 } else if (isPiece(m_grid[toIndex(endCoords)]) // Are we moving onto another piece
                 && (isWhite(m_grid[toIndex(startCoords)]) != isWhite(m_grid[toIndex(endCoords)]))) { // Is this an enemy piece
-                    std::unique_ptr<PieceMove> newMove (new PieceMove(toStandardCoords(startCoords), toStandardCoords(endCoords)));
+                    std::unique_ptr<PieceMove> newMove (new PieceMove(standardToDModCoords(toStandardCoords(startCoords)), standardToDModCoords(toStandardCoords(endCoords))));
                     newMove->m_capture = m_grid[toIndex(endCoords)];
                     legalMoves.push_back(std::move(newMove));
                 }
             }
         }
     }
+
+    // ----------- TileDeletions ----------- //
+    // TODO: assumes only one tile can be deleted, implement for more tiles?
+    // TODO: gross iteration over the entire space, would be nice if I only iterated over tiles.
+    ABModCoords coords = std::make_pair(m_minCoords.first, m_maxCoords.second);
+    // iterate over rows
+    for (; coords.second != m_minCoords.second-1; --coords.second) {
+        coords.first = m_minCoords.first; // reset each loop to start at beginning of the row
+        // iterate over columns
+        for (; coords.first != m_maxCoords.first+1; ++coords.first) {
+            if (m_grid[toIndex(coords)] == EMPTY) {
+                std::unique_ptr<TileDeletion> newMove (new TileDeletion(standardToDModCoords(toStandardCoords(coords))));
+                legalMoves.push_back(std::move(newMove));
+            }
+        }
+    }
+
+    // ----------- TileMoves ----------- //
+    // TODO: assumes only one tile can be moved, implement for more tiles?
+    // TODO: gross iteration over the entire space, would be nice if I only iterated over tiles.
+    ABModCoords startCoords = std::make_pair(m_minCoords.first, m_maxCoords.second);
+    // iterate over rows
+    for (; startCoords.second != m_minCoords.second-1; --startCoords.second) {
+        startCoords.first = m_minCoords.first; // reset each loop to start at beginning of the row
+        // iterate over columns
+        for (; startCoords.first != m_maxCoords.first+1; ++startCoords.first) {
+            if (m_grid[toIndex(startCoords)] != INVALID) {
+
+                ABModCoords endCoords = std::make_pair(m_minCoords.first, m_maxCoords.second+1); // FIXME: limited to playing within extrema. I kinda fixed this for max, but its gross.
+                for (; endCoords.second != m_minCoords.second-1; --endCoords.second) {
+                    endCoords.first = m_minCoords.first; // reset each loop to start at beginning of the row
+                    // iterate over columns
+                    for (; endCoords.first != m_maxCoords.first+2; ++endCoords.first) {
+                        if (m_grid[toIndex(endCoords)] == INVALID && startCoords != endCoords) {
+                            std::unique_ptr<TileMove> newMove (new TileMove(
+                                standardToDModCoords(toStandardCoords(startCoords)),
+                                standardToDModCoords(toStandardCoords(startCoords)),
+                                standardToDModCoords(toStandardCoords(endCoords))
+                            ));
+                            legalMoves.push_back(std::move(newMove));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
     return legalMoves;
 }
 
