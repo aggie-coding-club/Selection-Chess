@@ -1,6 +1,5 @@
 #ifndef RULESET_H
 #define RULESET_H
-// #pragma message("In Ruleset.h")
 
 #include "constants.h"
 #include "tokenizer.h"
@@ -8,8 +7,6 @@
 
 #include <vector>
 #include <iostream>
-
-#pragma message("Returned to Ruleset.h")
 
 class RulesetTokenizer : public AbstractStreamTokenizer {
     public:

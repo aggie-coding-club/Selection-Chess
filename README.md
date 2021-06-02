@@ -13,6 +13,8 @@ Running `scons -c` will cleanup.
 
 To compile with debug outputs enabled, run `scons debug=1`
 
+If you want to compile without the Boost library, use the `noboost=1` flag. Note that this will disable dependent features of the code.
+
 ## Standards
 
 Two space indentation. [The One True Brace Style](https://en.wikipedia.org/wiki/Indentation_style#Variant:_1TBS_(OTBS)) is used for bracing, as shown below:

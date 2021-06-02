@@ -2,8 +2,10 @@
 #include "utils.h"
 #include "game.h"
 #include "board.h"
-#include "engine_runner.h"
 #include "human_runner.h"
+#ifndef NO_BOOST
+    #include "engine_runner.h"
+#endif
 
 // only here for the debug test
 #include "cmd_tokenizer.h" 
@@ -18,13 +20,6 @@
 
 // Forward declarations
 bool debugTests();
-
-bool addEngine(std::string _enginePath, EngineRunner*& engineColor) {
-    dout << "here we would start the engine process " << _enginePath << " and do some stuff to it" << std::endl;
-    engineColor = new EngineRunner();
-    engineColor->init(_enginePath);
-    return true;
-}
 
 int main(int argc, char *argv[]) {
     std::cout << ASCII_LOGO << std::endl;
@@ -41,7 +36,11 @@ int main(int argc, char *argv[]) {
         if (std::string(argv[1]) == "human") {
             whiteEngine = new HumanRunner(std::string("Human ") + std::to_string(++numHumans));
         } else {
-            whiteEngine = new EngineRunner(std::string(argv[1]));
+            #ifndef NO_BOOST
+                whiteEngine = new EngineRunner(std::string(argv[1]));
+            #else
+                std::cerr << "Cannot add engine without Boost. Please recompile without the 'noboost' flag to use this feature.";
+            #endif
         }
         if (!whiteEngine->init()) {
             std::cerr << "Could not add engine at '" << argv[1] << "'!" << std::endl;
@@ -51,7 +50,11 @@ int main(int argc, char *argv[]) {
         if (std::string(argv[2]) == "human") {
             blackEngine = new HumanRunner(std::string("Human ") + std::to_string(++numHumans));
         } else {
-            blackEngine = new EngineRunner(std::string(argv[2]));
+            #ifndef NO_BOOST
+                blackEngine = new EngineRunner(std::string(argv[2]));
+            #else
+                std::cerr << "Cannot add engine without Boost. Please recompile without the 'noboost' flag to use this feature.";
+            #endif
         }
         if (!blackEngine->init()) {
             std::cerr << "Could not add engine at '" << argv[2] << "'!" << std::endl;
