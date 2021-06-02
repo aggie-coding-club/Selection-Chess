@@ -6,7 +6,7 @@
 #include "human_runner.h"
 
 // only here for the debug test
-#include "tokenizer.h" 
+#include "cmd_tokenizer.h" 
 #include "move.h"
 
 #include <cstdint>
@@ -15,6 +15,9 @@
 #include <climits>
 #include <stdlib.h>
 #include <stdio.h>
+
+// Forward declarations
+bool debugTests();
 
 bool addEngine(std::string _enginePath, EngineRunner*& engineColor) {
     dout << "here we would start the engine process " << _enginePath << " and do some stuff to it" << std::endl;
@@ -54,40 +57,49 @@ int main(int argc, char *argv[]) {
             std::cerr << "Could not add engine at '" << argv[2] << "'!" << std::endl;
             exit(EXIT_FAILURE);
         }
+    } else if (argc == 2 && std::string(argv[1]) == "test") {
+        debugTests();
     } else {
         std::cerr << "Incorrect number of params. Usage:\n\t" << argv[0] << " <player> <player>\n"
         "where <player> is either the path to a chess engine, or is the string 'human' to indicate manual entry will be used for that color.\n"
-        "Note that the first <player> is who plays white, and the second is who plays black." << std::endl;
+        "Note that the first <player> is who plays white, and the second is who plays black.\n"
+        "Alternative usage:\n\t" << argv[0] << " test\nTo run debugging tests." << std::endl;
         exit(EXIT_FAILURE);
     }
 
     // TODO: spin up input thread / Godot interface
 
-    // whiteEngine->init()
-    // blackEngine->init()
+    return 0;
+}
 
-    // Debugging prints, // TODO: remove later
+bool debugTests() {
+    dout << "running debug tests" << std::endl;
+
+    dout << "testing StandardArray object " << std::endl;
+    StandardArray sa ("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
+    dout << sa.dumpAsciiArray() << std::endl; // TODO: low priority: idk if this means I got something flipped somewhere, probably does.
+
     // DLLBoard guiBoard = DLLBoard("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
     // ArrayBoard guiBoard = ArrayBoard("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
     Game game = Game("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
+
+    dout << "created Game object" << std::endl;
 
     // Change display settings like this:
     game.m_board->m_printSettings.m_width = 2;
     game.m_board->m_printSettings.m_tileFillChar = '`';
     game.m_board->m_printSettings.m_showCoords = true;
 
-
     std::cout << game.print() << std::endl;
-    dout << "Successfully exited" << std::endl;
 
-    dout << "testing Tokenizer..." << std::endl;
-    Tokenizer t("feature done=0 myname=\"Jeff\" debug=1 done=1");
+    dout << "testing CmdTokenizer..." << std::endl;
+    CmdTokenizer t("feature done=0 myname=\"Jeff\" debug=1 done=1");
     std::string token;
     do {
         token = t.next();
         dout << "\t[" << token << "]" << std::endl;
     } while (token.front() != EOF);
-    dout << "done testing Tokenizer" << std::endl;
+    dout << "done testing CmdTokenizer" << std::endl;
 
     dout << "Testing overriding initialization" << std::endl;
     std::cout << game.print() << std::endl;
@@ -107,18 +119,33 @@ int main(int argc, char *argv[]) {
     dout << "Done testing int wrapping." << std::endl;
 
     dout << "Testing Algebraic Notation conversions... " << std::endl;
-    Coords c1 = std::make_pair(3,5);
-    Coords c2 = std::make_pair(129,50);
+    DModCoords c1 = std::make_pair(3,5);
+    DModCoords c2 = std::make_pair(129,50);
     dout << coordsToAlgebraic(c1) << std::endl;
     dout << coordsToAlgebraic(c2) << std::endl;
     c1 = algebraicToCoords(coordsToAlgebraic(c1));
     c2 = algebraicToCoords(coordsToAlgebraic(c2));
+    c2 = algebraicToCoords("zz999");
     dout << c1.first << ", " << c1.second << std::endl;
     dout << c2.first << ", " << c2.second << std::endl;
-    Move m1(c1, c2);
+    PieceMove m1(c1, c2);
     dout << m1.algebraic() << std::endl;
+    dout << "Testing readAlgebraic" << std::endl;
+    std::unique_ptr<Move> readMove = readAlgebraic(m1.algebraic());
+    dout << readMove->algebraic() << " with type " << readMove->m_type << std::endl;
+    readMove = readAlgebraic("Sp2r2g999");
+    dout << readMove->algebraic() << " with type " << readMove->m_type << std::endl;
+    readMove = readAlgebraic("Dp2r2b5");
+    dout << readMove->algebraic() << " with type " << readMove->m_type << std::endl;
+    readMove = readAlgebraic("Sp2r2g999F");
+    dout << readMove->algebraic() << " with type " << readMove->m_type << std::endl;
+    readMove = readAlgebraic("Sp2r2g999R2");
+    dout << readMove->algebraic() << " with type " << readMove->m_type << std::endl;
+    readMove = readAlgebraic("Sp2r2g999R2F");
+    dout << readMove->algebraic() << " with type " << readMove->m_type << std::endl;
+
     dout << "Done with all tests" << std::endl;
 
-    return 0;
+    return true;
 }
 

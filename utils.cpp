@@ -3,6 +3,19 @@
 
 #include <string>
 #include <map>
+#include <regex>
+
+std::vector<std::string> split(const std::string str, const std::string regex_str) {
+    std::regex regexz(regex_str);
+    std::sregex_token_iterator token_iter(str.begin(), str.end(), regexz, -1);
+    std::sregex_token_iterator end;
+    std::vector<std::string> list;
+    while (token_iter != end) {
+        list.emplace_back(*token_iter++);
+    }
+    return list;
+}
+
 
 DirectionEnum flipDirection(DirectionEnum _dir) {
     if (_dir & 1) { // if odd
@@ -33,7 +46,6 @@ PieceEnum getPieceFromChar(char _char, char _empty) {
     return found;
 }
 
-// TODO: is there a better way to do this than just a big switch?
 std::string getUnicodeCharFromEnum(PieceEnum _enumValue, std::string _empty) {
     // This could be put into constants.h?
     std::map<PieceEnum, std::string> unicodePieceChars = {

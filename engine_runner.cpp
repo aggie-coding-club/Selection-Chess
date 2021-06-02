@@ -78,7 +78,7 @@ bool EngineRunner::init() {
     bool done = false;
     while(!done) {
         edout << "fetching response... " << std::endl;
-        Tokenizer* cmd = processCommands("feature");
+        CmdTokenizer* cmd = processCommands("feature");
         cmd->next(); // pop 'feature'
         for(;;) {
             std::string featureName = cmd->next();
@@ -139,16 +139,16 @@ void EngineRunner::quit() {
     edout << "Done with boost code." << std::endl;
 }
 
-Move EngineRunner::getMove() {
+std::unique_ptr<Move> EngineRunner::getMove() {
     edout << "getMove" << std::endl;
-    return Move();
+    return std::unique_ptr<Move>(nullptr);
 }
 
-bool EngineRunner::setMove(Move _move) {
+bool EngineRunner::setMove(std::unique_ptr<Move>& _move) {
     return true;
 }
 
-Tokenizer* EngineRunner::getCommand() {
+CmdTokenizer* EngineRunner::getCommand() {
     // TODO: add timeouts. This is a pain in the ass since there is no portable way to do this. 
     // Maybe this will help? Idk if reading from pipe has magic properties that make this not applicable... 
     // https://www.boost.org/doc/libs/1_75_0/libs/beast/doc/html/beast/ref/boost__beast__basic_stream.html 
@@ -168,7 +168,7 @@ Tokenizer* EngineRunner::getCommand() {
             return nullptr;
         }
         edout << "got line " << line << std::endl;
-        Tokenizer* tokenizer = new Tokenizer(line); //TODO: feels weird using the heap for this
+        CmdTokenizer* tokenizer = new CmdTokenizer(line); //TODO: feels weird using the heap for this
         if(tokenizer->peek()[0] == '#') {
             edout << "got comment from engine" << std::endl;
             // TODO: process comments
@@ -178,9 +178,9 @@ Tokenizer* EngineRunner::getCommand() {
     }
 }
 
-Tokenizer* EngineRunner::processCommands(std::string _cmdName, bool _ignore) {
+CmdTokenizer* EngineRunner::processCommands(std::string _cmdName, bool _ignore) {
     for (;;) {
-        Tokenizer* cmd = getCommand();
+        CmdTokenizer* cmd = getCommand();
         if (cmd == nullptr) {
             // reached end of commands buffer without finding our command
             return nullptr;

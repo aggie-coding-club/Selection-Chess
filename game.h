@@ -3,6 +3,7 @@
 
 #include "constants.h"
 #include "board.h"
+#include "ruleset.h"
 
 #include <cstdint>
 #include <stack>
@@ -12,18 +13,20 @@
 class Game {
     public:
         Board* m_board = nullptr;
-        std::stack<Move> m_moveHistory; // list of moves applied to starting FEN.
+        // list of moves applied to starting FEN.
+        std::stack<std::shared_ptr<Move>> m_moveHistory; 
 
-        short m_movesSinceLastCapture = 0; // 50 move rule
-        PieceColor m_turn = WHITE; // whose turn it is
+        // 50 move rule
+        short m_movesSinceLastCapture = 0; 
+        // whose turn it is
+        PieceColor m_turn = WHITE;
+        // What rules we are playing with
+        Ruleset m_rules;
         
-        /** 
-         * Creates a new board from SFEN.
-         */
-        Game(const std::string _sfen);
+        explicit Game(const std::string _sfen);
         void reset(const std::string _sfen);
 
-        bool applyMove(Move _move);
+        bool applyMove(std::shared_ptr<Move> _move);
 
         bool undoMove(size_t _numMoves=1);
 

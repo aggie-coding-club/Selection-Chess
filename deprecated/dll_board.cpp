@@ -13,7 +13,13 @@
 // FIXME: clear up coordinates naming convention. XY is ambiguous, should switch to rank-file.
 
 void Tile::SetAdjacent(DirectionEnum _dir, Tile* _adj) {
+    // break old connection if there is one
+    if (m_adjacents[_dir] != nullptr) {
+        m_adjacents[_dir]->m_adjacents[flipDirection(_dir)] = nullptr;
+    }
+    // update our side of the connection
     m_adjacents[_dir] = _adj;
+    // create their side of the connection
     if (_adj != nullptr) {
         _adj->m_adjacents[flipDirection(_dir)] = this;
     }
@@ -50,14 +56,16 @@ void DLLBoard::sortByCoords(bool _priorityRank, bool _reverseFile, bool _reverse
 }
 
 
-DLLBoard::DLLBoard() { }
-DLLBoard::DLLBoard(const std::string _sfen) {
-    DLLBoard();
+DLLBoard::DLLBoard() : Board() { }
+DLLBoard::DLLBoard(const std::string _sfen) : DLLBoard() {
     init(_sfen);
 }
 void DLLBoard::init(const std::string _sfen) {
     // delete old info, in case init called multiple times.
     m_tiles.clear();
+    for (auto tileVector : m_extremaTiles) {
+        tileVector.clear();
+    }
 
     // Parse position section (until first space)
 
@@ -91,7 +99,7 @@ void DLLBoard::init(const std::string _sfen) {
                 std::cerr << "Expected ')' after non tile sequence in SFen!" << std::endl;
                 throw "Expected ')' after non tile sequence in SFen!";
             }
-            // If it is the ege case where there is no numbers, i.e. "()", we can skip this part
+            // If it is the edge case where there is no numbers, i.e. "()", we can skip this part
             if (j != i+1) {
                 // Get the next characters as integer
                 int num_no_tiles = std::stoi(_sfen.substr(i+1, j)); //i+1 to ignore '('
@@ -378,18 +386,41 @@ void DLLBoard::updateExtrema(const Coords& _new) {
     m_maxCoords.second = std::max(m_maxCoords.second, _new.second);
 }
 
-bool DLLBoard::apply(Move _move) {
+bool DLLBoard::apply(std::shared_ptr<Move> _move) {
+    switch (_move->m_type) {
+    case PIECE_MOVE:
+        return apply(std::static_pointer_cast<PieceMove>(_move));
+    case TILE_MOVE:
+        return apply(std::static_pointer_cast<TileMove>(_move));
+    default:
+        dout << "FEATURE NOT IMPLEMENTED YET. Unknown Move Type [" << _move->m_type << "]\n" << WHERE << std::endl;
+        return false;
+    }
+}
+bool DLLBoard::undo(std::shared_ptr<Move> _move) {
+    switch (_move->m_type) {
+    case PIECE_MOVE:
+        return undo(std::static_pointer_cast<PieceMove>(_move));
+    case TILE_MOVE:
+        return undo(std::static_pointer_cast<TileMove>(_move));
+    default:
+        dout << "FEATURE NOT IMPLEMENTED YET. Unknown Move Type [" << _move->m_type << "]\n" << WHERE << std::endl;
+        return false;
+    }
+}
+
+bool DLLBoard::apply(std::shared_ptr<PieceMove> _move) {
     // tdout << "applying move " << _move.algebraic() << std::endl;
-    Tile* startTile = getTile(_move.m_startPos, false);
-    Tile* endTile = getTile(_move.m_endPos, false);
+    Tile* startTile = getTile(dModCoordsToStandard(_move->m_startPos), false);
+    Tile* endTile = getTile(dModCoordsToStandard(_move->m_endPos), false);
 
     // Check this is valid
     if (startTile == nullptr || endTile == nullptr) {
-        dout << "# INVALID MOVE, TILE MISSING " << _move.algebraic() << std::endl;
+        dout << "# INVALID MOVE, TILE MISSING " << _move->algebraic() << std::endl;
         return false;
     }
-    if (endTile->m_contents != _move.m_capture) {
-        dout << "# INVALID MOVE, CAPTURE MISMATCH " << _move.algebraic() << std::endl;
+    if (endTile->m_contents != _move->m_capture) {
+        dout << "# INVALID MOVE, CAPTURE MISMATCH " << _move->algebraic() << std::endl;
         return false;
     }
     // Execute the move
@@ -402,29 +433,95 @@ bool DLLBoard::apply(Move _move) {
     return true;
 };
 
-bool DLLBoard::undo(Move _move) {
+bool DLLBoard::undo(std::shared_ptr<PieceMove> _move) {
     // tdout << "undoing move " << _move.algebraic() << std::endl;
-    Tile* startTile = getTile(_move.m_startPos, false);
-    Tile* endTile = getTile(_move.m_endPos, false);
+    Tile* startTile = getTile(dModCoordsToStandard(_move->m_startPos), false);
+    Tile* endTile = getTile(dModCoordsToStandard(_move->m_endPos), false);
 
     // Check this is valid
     if (startTile == nullptr || endTile == nullptr) {
-        dout << "# INVALID UNDO, TILE MISSING " << _move.algebraic() << std::endl;
+        dout << "# INVALID UNDO, TILE MISSING " << _move->algebraic() << std::endl;
         return false;
     }
     if (startTile->m_contents != EMPTY) {
-        dout << "# INVALID UNDO, MOVING FROM OCCUPIED SQUARE " << _move.algebraic() << std::endl;
+        dout << "# INVALID UNDO, MOVING FROM OCCUPIED SQUARE " << _move->algebraic() << std::endl;
         return false;
     }
     // Execute the undo
     updatePieceInPL(endTile->m_contents, endTile, startTile);
     startTile->m_contents = endTile->m_contents;
-    if (isPiece(_move.m_capture)) {
-        addPieceToPL(_move.m_capture, endTile);
+    if (isPiece(_move->m_capture)) {
+        addPieceToPL(_move->m_capture, endTile);
     }
-    endTile->m_contents = _move.m_capture;
+    endTile->m_contents = _move->m_capture;
     return true;
 };
+
+bool DLLBoard::apply(std::shared_ptr<TileMove> _move) {
+    tdout << "applying move " << _move->algebraic() << std::endl;
+    std::vector<Tile*> selection;
+
+    // Get the Internal Coords (IC) of the range of tiles in this selection
+    Coords moveSelFirstIC = dModCoordsToStandard(_move->m_selFirst) + m_minCoords;
+    Coords moveSelSecondIC = dModCoordsToStandard(_move->m_selSecond) + m_minCoords;
+
+    for (Tile* tile : m_tiles) {
+        if ( // check if this tile is in the selection
+            // compare first coord
+            !coordGreaterThan(moveSelFirstIC.first, tile->m_coords.first, m_minCoords.first) && // selFirst <= tile
+            !coordGreaterThan(tile->m_coords.first, moveSelSecondIC.first, m_minCoords.first) && // tile <= selSecond
+            // compare second coord
+            !coordGreaterThan(moveSelFirstIC.second, tile->m_coords.second, m_minCoords.second) && // selFirst <= tile
+            !coordGreaterThan(tile->m_coords.second, moveSelSecondIC.second, m_minCoords.second) // tile <= selSecond
+        ) {
+            tdout << "selection includes " << tile->m_coords.first << ", " << tile->m_coords.second << std::endl;
+            selection.push_back(tile);
+        }
+    }
+
+    // FIXME: does not update extrema in the case that we remove the last extrema tile. Need to keep a list of all extrema tiles.
+
+
+    for (Tile* tile : selection) {
+        // Get displacement of move
+        // tile->m_coords += _move->m_translation;
+
+    // FIXME: complete this section which checks if the new location of the tile updates the extrema. Probably should merge with updateExtrema function.
+    //     // check if this is a new extrema
+    //     // check first coord
+    //     if (_move->m_translation.first < 0) { // left move
+            
+    //     } else if (_move->m_translation.first > 0) { // right move
+    //         if (coordGreaterThan(tile->m_coords.first, m_maxCoords.first, m_minCoords.first)) {
+    //             m_maxCoords.first = tile->m_coords.first;
+    //         }
+    //     }
+
+
+        // break old connections on edge pieces and add new ones
+        if (tile->m_coords.first == moveSelFirstIC.first) {
+            tile->SetAdjacent(LEFT, getTile(tile->m_coords + DIRECTION_SIGNS[LEFT], true)); // TODO: there must be a more efficient way of getting these new adjacencies, right?
+        }
+        if (tile->m_coords.first == moveSelSecondIC.first) {
+            tile->SetAdjacent(RIGHT, getTile(tile->m_coords + DIRECTION_SIGNS[RIGHT], true));
+        }
+        if (tile->m_coords.second == moveSelFirstIC.second) {
+            tile->SetAdjacent(DOWN, getTile(tile->m_coords + DIRECTION_SIGNS[DOWN], true));
+        }
+        if (tile->m_coords.second == moveSelSecondIC.second) {
+            tile->SetAdjacent(UP, getTile(tile->m_coords + DIRECTION_SIGNS[UP], true));
+        }
+    }
+    // TODO: update m_minCoords and m_maxCoords
+    // TODO: create some way of checking if all connections are valid
+
+    return true;
+};
+
+bool DLLBoard::undo(std::shared_ptr<TileMove> _move) {
+    //TODO:
+    return false;
+}
 
 int DLLBoard::staticEvaluation() {
     //TODO: this is just a dumb implementation to test if minmax works. Find a better implementation in the future.
@@ -441,22 +538,22 @@ int DLLBoard::staticEvaluation() {
     return staticValue;
 }
 
-std::vector<Move> DLLBoard::getMoves(PieceColor _color) {
+std::vector<std::unique_ptr<Move>> DLLBoard::getMoves(PieceColor _color) {
     // TODO: assumes all pieces can move 1 tile forward, back, left, or right, for the sake of testing minmax.
-    std::vector<Move> legalMoves;
+    std::vector<std::unique_ptr<Move>> legalMoves;
     for (int pieceType = (_color==WHITE ? W_PAWN : B_PAWN); pieceType < NUM_PIECE_TYPES*2+1; pieceType+=2) { // iterate over pieces of _color in piece list
         for (Tile* t : m_pieceLocations[pieceType]) { // for all tiles of pieces of this type
             for (int direction = LEFT; direction <= DOWN; direction++) { // iterate over 4 directions
                 if (t->HasAdjacent(direction)) {
                     // check if empty
                     if (t->m_adjacents[direction]->m_contents == EMPTY) {
-                        Move newMove(externalCoords(t), externalCoords(t->m_adjacents[direction]));
-                        legalMoves.push_back(newMove);
+                        std::unique_ptr<PieceMove> newMove (new PieceMove(externalCoords(t), externalCoords(t->m_adjacents[direction])));
+                        legalMoves.push_back(std::move(newMove));
                     // check if capture
                     } else if (isPiece(t->m_adjacents[direction]->m_contents) && (isWhite(t->m_contents) != isWhite(t->m_adjacents[direction]->m_contents))) {
-                        Move newMove(externalCoords(t), externalCoords(t->m_adjacents[direction]));
-                        newMove.m_capture = t->m_adjacents[direction]->m_contents;
-                        legalMoves.push_back(newMove);
+                        std::unique_ptr<PieceMove> newMove (new PieceMove(externalCoords(t), externalCoords(t->m_adjacents[direction])));
+                        newMove->m_capture = t->m_adjacents[direction]->m_contents;
+                        legalMoves.push_back(std::move(newMove));
                     }
                 }
             }

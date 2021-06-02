@@ -4,6 +4,7 @@
 #include "constants.h"
 #include "utils.h"
 #include "move.h"
+#include "ruleset.h"
 
 #include <vector>
 
@@ -18,36 +19,64 @@ class BoardPrintSettings {
     m_showCoords(_showCoords), m_width(_width), m_height(_height), m_tileFillChar(_tileFillChar) {}
 };
 
+// TODO: I feel like this object can be designed better...
+// TODO: implement functionality around this object
+class StandardArray {
+    public:
+    Coords m_dimensions;
+    std::vector<PieceEnum> m_array;
+
+    StandardArray();
+    // Creates a new empty array of size
+    StandardArray(Coords _size);
+    // Creates new array from sfen
+    StandardArray(std::string _sfen);
+    ~StandardArray();
+
+    // Just print the entire contents of the array as-is.
+    // For debugging purposes only.
+    std::string dumpAsciiArray();
+};
+
 class Board {
     public:
         BoardPrintSettings m_printSettings;
-        /** 
-         * Creates a new board from SFEN.
-         */
-        // virtual Board() = 0;
+
+        Board(Ruleset& _ruleset) : m_displayCoordsZero(std::make_pair(0,0)), m_rules(_ruleset) { }
+
+        // Resets board from SFEN.
         virtual void init(const std::string _sfen) = 0;
         // virtual Board(const std::string _sfen) = 0;
         // minimum x and y of this board. Because of wrap-around, the literal min integer value is not 
         // guaranteed to be the furtherest "left" or "down".
-        Coords m_minCoords;
+        Coords m_minCoords; // TODO: consider removing this? This seems too implementation specific now...
         Coords m_maxCoords;
+
+        // Which displayCoords map to standardArray's (0, 0)
+        // Usually, should update whenever minCoords update.
+        DModCoords m_displayCoordsZero;
 
         int m_material; // changed material score to just be material for both
         uint64_t m_hashCode;
 
-        virtual std::string toSfen() = 0;
+        const Ruleset& m_rules;
+
+        virtual std::string toSfen();
 
         /**
          * Boards are equal if all independent fields except moveHistory are equal. 
          * Note that comparing the hashes is MUCH faster that this, and should be used to compare boards
          * for most practical purposes. Really, this is just here to test if the hash function is working.
          */
-        virtual bool operator==(const Board& _other) const = 0;
+        virtual bool operator==(const Board& _other) const;
+
+        DModCoords standardToDModCoords(Coords _standard);
+        Coords dModCoordsToStandard(DModCoords _dMod);
 
         /** 
          * Print the current tiles and pieces in a nice ASCII format.
          */
-        virtual std::string getAsciiBoard() = 0;
+        virtual std::string getAsciiBoard();
 
         /**
          * Gets the size of the minimum rectangle needed to surround this board in its current configuration.
@@ -74,17 +103,17 @@ class Board {
         //  */
         // virtual bool movePiece(Coords _start, Coords _goal) = 0;
 
-        virtual bool apply(Move _move) = 0;
+        virtual bool apply(std::shared_ptr<Move> _move) = 0;
 
         /**
          * Undoes the last move(s) made on this board.
          */
-        virtual bool undo(Move _move) = 0;
+        virtual bool undo(std::shared_ptr<Move> _move) = 0;
 
         /**
          * Gets the hash of this configuration.
          */
-        virtual uint64_t getHash() const = 0;
+        virtual uint64_t getHash() const;
 
         virtual int staticEvaluation() = 0;
 
@@ -93,9 +122,14 @@ class Board {
             return "[Lol I'm just the parent class, I can't do this]";
         }
 
-        virtual std::vector<Move> getMoves(PieceColor _color) = 0;
+        virtual std::vector<std::unique_ptr<Move>> getMoves(PieceColor _color) = 0;
 
-        // TODO: add some functions for moving tiles
+        // Gets the standard array of this board. This is the smallest sized array (namely, size getDimensions())
+        // that contains all pieces. Indexed by (file + rank*getDimensions().first). Used for printing, hashing, etc.
+        // TODO: once the standardArrays are better working, then require this as a function
+        virtual StandardArray standardArray() = 0;
+
+        //TODO: unvirtual getAscii and toSfen using new standardArray
 };
 
 #endif

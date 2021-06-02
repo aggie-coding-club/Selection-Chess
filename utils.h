@@ -8,6 +8,7 @@
 #include <sstream>
 #include <ios>
 #include <stdlib.h>
+#include <vector>
 
 // ----------- debugging macros ----------- //
 // dout macro 'debug output'
@@ -41,6 +42,58 @@ extern std::ostream g_nullout;
 // USAGE: returns a string describing where in the source code this macro is.
 #define WHERE (FORMAT("\tFile: " << __FILE__ << "\n\tLine: " << __LINE__ << std::endl))
 
+std::vector<std::string> split(const std::string str, const std::string regex_str);
+
+// Guarantees positive result congruent to i % n, except in case of an overflow.
+// See this post for more details: https://stackoverflow.com/questions/14997165/fastest-way-to-get-a-positive-modulo-in-c-c
+inline int positiveModulo(int i, int n) {
+    return (i % n + n) % n;
+}
+
+template <typename T, typename U>
+inline std::ostream& operator<<(std::ostream& _stream, const std::pair<T,U>& _coords) {
+    _stream << "(" << _coords.first << ", " << _coords.second << ")";
+    return _stream;
+}
+
+// Define element-wise arithmetic on std::pairs. // TODO: probably should define a new pair object
+template <typename T, typename U, typename X, typename Y>
+std::pair<T,U>& operator+=(std::pair<T,U>& _lhs, const std::pair<X,Y>& _rhs) {
+    _lhs.first += _rhs.first;
+    _lhs.second += _rhs.second;
+    return _lhs;
+}
+template <typename T, typename U, typename X, typename Y>
+std::pair<T,U> operator+(std::pair<T,U> _lhs, const std::pair<X,Y>& _rhs) {
+    return _lhs += _rhs;
+}
+template <typename T, typename U, typename X, typename Y>
+std::pair<T,U>& operator-=(std::pair<T,U>& _lhs, const std::pair<X,Y>& _rhs) {
+    _lhs.first -= _rhs.first;
+    _lhs.second -= _rhs.second;
+    return _lhs;
+}
+template <typename T, typename U, typename X, typename Y>
+std::pair<T,U> operator-(std::pair<T,U> _lhs, const std::pair<X,Y>& _rhs) {
+    return _lhs -= _rhs;
+}
+
+// Scalar multiplication on pairs
+template <typename T, typename U, typename S>
+std::pair<T,U>& operator*=(std::pair<T,U>& _pair, const S& _scalar) {
+    _pair.first *= _scalar;
+    _pair.second *= _scalar;
+    return _pair;
+}
+template <typename T, typename U, typename S>
+std::pair<T,U> operator*(std::pair<T,U> _pair, const S& _scalar) {
+    return _pair *= _scalar;
+}
+template <typename T, typename U, typename S>
+std::pair<T,U> operator*(const S& _scalar, std::pair<T,U> _pair) {
+    return _pair *= _scalar;
+}
+
 // ----------- PieceEnum functions ----------- //
 
 /**
@@ -63,7 +116,7 @@ std::string getUnicodeCharFromEnum(PieceEnum _enumValue, std::string _empty=" ")
 
 /** Is this a valid nonempty piece enum? */
 inline bool isPiece(PieceEnum spaceEnum) {
-    return spaceEnum != EMPTY; 
+    return spaceEnum != EMPTY && spaceEnum != INVALID; 
 }
 /** Assuming a valid nonempty piece enum, is the piece white or black? */
 inline bool isWhite(PieceEnum piece) {
@@ -106,20 +159,6 @@ char getCharFromDirection(DirectionEnum _dir);
  */
 DirectionEnum flipDirection(DirectionEnum _dir);
 
-// ----------- operators on coords ----------- //
-
-// inline coords operator+(const coords & _l,const coords & _r) {   
-//     return std::make_pair(_l.first + _r.first, _l.second + _r.second);                                    
-// } 
-
-// inline coords operator-(const coords & _l,const coords & _r) {   
-//     return std::make_pair(_l.first - _r.first, _l.second - _r.second);                                    
-// } 
-
-inline std::ostream& operator<<(std::ostream& _stream, const Coords& _coords) {
-    _stream << "(" << _coords.first << ", " << _coords.second << ")";
-    return _stream;
-}
 //----------- Here are some function useful for coordinate wrapping ----------//
 
 // Compares which coords is more to the left or down from another coord, based on where the wrap-around happens (namely, at _relZero)

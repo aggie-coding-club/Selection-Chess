@@ -1,98 +1,71 @@
 #ifndef PIECES_H
 #define PIECES_H
 
+//TODO: consider renaming? Idk if pieces.h is sufficently descriptive. 
+
 #include "constants.h"
+#include "move.h"
 
-class PieceType {
-public:
+#include <vector>
+#include <iostream>
+#include <memory>
+
+typedef int CaptureBehavior;
+enum : CaptureBehavior {NORMAL_MOVEMENT, CAPTURE_ONLY, MOVE_ONLY, PROJECTILE}; // Note: PROJECTILE is not implemented almost anywhere in code. Consider removing it?
+
+struct MoveOptionProperties {
+    bool m_forwardOnly = false;
+
+    // defines how piece can interact with enemy pieces for this MoveOption
+    CaptureBehavior m_captureMode = NORMAL_MOVEMENT;
+
+    bool m_flyOverGaps = false;
+
+    bool m_flyOverPieces = false;
 };
 
-class Piece {
-	PieceColor color;
-public:
-	inline PieceColor getColor() {
-		return color;
-	}
+typedef int MOType;
+enum : MOType {INVALID_MO_TYPE, SLIDE_MO_TYPE, LEAP_MO_TYPE};
 
-	virtual PieceType getType() = 0;
-
-	virtual Tile[] getPossibleMoves() = 0;
+class MoveOption {
+    public:
+        virtual std::unique_ptr<MoveOption> clone() const = 0; // Did this so white/black having same moveoptions utilize copying 
+        MoveOptionProperties m_properties;
+        MOType m_type = INVALID_MO_TYPE;
+    protected:
+        // only should be called by its children
+        MoveOption(MOType _type) : m_type(_type) {}
 };
 
-/* SLIDING PIECES */
+class SlideMoveOption : public MoveOption {
+    public:
+        SlideMoveOption() : MoveOption(SLIDE_MO_TYPE) { }
+        // Max distance piece can slide. Set to -1 for no limit
+        int m_maxDist = -1;
 
-class SlidingPiece : Piece {
-	DirectionEnum moveDirections[];
-public:
-	virtual PieceType getType() = 0;
+        // If true, this is diagonal. Otherwise, this is orthogonal
+        bool m_isDiagonal;
+
+        std::unique_ptr<MoveOption> clone() const {
+            tdout << "slide clone called" << std::endl;
+            return std::make_unique<SlideMoveOption>(*this);
+        }
 };
 
-class RookPiece : SlidingPiece {
-public:
-	inline PieceType getType() {
-		return PieceType.ROOK;
-	}
+class LeapMoveOption : public MoveOption {
+    public:
+        LeapMoveOption() : MoveOption(LEAP_MO_TYPE) { }
+        // How many tiles primary direction of leap translates. Note that if m_forwardOnly is true, this translation is the forward component.
+        int m_forwardDist = 2; // default is normal Knight behavior
+        // How many tiles secondary direction of leap translates. Secondary direction is ortho to primary direction.
+        int m_sideDist = 1; // default is normal Knight behavior
 
-	inline Tile[] getPossibleMoves() {
-		return nullptr;
-	}
+        std::unique_ptr<MoveOption> clone() const {
+            tdout << "leap clone called" << std::endl;
+            return std::make_unique<LeapMoveOption>(*this);
+        }
 };
 
-class BishopPiece : SlidingPiece {
-public:
-	inline PieceType getType() {
-		return PieceType.BISHOP;
-	}
+// Note that if you want to add castling, promotion, en passant, or another special movement, you can extend MoveOption
 
-	inline Tile[] getPossibleMoves() {
-		return nullptr;
-	}
-};
-
-class QueenPiece : SlidingPiece {
-public:
-	inline PieceType getType() {
-		return PieceType.QUEEN;
-	}
-
-	inline Tile[] getPossibleMoves() {
-		return nullptr;
-	}
-};
-
-/* NON-SLIDING PIECES */
-
-class KingPiece : Piece {
-public:
-	inline PieceType getType() {
-		return PieceType.KING;
-	}
-
-	inline Tile[] getPossibleMoves() {
-		return nullptr;
-	}
-
-};
-
-class PawnPiece : Piece {
-public:
-	inline PieceType getType() {
-		return PieceType.PAWN;
-	}
-
-	inline Tile[] getPossibleMoves() {
-		return nullptr;
-	}
-};
-
-class KnightPiece : Piece {
-public:
-	inline PieceType getType() {
-		return PieceType.KNIGHT;
-	}
-
-	inline Tile[] getPossibleMoves() {
-		return nullptr;
-	}
-};
 #endif
