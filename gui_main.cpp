@@ -74,7 +74,6 @@ int main(int argc, char *argv[]) {
 
 bool debugTests() {
     dout << "running debug tests" << std::endl;
-    // Debugging prints, // TODO: remove later
 
     dout << "testing StandardArray object " << std::endl;
     StandardArray sa ("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");

@@ -7,23 +7,23 @@
 // TODO: if this newline complexity is not used in the future, 
 // we should probably remove it.
 
-inline bool isWhitespaceSansNewline(char _c) {
+inline bool CmdTokenizer::isWhitespaceSansNewline(char _c) {
     return (iswspace(_c) && _c != '\n');
 }
 
-inline void eatWhitespace(std::istream& _stream) {
+inline void CmdTokenizer::eatWhitespace(std::istream& _stream) {
   while(isWhitespaceSansNewline(_stream.peek())){ 
     _stream.ignore();
   }
 }
 
 // xboard word lexemes cannot contain these characters
-bool isReservedLexemeChar(char _c) {
+bool CmdTokenizer::isReservedLexemeChar(char _c) {
     const std::string RESERVED = "(){}\"=#\n";
     return std::string::npos != RESERVED.find(_c);
 }
 
-std::string matchQuotedToken(std::istream& _stream, char _delim, bool _includeDelim=true) {
+std::string CmdTokenizer::matchQuotedToken(std::istream& _stream, char _delim, bool _includeDelim) {
     char firstDelim = _stream.get();
     std::string token(1, firstDelim);
     for(;;) {
@@ -45,7 +45,7 @@ std::string matchQuotedToken(std::istream& _stream, char _delim, bool _includeDe
     }
 }
 
-std::string matchWordToken(std::istream& _stream) {
+std::string CmdTokenizer::matchWordToken(std::istream& _stream) {
     std::string token = "";
     for(;;) {
         char lookahead = _stream.peek();

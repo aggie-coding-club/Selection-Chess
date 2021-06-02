@@ -130,8 +130,6 @@ class Board {
         virtual StandardArray standardArray() = 0;
 
         //TODO: unvirtual getAscii and toSfen using new standardArray
-
-        // TODO: add some functions for moving tiles
 };
 
 #endif

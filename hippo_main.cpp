@@ -74,7 +74,7 @@ int testMode() {
         std::cout << move->algebraic() << ", ";
     }
     std::cout << "\b\b] \b" << std::endl;
-    return 0;
+    return 0; // FIXME: remove once I get rid of all the tdout statements in getMoves
 
     std::string negaHistory = "";
     std::cout << "Testing minmax depth 1" << std::endl;

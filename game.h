@@ -23,9 +23,6 @@ class Game {
         // What rules we are playing with
         Ruleset m_rules;
         
-        /** 
-         * Creates a new board from SFEN.
-         */
         explicit Game(const std::string _sfen);
         void reset(const std::string _sfen);
 

@@ -46,7 +46,6 @@ PieceEnum getPieceFromChar(char _char, char _empty) {
     return found;
 }
 
-// TODO: is there a better way to do this than just a big switch?
 std::string getUnicodeCharFromEnum(PieceEnum _enumValue, std::string _empty) {
     // This could be put into constants.h?
     std::map<PieceEnum, std::string> unicodePieceChars = {

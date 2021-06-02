@@ -120,9 +120,9 @@ DModCoords algebraicToCoords(std::string _algebra, DModCoords _offset=std::make_
 
 std::string signedCoordsToAlgebraic(SignedCoords _coords);
 
-class AlgebraicTokenizer : public AbstractTokenizer {
+class AlgebraicTokenizer : public StringTokenizer {
     public:
-        AlgebraicTokenizer(std::string _string) : AbstractTokenizer(_string) {}
+        AlgebraicTokenizer(std::string _string) : StringTokenizer(_string) { }
         // returns the next lexeme in the algebraic string. If we have reached the end of the string, return empty string.
         std::string next();
         // assuming the next sequence is a coords (e.g. ab15), return the coord

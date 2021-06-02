@@ -415,7 +415,7 @@ bool ArrayBoard::isLegal(std::shared_ptr<TileDeletion> _move) {
     if (_move->m_deleteCoords.empty()) {
         return false;
     }
-    if (_move->m_deleteCoords.size() > m_rules.numDeletionsPerTurn) {
+    if (_move->m_deleteCoords.size() > m_rules.m_numDeletionsPerTurn) {
         return false;
     }
     // check there are actually EMPTY tiles to delete at given coords //TODO
@@ -491,30 +491,85 @@ int ArrayBoard::staticEvaluation() {
     return staticValue;
 }
 
+bool ArrayBoard::moveIsFromMO(std::shared_ptr<Move> _move, const MoveOption& _mo) {
+    switch (_mo.m_type) {
+    case LEAP_MO_TYPE:
+        return moveIsFromMO(_move, dynamic_cast<const LeapMoveOption&>(_mo));
+    case SLIDE_MO_TYPE:
+        return moveIsFromMO(_move, dynamic_cast<const SlideMoveOption&>(_mo));
+    default:
+        dout << "Unknown MoveOption Type [" << _mo.m_type << "]\n" << WHERE << std::endl;
+        return false;
+    }
+}
+
+std::vector<std::unique_ptr<Move>> ArrayBoard::getMovesFromMO(ABModCoords& _pieceCoords, const MoveOption& _mo) {
+    // TODO: implement
+    std::vector<std::unique_ptr<Move>> temp;
+    return temp;
+}
+
+bool ArrayBoard::moveIsFromMO(std::shared_ptr<Move> _move, const LeapMoveOption& _mo) {
+    // TODO: implement
+    return false;
+}
+
+std::vector<std::unique_ptr<Move>> ArrayBoard::getMovesFromMO(ABModCoords& _pieceCoords, const LeapMoveOption& _mo) {
+    // TODO: implement
+    std::vector<std::unique_ptr<Move>> temp;
+    return temp;
+}
+
+// Checks if the move could have been generated from current MoveOption
+bool ArrayBoard::moveIsFromMO(std::shared_ptr<Move> _move, const SlideMoveOption& _mo) {
+    // TODO: implement
+    return false;
+}
+
+// Returns list of moves that the piece at _pieceCoords can make using this MoveOption on the current _board.
+std::vector<std::unique_ptr<Move>> ArrayBoard::getMovesFromMO(ABModCoords& _pieceCoords, const SlideMoveOption& _mo) { // FIXME: I think I broke this lol. Going to fix next commit probably
+    ABModCoords& startCoords = _pieceCoords;
+    std::vector<std::unique_ptr<Move>> moves;
+    DirectionEnum loopStartCond = _mo.m_isDiagonal ? DOWN_LEFT : LEFT; // look at constants.h to verify these start/end conditions are correct
+    DirectionEnum loopEndCond = _mo.m_isDiagonal ? UP_LEFT : DOWN;
+
+    for (DirectionEnum direction = loopStartCond; direction <= loopEndCond; direction++) { // iterate over 4 directions
+        ABModCoords endCoords = startCoords + DIRECTION_SIGNS[direction];
+        // TODO: implement rules
+        // check if empty
+        if (m_grid[toIndex(endCoords)] == EMPTY) {
+            std::unique_ptr<PieceMove> newMove (new PieceMove(standardToDModCoords(toStandardCoords(startCoords)), standardToDModCoords(toStandardCoords(endCoords))));//FIXME: gross syntax, need shorter expression
+            moves.push_back(std::move(newMove));
+        // check if capture
+        } else if (isPiece(m_grid[toIndex(endCoords)]) // Are we moving onto another piece
+        && (isWhite(m_grid[toIndex(startCoords)]) != isWhite(m_grid[toIndex(endCoords)]))) { // Is this an enemy piece
+            std::unique_ptr<PieceMove> newMove (new PieceMove(standardToDModCoords(toStandardCoords(startCoords)), standardToDModCoords(toStandardCoords(endCoords))));
+            newMove->m_capture = m_grid[toIndex(endCoords)];
+            moves.push_back(std::move(newMove));
+        }
+    }
+    return std::move(moves);
+    return moves;
+}
+
 std::vector<std::unique_ptr<Move>> ArrayBoard::getMoves(PieceColor _color) {
     std::vector<std::unique_ptr<Move>> legalMoves; // TODO: a lot of legality checks are missing rn. Especially ensuring connectedness of board.
     // ----------- PieceMoves ----------- //
-    // TODO: assumes all pieces can move 1 tile forward, back, left, or right, for the sake of testing minmax.
+    tdout << "Getting PieceMoves" << std::endl;
     for (int pieceType = (_color==WHITE ? W_PAWN : B_PAWN); pieceType < NUM_PIECE_TYPES*2+1; pieceType+=2) { // iterate over pieces of _color in piece list
-        for (ABModCoords startCoords : m_pieceLocations[pieceType]) { // for all coords of pieces of this type
-
-            for (int direction = LEFT; direction <= DOWN; direction++) { // iterate over 4 directions
-                ABModCoords endCoords = startCoords + DIRECTION_SIGNS[direction];
-                // check if empty
-                if (m_grid[toIndex(endCoords)] == EMPTY) {
-                    std::unique_ptr<PieceMove> newMove (new PieceMove(standardToDModCoords(toStandardCoords(startCoords)), standardToDModCoords(toStandardCoords(endCoords))));//FIXME: gross syntax, need shorter expression
-                    legalMoves.push_back(std::move(newMove));
-                // check if capture
-                } else if (isPiece(m_grid[toIndex(endCoords)]) // Are we moving onto another piece
-                && (isWhite(m_grid[toIndex(startCoords)]) != isWhite(m_grid[toIndex(endCoords)]))) { // Is this an enemy piece
-                    std::unique_ptr<PieceMove> newMove (new PieceMove(standardToDModCoords(toStandardCoords(startCoords)), standardToDModCoords(toStandardCoords(endCoords))));
-                    newMove->m_capture = m_grid[toIndex(endCoords)];
-                    legalMoves.push_back(std::move(newMove));
-                }
+        tdout << "  getting moves for pieces of type [" << getCharFromPiece(pieceType) << "]" << std::endl;
+        auto& moveOptions = m_rules.m_pieceMoveOptionLists.at(pieceType);
+        for (ABModCoords pieceCoords : m_pieceLocations[pieceType]) { // for all coords of pieces of this type
+            tdout << "    checking MoveOptions for piece on coords " << standardToDModCoords(toStandardCoords(pieceCoords)) << std::endl;
+            for (auto& mo : moveOptions) {
+                tdout << "      checking a MoveOption for piece on coords " << standardToDModCoords(toStandardCoords(pieceCoords)) << std::endl;
+                auto newMoves = getMovesFromMO(pieceCoords, *(mo.get()));
+                tdout << "      got newMoves of size " << newMoves.size() << std::endl;
+                // Moves new moves into our vector
+                legalMoves.insert(legalMoves.end(), std::make_move_iterator(newMoves.begin()), std::make_move_iterator(newMoves.end()));
             }
         }
     }
-
     // ----------- TileDeletions ----------- //
     // TODO: assumes only one tile can be deleted, implement for more tiles?
     // TODO: gross iteration over the entire space, would be nice if I only iterated over tiles.

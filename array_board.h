@@ -12,7 +12,6 @@
 #include <string>
 
 extern unsigned int ABModulus;
-
 typedef ModularInt<&ABModulus> ABModInt;
 typedef std::pair<ABModInt, ABModInt> ABModCoords;
 
@@ -156,6 +155,18 @@ class ArrayBoard : public Board {
         // Paste the tiles from _sa into our grid, matching bottom left _bl to bottom left of _sa.
         // WARNING: does not update m_minCoords, m_maxCoords, pieceList, or any other member besides m_grid!
         void paste(const StandardArray& _sa, const ABModCoords& _bl);
+
+        // TODO: Do these MO functions generalize well enough to be moved into board.h?
+
+        // Checks if the move could have been generated from current MoveOption
+        bool moveIsFromMO(std::shared_ptr<Move> _move, const MoveOption& _mo);
+        bool moveIsFromMO(std::shared_ptr<Move> _move, const LeapMoveOption& _mo);
+        bool moveIsFromMO(std::shared_ptr<Move> _move, const SlideMoveOption& _mo);
+        // Returns list of moves that the piece at _pieceCoords can make using this MoveOption on the current _board.
+        std::vector<std::unique_ptr<Move>> getMovesFromMO(ABModCoords& _pieceCoords, const MoveOption& _mo);
+        std::vector<std::unique_ptr<Move>> getMovesFromMO(ABModCoords& _pieceCoords, const LeapMoveOption& _mo);
+        std::vector<std::unique_ptr<Move>> getMovesFromMO(ABModCoords& _pieceCoords, const SlideMoveOption& _mo);
+
 
 };
 

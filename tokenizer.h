@@ -6,13 +6,13 @@
 
 // Provides an interface for other tokenizers to use.
 // A child of this class only has to implement next().
-class AbstractTokenizer {
+class AbstractStreamTokenizer {
     protected:
-        std::stringstream m_stream;
+        std::istream& m_stream;
         std::string m_peeked;
         bool m_hasPeeked = false;
     public:
-        AbstractTokenizer(std::string _string) : m_stream(_string) { };
+        AbstractStreamTokenizer(std::istream& _stream) : m_stream(_stream) { };
 
         // gets the next lexeme and pops it
         virtual std::string next() = 0;
@@ -31,6 +31,16 @@ class AbstractTokenizer {
         virtual bool hasNext() {
             return m_hasPeeked || m_stream.peek() != EOF;
         }
+};
+
+// Provides an interface for other tokenizers to use.
+// A child of this class only has to implement next().
+class StringTokenizer : public AbstractStreamTokenizer {
+    protected:
+        std::istringstream m_stream;
+    public:
+        StringTokenizer(std::string _string) : m_stream(_string), 
+        AbstractStreamTokenizer(m_stream) { };
 };
 
 #endif
