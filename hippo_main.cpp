@@ -65,7 +65,7 @@ int testMode() {
 
     std::cout << "Testing PieceMove generation" << std::endl;
 
-    game.reset("P2R(2)p/1p4B/BQp1 w 0 1"); // simple case to play with
+    game.reset("P2R(2)p/1p3NB/BQp1/(3)1p w 0 1"); // simple case to play with
     std::cout << game.print() << std::endl;
 
     std::cout << "Possible moves: [" << std::flush;
@@ -75,7 +75,7 @@ int testMode() {
     }
     std::cout << "\b\b] \b" << std::endl;
 
-    return 0; // FIXME: remove once I get rid of all the tdout statements in getMoves
+    return 0; // FIXME: remove once we can prune down TileMoves, currently all of them is causing an overflow. Alternatively, add rule banning selection and/or deletions moves.
 
     std::cout << "Resetting to a simpler board" << std::endl;
 

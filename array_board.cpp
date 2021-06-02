@@ -243,7 +243,7 @@ bool ArrayBoard::undo(std::shared_ptr<PieceMove> _move) {
 };
 
 bool ArrayBoard::apply(std::shared_ptr<TileMove> _move) {
-    tdout << "applying move " << _move->algebraic() << std::endl;
+    // tdout << "applying move " << _move->algebraic() << std::endl;
     ABModCoords moveSelFirst = toInternalCoords(dModCoordsToStandard(_move->m_selFirst));
     ABModCoords moveSelSecond = toInternalCoords(dModCoordsToStandard(_move->m_selSecond));
 
@@ -322,7 +322,7 @@ bool ArrayBoard::undo(std::shared_ptr<TileMove> _move) {
 }
 
 bool ArrayBoard::apply(std::shared_ptr<TileDeletion> _move) {
-    tdout << "applying move " << _move->algebraic() << std::endl;
+    // tdout << "applying move " << _move->algebraic() << std::endl;
     for (DModCoords& dModDeletion : _move->m_deleteCoords) {
         ABModCoords deletionCoords = toInternalCoords(dModCoordsToStandard(dModDeletion));
         // if (m_grid[toIndex(deletionCoords)] == EMPTY) { // TODO: check if empty. Want to make sure we can undo it if part way we find it is illegal move.
@@ -330,7 +330,7 @@ bool ArrayBoard::apply(std::shared_ptr<TileDeletion> _move) {
     }
 
     // it is possible we cut off the min/max, so we need to update it accordingly
-    tdout << "minCoords=" << m_minCoords << " maxCoords=" << m_maxCoords << "before cut," << std::endl;
+    // tdout << "minCoords=" << m_minCoords << " maxCoords=" << m_maxCoords << "before cut," << std::endl;
     ABModCoords updatedMin = std::make_pair( //TODO: this is repeated code from getSelection -- consider making this into a function, as well as its counterpart in apply, too
         nextTileByColOrder(std::make_pair(m_minCoords.first, 0), false).first, 
         nextTileByRowOrder(std::make_pair(0, m_minCoords.second), false).second
@@ -343,13 +343,13 @@ bool ArrayBoard::apply(std::shared_ptr<TileDeletion> _move) {
     m_displayCoordsZero += std::make_pair(minUpdate.first.m_value, minUpdate.second.m_value);
     m_minCoords = updatedMin;
     m_maxCoords = updatedMax;
-    tdout << "now minCoords=" << m_minCoords << " maxCoords=" << m_maxCoords << "before after the cut" << std::endl;
+    // tdout << "now minCoords=" << m_minCoords << " maxCoords=" << m_maxCoords << "before after the cut" << std::endl;
 
     return true;
 }
 
 bool ArrayBoard::undo(std::shared_ptr<TileDeletion> _move) {
-    tdout << "applying move " << _move->algebraic() << std::endl;
+    // tdout << "applying move " << _move->algebraic() << std::endl;
     // Note: this assumes that 2*[max number of tiles per deletion] + m_grid_size < 27*26 (the DModCoord space).
     // TODO: would be nice if there was a better way to figure out which side it corresponds to easier than checking which is closer so our assumption is not needed.
     for (DModCoords& dModAddition : _move->m_deleteCoords) {
@@ -521,20 +521,73 @@ bool ArrayBoard::moveIsFromMO(std::shared_ptr<Move> _move, const LeapMoveOption&
 }
 
 std::vector<std::unique_ptr<Move>> ArrayBoard::getMovesFromMO(ABModCoords& _pieceCoords, const LeapMoveOption& _mo) {
-    // TODO: implement
-    std::vector<std::unique_ptr<Move>> temp;
-    return temp;
+    // tdout << "getMovesFrom Leaping MO called" << std::endl;
+    ABModCoords& startCoords = _pieceCoords;
+    std::vector<std::unique_ptr<Move>> moves;
+    DirectionEnum fwdLoopStartCond = LEFT;
+    DirectionEnum fwdLoopEndCond = DOWN;
+
+    if (_mo.m_properties.m_forwardOnly) {
+        dout << "UNIMPLEMENTED FEATURE: forwardOnly" << WHERE << std::endl;
+    }
+    if (!_mo.m_properties.m_flyOverGaps || !_mo.m_properties.m_flyOverPieces) {
+        dout << "UNIMPLEMENTED FEATURE: flyOverX=false" << WHERE << std::endl;
+    }
+
+    for (DirectionEnum direction = fwdLoopStartCond; direction <= fwdLoopEndCond; ++direction) { // iterate over 4 directions
+        // tdout << "checking in direction " << getCharFromDirection(direction) << std::endl;
+        DirectionEnum bwdLoopStartCond;
+        DirectionEnum bwdLoopEndCond;
+        // Get perpendicular directions
+        if (direction == LEFT || direction == RIGHT) {
+            bwdLoopStartCond = UP;
+            bwdLoopEndCond = DOWN;
+        } else {
+            bwdLoopStartCond = LEFT;
+            bwdLoopEndCond = RIGHT;
+        }
+        for (DirectionEnum perpDirection = bwdLoopStartCond; perpDirection <= bwdLoopEndCond; ++perpDirection) {
+            SignedCoords leapAmount = (DIRECTION_SIGNS[direction] * _mo.m_forwardDist) + (DIRECTION_SIGNS[perpDirection] * _mo.m_sideDist);
+            ABModCoords endCoords = startCoords + leapAmount;
+
+            // check if void
+            if (m_grid[toIndex(endCoords)] == INVALID) {
+                // Do nothing
+
+            // check if empty
+            } else if (m_grid[toIndex(endCoords)] == EMPTY) {
+                if (_mo.m_properties.m_captureMode != CAPTURE_ONLY) {
+                    // tdout << "found valid moved" << std::endl;
+                    std::unique_ptr<PieceMove> newMove (new PieceMove(standardToDModCoords(toStandardCoords(startCoords)), standardToDModCoords(toStandardCoords(endCoords))));//FIXME: gross syntax, need shorter expression
+                    moves.push_back(std::move(newMove));
+                } // TODO: this smells like repeated code...
+
+            // check if capture
+            } else if (isPiece(m_grid[toIndex(endCoords)])) { // Are we moving onto another piece
+                if (isWhite(m_grid[toIndex(startCoords)]) != isWhite(m_grid[toIndex(endCoords)])) { // Is this an enemy piece
+                    if (_mo.m_properties.m_captureMode != MOVE_ONLY) {
+                        // tdout << "found valid capture" << std::endl;
+                        std::unique_ptr<PieceMove> newMove (new PieceMove(standardToDModCoords(toStandardCoords(startCoords)), standardToDModCoords(toStandardCoords(endCoords))));
+                        newMove->m_capture = m_grid[toIndex(endCoords)];
+                        moves.push_back(std::move(newMove));
+                    }
+                }
+            }
+        }
+    }
+    return std::move(moves);
 }
 
 // Checks if the move could have been generated from current MoveOption
 bool ArrayBoard::moveIsFromMO(std::shared_ptr<Move> _move, const SlideMoveOption& _mo) {
     // TODO: implement
+    // TODO: If we don't care about efficiency, this can just call the general getMovesFromMO and we don't even need this function then
     return false;
 }
 
 // Returns list of moves that the piece at _pieceCoords can make using this MoveOption on the current _board.
 std::vector<std::unique_ptr<Move>> ArrayBoard::getMovesFromMO(ABModCoords& _pieceCoords, const SlideMoveOption& _mo) { // FIXME: I think I broke this lol. Going to fix next commit probably
-    tdout << "getMovesFrom Sliding MO called" << std::endl;
+    // tdout << "getMovesFrom Sliding MO called" << std::endl;
     ABModCoords& startCoords = _pieceCoords;
     std::vector<std::unique_ptr<Move>> moves;
     DirectionEnum loopStartCond = _mo.m_isDiagonal ? DOWN_LEFT : LEFT;
@@ -545,7 +598,7 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMovesFromMO(ABModCoords& _piec
     }
 
     for (DirectionEnum direction = loopStartCond; direction <= loopEndCond; ++direction) { // iterate over 4 directions
-        tdout << "checking in direction " << getCharFromDirection(direction) << std::endl;
+        // tdout << "checking in direction " << getCharFromDirection(direction) << std::endl;
         ABModCoords endCoords = startCoords;
         for (int slideRemaining = _mo.m_maxDist; slideRemaining != 0; --slideRemaining) { // Loop until we can't slide any further. Note != is used instead of > to ensure -1 loops forever
             endCoords += DIRECTION_SIGNS[direction];
@@ -558,7 +611,7 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMovesFromMO(ABModCoords& _piec
             // check if empty
             } else if (m_grid[toIndex(endCoords)] == EMPTY) {
                 if (_mo.m_properties.m_captureMode != CAPTURE_ONLY) {
-                    tdout << "found valid moved" << std::endl;
+                    // tdout << "found valid moved" << std::endl;
                     std::unique_ptr<PieceMove> newMove (new PieceMove(standardToDModCoords(toStandardCoords(startCoords)), standardToDModCoords(toStandardCoords(endCoords))));//FIXME: gross syntax, need shorter expression
                     moves.push_back(std::move(newMove));
                 }
@@ -567,7 +620,7 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMovesFromMO(ABModCoords& _piec
             } else if (isPiece(m_grid[toIndex(endCoords)])) { // Are we moving onto another piece
                 if (isWhite(m_grid[toIndex(startCoords)]) != isWhite(m_grid[toIndex(endCoords)])) { // Is this an enemy piece
                     if (_mo.m_properties.m_captureMode != MOVE_ONLY) {
-                        tdout << "found valid capture" << std::endl;
+                        // tdout << "found valid capture" << std::endl;
                         std::unique_ptr<PieceMove> newMove (new PieceMove(standardToDModCoords(toStandardCoords(startCoords)), standardToDModCoords(toStandardCoords(endCoords))));
                         newMove->m_capture = m_grid[toIndex(endCoords)];
                         moves.push_back(std::move(newMove));
@@ -585,16 +638,15 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMovesFromMO(ABModCoords& _piec
 std::vector<std::unique_ptr<Move>> ArrayBoard::getMoves(PieceColor _color) {
     std::vector<std::unique_ptr<Move>> legalMoves; // TODO: a lot of legality checks are missing rn. Especially ensuring connectedness of board.
     // ----------- PieceMoves ----------- //
-    tdout << "Getting PieceMoves" << std::endl;
+    // tdout << "Getting PieceMoves" << std::endl;
     for (int pieceType = (_color==WHITE ? W_PAWN : B_PAWN); pieceType < NUM_PIECE_TYPES*2+1; pieceType+=2) { // iterate over pieces of _color in piece list
-        tdout << "  getting moves for pieces of type [" << getCharFromPiece(pieceType) << "]" << std::endl;
+        // tdout << "  getting moves for pieces of type [" << getCharFromPiece(pieceType) << "]" << std::endl;
         auto& moveOptions = m_rules.m_pieceMoveOptionLists.at(pieceType);
         for (ABModCoords pieceCoords : m_pieceLocations[pieceType]) { // for all coords of pieces of this type
-            tdout << "    checking MoveOptions for piece on coords " << standardToDModCoords(toStandardCoords(pieceCoords)) << std::endl;
+            // tdout << "    checking MoveOptions for piece on coords " << standardToDModCoords(toStandardCoords(pieceCoords)) << std::endl;
             for (auto& mo : moveOptions) {
-                tdout << "      checking a MoveOption for piece on coords " << standardToDModCoords(toStandardCoords(pieceCoords)) << std::endl;
+                // tdout << "      checking a MoveOption for piece on coords " << standardToDModCoords(toStandardCoords(pieceCoords)) << std::endl;
                 auto newMoves = getMovesFromMO(pieceCoords, *(mo.get()));
-                tdout << "      got newMoves of size " << newMoves.size() << std::endl;
                 // Moves new moves into our vector
                 legalMoves.insert(legalMoves.end(), std::make_move_iterator(newMoves.begin()), std::make_move_iterator(newMoves.end()));
             }
@@ -651,7 +703,7 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMoves(PieceColor _color) {
 }
 
 StandardArray ArrayBoard::getSelection(const ABModCoords& _bl, const ABModCoords& _tr, bool _cut) { // TODO: consider merging with standardArray() ?
-    dout << "getting selection " << std::endl;
+    // dout << "getting selection " << std::endl;
     Coords dimensions = std::make_pair((_tr - _bl).first.m_value+1, (_tr - _bl).second.m_value+1);
     // standard array we will return
     StandardArray sa(dimensions);

@@ -57,48 +57,42 @@ inline std::ostream& operator<<(std::ostream& _stream, const std::pair<T,U>& _co
 }
 
 // Define element-wise arithmetic on std::pairs. // TODO: probably should define a new pair object
-template <typename T, typename U>
-std::pair<T,U>& operator+=(std::pair<T,U>& _l, const std::pair<T,U>& _r) {
-    _l.first += _r.first;
-    _l.second += _r.second;
-    return _l;
+template <typename T, typename U, typename X, typename Y>
+std::pair<T,U>& operator+=(std::pair<T,U>& _lhs, const std::pair<X,Y>& _rhs) {
+    _lhs.first += _rhs.first;
+    _lhs.second += _rhs.second;
+    return _lhs;
 }
-template <typename T, typename U>
-std::pair<T,U> operator+(std::pair<T,U> _l, const std::pair<T,U>& _r) {
-    return _l += _r;
+template <typename T, typename U, typename X, typename Y>
+std::pair<T,U> operator+(std::pair<T,U> _lhs, const std::pair<X,Y>& _rhs) {
+    return _lhs += _rhs;
 }
-template <typename T, typename U>
-std::pair<T,U>& operator-=(std::pair<T,U>& _l, const std::pair<T,U>& _r) {
-    _l.first -= _r.first;
-    _l.second -= _r.second;
-    return _l;
+template <typename T, typename U, typename X, typename Y>
+std::pair<T,U>& operator-=(std::pair<T,U>& _lhs, const std::pair<X,Y>& _rhs) {
+    _lhs.first -= _rhs.first;
+    _lhs.second -= _rhs.second;
+    return _lhs;
 }
-template <typename T, typename U>
-std::pair<T,U> operator-(std::pair<T,U> _l, const std::pair<T,U>& _r) {
-    return _l -= _r;
-}
-// std::pairs arithmetic on ints
-template <typename T, typename U>
-std::pair<T,U>& operator+=(std::pair<T,U>& _l, const std::pair<int,int>& _r) {
-    _l.first += _r.first;
-    _l.second += _r.second;
-    return _l;
-}
-template <typename T, typename U>
-std::pair<T,U> operator+(std::pair<T,U> _l, const std::pair<int,int>& _r) {
-    return _l += _r;
-}
-template <typename T, typename U>
-std::pair<T,U>& operator-=(std::pair<T,U>& _l, const std::pair<int,int>& _r) {
-    _l.first -= _r.first;
-    _l.second -= _r.second;
-    return _l;
-}
-template <typename T, typename U>
-std::pair<T,U> operator-(std::pair<T,U> _l, const std::pair<int,int>& _r) {
-    return _l -= _r;
+template <typename T, typename U, typename X, typename Y>
+std::pair<T,U> operator-(std::pair<T,U> _lhs, const std::pair<X,Y>& _rhs) {
+    return _lhs -= _rhs;
 }
 
+// Scalar multiplication on pairs
+template <typename T, typename U, typename S>
+std::pair<T,U>& operator*=(std::pair<T,U>& _pair, const S& _scalar) {
+    _pair.first *= _scalar;
+    _pair.second *= _scalar;
+    return _pair;
+}
+template <typename T, typename U, typename S>
+std::pair<T,U> operator*(std::pair<T,U> _pair, const S& _scalar) {
+    return _pair *= _scalar;
+}
+template <typename T, typename U, typename S>
+std::pair<T,U> operator*(const S& _scalar, std::pair<T,U> _pair) {
+    return _pair *= _scalar;
+}
 
 // ----------- PieceEnum functions ----------- //
 
@@ -165,21 +159,6 @@ char getCharFromDirection(DirectionEnum _dir);
  */
 DirectionEnum flipDirection(DirectionEnum _dir);
 
-// ----------- operators on coords ----------- //
-
-// inline Coords operator-(const Coords & _l,const Coords & _r) {   
-//     return std::make_pair(_l.first - _r.first, _l.second - _r.second);                                    
-// } 
-
-inline Coords& operator+=(Coords & _l, const SignedCoords & _r) {
-    _l.first += _r.first;
-    _l.second += _r.second;
-    return _l;
-} 
-
-inline Coords operator+(Coords _l, const SignedCoords & _r) {   
-    return _l += _r;
-} 
 //----------- Here are some function useful for coordinate wrapping ----------//
 
 // Compares which coords is more to the left or down from another coord, based on where the wrap-around happens (namely, at _relZero)
