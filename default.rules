@@ -10,10 +10,10 @@ pieceMoveOptions = {
         flyOverPieces = false
     }
     # Normal sliding pieces
-    R add slide(0 orthogonal)
-    B add slide(0 diagonal)
-    Q add slide(0 orthogonal)
-    Q add slide(0 diagonal)
+    R add slide(-1 orthogonal)
+    B add slide(-1 diagonal)
+    Q add slide(-1 orthogonal)
+    Q add slide(-1 diagonal)
     K add slide(1 orthogonal)
     K add slide(1 diagonal)
 

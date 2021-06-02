@@ -504,9 +504,15 @@ bool ArrayBoard::moveIsFromMO(std::shared_ptr<Move> _move, const MoveOption& _mo
 }
 
 std::vector<std::unique_ptr<Move>> ArrayBoard::getMovesFromMO(ABModCoords& _pieceCoords, const MoveOption& _mo) {
-    // TODO: implement
-    std::vector<std::unique_ptr<Move>> temp;
-    return temp;
+    switch (_mo.m_type) {
+    case LEAP_MO_TYPE:
+        return getMovesFromMO(_pieceCoords, dynamic_cast<const LeapMoveOption&>(_mo));
+    case SLIDE_MO_TYPE:
+        return getMovesFromMO(_pieceCoords, dynamic_cast<const SlideMoveOption&>(_mo));
+    default:
+        dout << "Unknown MoveOption Type [" << _mo.m_type << "]\n" << WHERE << std::endl;
+        return std::vector<std::unique_ptr<Move>>();
+    }
 }
 
 bool ArrayBoard::moveIsFromMO(std::shared_ptr<Move> _move, const LeapMoveOption& _mo) {
@@ -528,28 +534,52 @@ bool ArrayBoard::moveIsFromMO(std::shared_ptr<Move> _move, const SlideMoveOption
 
 // Returns list of moves that the piece at _pieceCoords can make using this MoveOption on the current _board.
 std::vector<std::unique_ptr<Move>> ArrayBoard::getMovesFromMO(ABModCoords& _pieceCoords, const SlideMoveOption& _mo) { // FIXME: I think I broke this lol. Going to fix next commit probably
+    tdout << "getMovesFrom Sliding MO called" << std::endl;
     ABModCoords& startCoords = _pieceCoords;
     std::vector<std::unique_ptr<Move>> moves;
-    DirectionEnum loopStartCond = _mo.m_isDiagonal ? DOWN_LEFT : LEFT; // look at constants.h to verify these start/end conditions are correct
+    DirectionEnum loopStartCond = _mo.m_isDiagonal ? DOWN_LEFT : LEFT;
     DirectionEnum loopEndCond = _mo.m_isDiagonal ? UP_LEFT : DOWN;
 
-    for (DirectionEnum direction = loopStartCond; direction <= loopEndCond; direction++) { // iterate over 4 directions
-        ABModCoords endCoords = startCoords + DIRECTION_SIGNS[direction];
-        // TODO: implement rules
-        // check if empty
-        if (m_grid[toIndex(endCoords)] == EMPTY) {
-            std::unique_ptr<PieceMove> newMove (new PieceMove(standardToDModCoords(toStandardCoords(startCoords)), standardToDModCoords(toStandardCoords(endCoords))));//FIXME: gross syntax, need shorter expression
-            moves.push_back(std::move(newMove));
-        // check if capture
-        } else if (isPiece(m_grid[toIndex(endCoords)]) // Are we moving onto another piece
-        && (isWhite(m_grid[toIndex(startCoords)]) != isWhite(m_grid[toIndex(endCoords)]))) { // Is this an enemy piece
-            std::unique_ptr<PieceMove> newMove (new PieceMove(standardToDModCoords(toStandardCoords(startCoords)), standardToDModCoords(toStandardCoords(endCoords))));
-            newMove->m_capture = m_grid[toIndex(endCoords)];
-            moves.push_back(std::move(newMove));
+    if (_mo.m_properties.m_forwardOnly) {
+        dout << "UNIMPLEMENTED FEATURE: forwardOnly" << WHERE << std::endl;
+    }
+
+    for (DirectionEnum direction = loopStartCond; direction <= loopEndCond; ++direction) { // iterate over 4 directions
+        tdout << "checking in direction " << getCharFromDirection(direction) << std::endl;
+        ABModCoords endCoords = startCoords;
+        for (int slideRemaining = _mo.m_maxDist; slideRemaining != 0; --slideRemaining) { // Loop until we can't slide any further. Note != is used instead of > to ensure -1 loops forever
+            endCoords += DIRECTION_SIGNS[direction];
+
+            // check if void
+            if (m_grid[toIndex(endCoords)] == INVALID) {
+                if (!_mo.m_properties.m_flyOverGaps) {
+                    break; // stop searching in this direction
+                }
+            // check if empty
+            } else if (m_grid[toIndex(endCoords)] == EMPTY) {
+                if (_mo.m_properties.m_captureMode != CAPTURE_ONLY) {
+                    tdout << "found valid moved" << std::endl;
+                    std::unique_ptr<PieceMove> newMove (new PieceMove(standardToDModCoords(toStandardCoords(startCoords)), standardToDModCoords(toStandardCoords(endCoords))));//FIXME: gross syntax, need shorter expression
+                    moves.push_back(std::move(newMove));
+                }
+
+            // check if capture
+            } else if (isPiece(m_grid[toIndex(endCoords)])) { // Are we moving onto another piece
+                if (isWhite(m_grid[toIndex(startCoords)]) != isWhite(m_grid[toIndex(endCoords)])) { // Is this an enemy piece
+                    if (_mo.m_properties.m_captureMode != MOVE_ONLY) {
+                        tdout << "found valid capture" << std::endl;
+                        std::unique_ptr<PieceMove> newMove (new PieceMove(standardToDModCoords(toStandardCoords(startCoords)), standardToDModCoords(toStandardCoords(endCoords))));
+                        newMove->m_capture = m_grid[toIndex(endCoords)];
+                        moves.push_back(std::move(newMove));
+                    }
+                }
+                if (!_mo.m_properties.m_flyOverPieces) {
+                    break; // stop searching this direction
+                }
+            }
         }
     }
     return std::move(moves);
-    return moves;
 }
 
 std::vector<std::unique_ptr<Move>> ArrayBoard::getMoves(PieceColor _color) {

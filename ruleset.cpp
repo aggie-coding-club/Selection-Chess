@@ -142,6 +142,10 @@ bool Ruleset::init(std::string _ruleFile) {
     }
 }
 
+inline bool RulesetTokenizer::isNumberCharacter(char _c) {
+    return (isdigit(_c) || _c == '-');
+}
+
 inline void RulesetTokenizer::eatWhitespace(std::istream& _stream) {
     while(iswspace(_stream.peek())) {
         _stream.ignore();
@@ -164,7 +168,7 @@ std::string RulesetTokenizer::matchDigitToken(std::istream& _stream) {
     std::string token = "";
     for(;;) {
         char lookahead = _stream.peek();
-        if (!isdigit(lookahead)) {
+        if (!isNumberCharacter(lookahead)) {
             return token;
         }
         token += lookahead;
@@ -192,7 +196,7 @@ std::string RulesetTokenizer::next() {
     if (isalpha(lookahead)) { 
         return matchWordToken(m_stream);
 
-    } else if (isdigit(lookahead)) { 
+    } else if (isNumberCharacter(lookahead)) { 
         return matchDigitToken(m_stream);
 
     } else if (std::string("={}()").find(lookahead) != std::string::npos) { // other permissible single-character lexemes

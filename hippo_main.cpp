@@ -63,9 +63,9 @@ int testMode() {
     std::cout << game.print() << std::endl;
     std::cout << game.m_board->printPieces() << std::endl;
 
-    std::cout << "Resetting to a simpler board" << std::endl;
+    std::cout << "Testing PieceMove generation" << std::endl;
 
-    game.reset("P2/1K1/1pk w 0 1"); // simple case to play with
+    game.reset("P2R(2)p/1p4B/BQp1 w 0 1"); // simple case to play with
     std::cout << game.print() << std::endl;
 
     std::cout << "Possible moves: [" << std::flush;
@@ -74,7 +74,20 @@ int testMode() {
         std::cout << move->algebraic() << ", ";
     }
     std::cout << "\b\b] \b" << std::endl;
+
     return 0; // FIXME: remove once I get rid of all the tdout statements in getMoves
+
+    std::cout << "Resetting to a simpler board" << std::endl;
+
+    game.reset("P2/1K1/1pk w 0 1"); // simple case to play with
+    std::cout << game.print() << std::endl;
+
+    std::cout << "Possible moves: [" << std::flush;
+    moves = game.m_board->getMoves(game.m_turn);
+    for (auto &move : moves) {
+        std::cout << move->algebraic() << ", ";
+    }
+    std::cout << "\b\b] \b" << std::endl;
 
     std::string negaHistory = "";
     std::cout << "Testing minmax depth 1" << std::endl;

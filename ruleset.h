@@ -23,6 +23,8 @@ class RulesetTokenizer : public AbstractStreamTokenizer {
         inline void eatWhitespace(std::istream& _stream);
         std::string matchWordToken(std::istream& _stream);
         std::string matchDigitToken(std::istream& _stream);
+        // Reutrns if character is allowed in number, namely [0-9] or minus sign
+        inline bool isNumberCharacter(char _c);
 };
 
 class Ruleset {

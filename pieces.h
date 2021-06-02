@@ -11,7 +11,7 @@
 #include <memory>
 
 typedef int CaptureBehavior;
-enum : CaptureBehavior {NORMAL_MOVEMENT, CAPTURE_ONLY, MOVE_ONLY, PROJECTILE};
+enum : CaptureBehavior {NORMAL_MOVEMENT, CAPTURE_ONLY, MOVE_ONLY, PROJECTILE}; // Note: PROJECTILE is not implemented almost anywhere in code. Consider removing it?
 
 struct MoveOptionProperties {
     bool m_forwardOnly = false;
@@ -40,8 +40,8 @@ class MoveOption {
 class SlideMoveOption : public MoveOption {
     public:
         SlideMoveOption() : MoveOption(SLIDE_MO_TYPE) { }
-        // Max distance piece can slide. Set to 0 for no limit
-        int m_maxDist = 0;
+        // Max distance piece can slide. Set to -1 for no limit
+        int m_maxDist = -1;
 
         // If true, this is diagonal. Otherwise, this is orthogonal
         bool m_isDiagonal;
