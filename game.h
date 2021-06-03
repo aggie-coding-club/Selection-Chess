@@ -36,7 +36,7 @@ class Game {
         };
 
         std::string print();
-        std::string Game::printMoveHistory(size_t _numTurns);
+        std::string printMoveHistory(size_t _numTurns);
 };
 
 #endif

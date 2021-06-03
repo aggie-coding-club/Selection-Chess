@@ -127,7 +127,7 @@ class ArrayBoard : public Board {
 
     protected: //TODO: sort some more stuff into protected?
         // check if adding a tile at _new ABModCoords will update m_minCoords or m_maxCoords
-        void ArrayBoard::updateExtrema(const ABModCoords& _new);
+        void updateExtrema(const ABModCoords& _new);
 
         // Get the next coords at or after _start, sorted by row order. Assumes board is non-empty
         ABModCoords nextTileByRowOrder(const ABModCoords& _start, bool _reverse=false, bool _colReversed=false) const;

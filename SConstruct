@@ -10,10 +10,13 @@ config.read(configPath)
 
 env = Environment()
 
+# TODO: Consider going the way of Godot, and using 'platform=windows' style vernacular
 compiler = config.get("my-config", "compiler").strip('"')
 if (compiler == "msvc"):
     print("Using MSVC compiler")
     env.Append(CPPFLAGS = '/EHsc ')
+elif (compiler == "gcc"):
+    print("Using g++ compliler")
 else:
     raise Exception ("Unrecognized compiler '" + compiler + "'")
 
