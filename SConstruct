@@ -9,6 +9,7 @@ config = configparser.RawConfigParser()
 config.read(configPath)
 
 env = Environment()
+libPath = []
 
 # TODO: Consider going the way of Godot, and using 'platform=windows' style vernacular
 compiler = config.get("my-config", "compiler").strip('"')
@@ -24,10 +25,13 @@ noBoost = ARGUMENTS.get('noboost', 0)
 if (noBoost) :
     env.Append(CPPDEFINES=['NO_BOOST'])
 else:
-    boost_prefix = config.get("my-config", "boostPath")
+    boost_prefix = config.get("my-config", "boostIncludePath")
     env.Append(CPPPATH = [boost_prefix])
-    env.Append(LIBPATH = [os.path.join(boost_prefix, "stage/lib")])
-    # note: if you are missing static library after compiling, compile again using '.\b2 runtime-link=static'
+    boost_lib = config.get("my-config", "boostLibPath")
+    # note to windows users: if you are missing static library after compiling, compile again using '.\b2 runtime-link=static'
+    libPath.append(os.path.join(boost_lib))
+    if (compiler == "gcc"):
+        env.Append(LIBS = "pthread")
 
 debug = ARGUMENTS.get('debug', 0)
 if int(debug):
@@ -37,6 +41,7 @@ if int(debug):
     #     env.Append(CPPFLAGS = '/RTC ')
     #     env.Append(CPPFLAGS = '/EHr ')
 
+env.Append(LIBPATH = libPath)
 
 # make sure these strings have trailing space so multiline string doesn't merge last item of this line with first item of next line
 guiCpps = '' \
