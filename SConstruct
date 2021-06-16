@@ -11,8 +11,12 @@ config.read(configPath)
 env = Environment()
 libPath = []
 
-# TODO: Consider going the way of Godot, and using 'platform=windows' style vernacular
-compiler = config.get("my-config", "compiler").strip('"')
+# TODO: Consider going the way of Godot, and using 'platform=windows' instead of compiler
+compiler = ARGUMENTS.get('compiler', "default")
+print("Got compiler as default")
+if (compiler == "default"):
+    compiler = config.get("default", "compiler").strip('"')
+
 if (compiler == "msvc"):
     print("Using MSVC compiler")
     env.Append(CPPFLAGS = '/EHsc ')
@@ -25,13 +29,13 @@ noBoost = ARGUMENTS.get('noboost', 0)
 if (noBoost) :
     env.Append(CPPDEFINES=['NO_BOOST'])
 else:
-    boost_prefix = config.get("my-config", "boostIncludePath")
+    boost_prefix = config.get(compiler, "boostIncludePath")
     env.Append(CPPPATH = [boost_prefix])
-    boost_lib = config.get("my-config", "boostLibPath")
+    boost_lib = config.get(compiler, "boostLibPath")
     # note to windows users: if you are missing static library after compiling, compile again using '.\b2 runtime-link=static'
     libPath.append(os.path.join(boost_lib))
     if (compiler == "gcc"):
-        env.Append(LIBS = "pthread")
+        env.Append(LIBS = "pthread") # it seems boost depends on pthread
 
 debug = ARGUMENTS.get('debug', 0)
 if int(debug):

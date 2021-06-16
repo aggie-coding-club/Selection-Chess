@@ -6,12 +6,19 @@ Selection chess is a variant of chess where players can dynamically rearrange se
 
 This is currently a learners project for the Aggie Coding Club, so we are not looking for outside help at this time. This is more intended to be something we can work on to build cool algorithms in our spare time. This is subject to change in the future, whether it be anything from abandonment to fully open-sourcing.
 
+### Getting Started
+
+We have a [document on how to get started](
+https://docs.google.com/document/d/1t32vdaahksmd2ImCNaXNv0qEbKwnHjy0MOYP9bsr5Sg/edit?usp=sharing). It will be updated as the project progresses.
+
 ### How to Compile
 
 We use [SCons](https://www.scons.org/). Once you have SCons properly installed on your machine, you can compile both the GUI and engine by running `scons` inside of the project folder.
 Running `scons -c` will cleanup.
 
 To compile with debug outputs enabled, run `scons debug=1`
+
+If you have multiple compilers you want to use, compile with `scons compiler="[compiler]"`. Otherwise, the default in scons.config will be used.
 
 If you want to compile without the Boost library, use the `noboost=1` flag. Note that this will disable dependent features of the code.
 
