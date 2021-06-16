@@ -40,7 +40,7 @@ Notice that braces are required even for one line `if` or other control statemen
 
 ```cpp
 size_t i;
-while (i = 0; foo(i); i++); // get lowest value for which foo returns true
+while (i = 0; foo(i); i++); // get lowest value for which foo returns false
 return i;
 ```
 
