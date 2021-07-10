@@ -18,8 +18,7 @@ scratch/
 # SCons
 .sconsign.dblite
 
-# Hippocrene
+# Executables (since unix-like doesn't use .exe)
 Hippocrene
-
-# SelChessGui
 SelChessGui
+UnitTest

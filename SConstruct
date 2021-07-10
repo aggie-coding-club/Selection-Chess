@@ -64,3 +64,10 @@ engine = env.Program(compiled_path + 'engines/Hippocrene', Split(
     'game.cpp move.cpp pieces.cpp ruleset.cpp '
     'min_max.cpp'
 ))
+
+unittest = env.Program(compiled_path + 'UnitTest', Split(
+    'test_main.cpp utils.cpp '
+    'array_board.cpp board.cpp '
+    'game.cpp move.cpp pieces.cpp ruleset.cpp '
+    'min_max.cpp'
+))
