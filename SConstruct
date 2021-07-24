@@ -20,8 +20,10 @@ if (compiler == "default"):
 if (compiler == "msvc"):
     print("Using MSVC compiler")
     env.Append(CPPFLAGS = '/EHsc ')
+    # env.Append(CPPDEFINES=['USING_WINDOWS'])
 elif (compiler == "gcc"):
     print("Using g++ compliler")
+    # env.Append(CPPDEFINES=['USING_NIX'])
 else:
     raise Exception ("Unrecognized compiler '" + compiler + "'")
 
@@ -66,8 +68,10 @@ engine = env.Program(compiled_path + 'engines/Hippocrene', Split(
 ))
 
 unittest = env.Program(compiled_path + 'UnitTest', Split(
+    'test_macros.cpp '
     'test_main.cpp utils.cpp '
     'array_board.cpp board.cpp '
     'game.cpp move.cpp pieces.cpp ruleset.cpp '
-    'min_max.cpp'
+    'min_max.cpp '
+    'human_runner.cpp cmd_tokenizer.cpp'
 ))

@@ -200,7 +200,7 @@ std::string Board::getAsciiBoard() {
     if (m_printSettings.m_showCoords) {
         result += dividerLine + "\n";
     }
-    dout << "Length of printable string = " << result.length() << std::endl;
+    tdout << "Length of printable string = " << result.length() << std::endl;
     return result;
 }
 
@@ -338,13 +338,13 @@ std::string StandardArray::dumpAsciiArray() {
     return result;
 }
 
-DModCoords Board::standardToDModCoords(Coords _standard) {
+DModCoords Board::standardToDModCoords(Coords _standard) const {
     DModCoords dMod (_standard);
     dMod.first += m_displayCoordsZero.first;
     dMod.second += m_displayCoordsZero.second;
     return dMod;
 }
-Coords Board::dModCoordsToStandard(DModCoords _dMod) {
+Coords Board::dModCoordsToStandard(DModCoords _dMod) const {
     _dMod.first -= m_displayCoordsZero.first;
     _dMod.second -= m_displayCoordsZero.second;
     return std::make_pair(_dMod.first.m_value, _dMod.second.m_value);

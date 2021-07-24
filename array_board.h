@@ -68,9 +68,8 @@ class ArrayBoard : public Board {
             m_pieceLocations[_piece].push_back(_location);
         }
 
-
-        PieceEnum getPiece(size_t _f, size_t _r) const {
-            return m_grid[_f + _r * m_grid_size];
+        PieceEnum getPiece(DModCoords _coords) const { // TODO: replace other calls with this one, or vice versa
+            return m_grid[toIndex(toInternalCoords(dModCoordsToStandard(_coords)))];
         };
 
         bool apply(std::shared_ptr<Move> _move);

@@ -60,7 +60,7 @@ std::string TileDeletion::algebraic() {
 }
 
 std::unique_ptr<Move> readAlgebraic(std::string _algebra) {
-    dout << "readAlgebraic(" << _algebra << ")" << std::endl;
+    tdout << "readAlgebraic(" << _algebra << ")" << std::endl;
     AlgebraicTokenizer tokenizer(_algebra);
 
     if (isalpha(tokenizer.peek()[0]) && isupper(tokenizer.peek()[0])) { // got a capital prefix
@@ -71,7 +71,7 @@ std::unique_ptr<Move> readAlgebraic(std::string _algebra) {
             std::unique_ptr<TileMove> move = std::make_unique<TileMove>(f, s, d);
             if (tokenizer.hasNext()) { // Using symmetry modifier(s)
                 if (tokenizer.peek() == "R") { // Rotation
-                    dout << "has rotation" << std::endl;
+                    // tdout << "has rotation" << std::endl;
                     tokenizer.next(); // eat the R
                     int numRotations = std::stoi(tokenizer.next());
                     numRotations %= 4;
@@ -80,7 +80,7 @@ std::unique_ptr<Move> readAlgebraic(std::string _algebra) {
                 }
                 if (tokenizer.hasNext()) {
                     if (tokenizer.peek() == "F") { // reFlection/Flip. Note we don't care if we eat the F here since it is last character.
-                        dout << "has flip" << std::endl;
+                        // tdout << "has flip" << std::endl;
                         move->m_symmetry *= -1;
                     } else {
                         dout << "UNKNOWN SUFFIX '" << tokenizer.peek() << "'" << WHERE << std::endl;

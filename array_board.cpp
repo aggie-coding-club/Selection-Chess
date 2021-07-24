@@ -13,6 +13,8 @@
 #include <limits.h>
 #include <tuple>
 
+// TODO: this file is unmanageably big, need to split it up more. E.g. PieceList is an inner class, etc.
+
 // arrayboard modulus
 unsigned int ABModulus;
 
@@ -82,7 +84,7 @@ void ArrayBoard::init(const std::string _sfen) {
             throw "Invalid piece symbol in SFen!";
         }
     }
-    dout << "Done counting." << std::endl;
+    tdout << "Done counting." << std::endl;
     // check for multiplication overflow
     if (m_grid_size > SIZE_MAX / m_grid_size) {
         std::cerr << "Board is too large to be stored as ArrayBoard!" << std::endl;
@@ -156,7 +158,7 @@ void ArrayBoard::init(const std::string _sfen) {
     }
     // Parse remaining fields
     // TODO: implement
-    dout << "min coords are " << m_minCoords.first << ", " << m_minCoords.second << " and max are " << m_maxCoords.first << ", " << m_maxCoords.second << std::endl;
+    tdout << "min coords are " << m_minCoords.first << ", " << m_minCoords.second << " and max are " << m_maxCoords.first << ", " << m_maxCoords.second << std::endl;
     // dout << "Done parsing." << std::endl;
 }
 
@@ -181,6 +183,7 @@ bool ArrayBoard::removePieceFromPL(PieceEnum _piece, ABModCoords _location) {
 }
 
 bool ArrayBoard::apply(std::shared_ptr<Move> _move) {
+    tdout << "apply called" << std::endl;
     switch (_move->m_type) {
     case PIECE_MOVE:
         return apply(std::static_pointer_cast<PieceMove>(_move));
@@ -194,6 +197,7 @@ bool ArrayBoard::apply(std::shared_ptr<Move> _move) {
     }
 }
 bool ArrayBoard::undo(std::shared_ptr<Move> _move) {
+    tdout << "undo called" << std::endl;
     switch (_move->m_type) {
     case PIECE_MOVE:
         return undo(std::static_pointer_cast<PieceMove>(_move));
@@ -208,7 +212,8 @@ bool ArrayBoard::undo(std::shared_ptr<Move> _move) {
 }
 
 bool ArrayBoard::apply(std::shared_ptr<PieceMove> _move) {
-    // tdout << "applying move " << _move->algebraic() << std::endl;
+    tdout << "applying PieceMove " << _move->algebraic() << std::endl;
+    tdout << getAsciiBoard() << std::endl;;
     ABModCoords startCoords = toInternalCoords(dModCoordsToStandard(_move->m_startPos));
     ABModCoords endCoords = toInternalCoords(dModCoordsToStandard(_move->m_endPos));
 
@@ -243,7 +248,7 @@ bool ArrayBoard::undo(std::shared_ptr<PieceMove> _move) {
 };
 
 bool ArrayBoard::apply(std::shared_ptr<TileMove> _move) {
-    // tdout << "applying move " << _move->algebraic() << std::endl;
+    tdout << "applying tileMove " << _move->algebraic() << std::endl;
     ABModCoords moveSelFirst = toInternalCoords(dModCoordsToStandard(_move->m_selFirst));
     ABModCoords moveSelSecond = toInternalCoords(dModCoordsToStandard(_move->m_selSecond));
 
@@ -322,7 +327,7 @@ bool ArrayBoard::undo(std::shared_ptr<TileMove> _move) {
 }
 
 bool ArrayBoard::apply(std::shared_ptr<TileDeletion> _move) {
-    // tdout << "applying move " << _move->algebraic() << std::endl;
+    tdout << "applying TileDeletion move " << _move->algebraic() << std::endl;
     for (DModCoords& dModDeletion : _move->m_deleteCoords) {
         ABModCoords deletionCoords = toInternalCoords(dModCoordsToStandard(dModDeletion));
         // if (m_grid[toIndex(deletionCoords)] == EMPTY) { // TODO: check if empty. Want to make sure we can undo it if part way we find it is illegal move.

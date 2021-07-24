@@ -22,8 +22,8 @@ class Game {
         PieceColor m_turn = WHITE;
         // What rules we are playing with
         Ruleset m_rules;
-        
-        explicit Game(const std::string _sfen);
+
+        Game(const std::string _sfen, std::string _rulesFile="default.rules"); // TODO: weird hardcode
         void reset(const std::string _sfen);
 
         bool applyMove(std::shared_ptr<Move> _move);

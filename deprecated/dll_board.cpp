@@ -364,7 +364,7 @@ std::string DLLBoard::getAsciiBoard() {
     if (m_printSettings.m_showCoords) {
         result += dividerLine + "\n";
     }
-    dout << "Length of printable string = " << result.length() << std::endl;
+    tdout << "Length of printable string = " << result.length() << std::endl;
     return result;
 }
 

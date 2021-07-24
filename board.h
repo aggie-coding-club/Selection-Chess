@@ -70,8 +70,8 @@ class Board {
          */
         virtual bool operator==(const Board& _other) const;
 
-        DModCoords standardToDModCoords(Coords _standard);
-        Coords dModCoordsToStandard(DModCoords _dMod);
+        DModCoords standardToDModCoords(Coords _standard) const;
+        Coords dModCoordsToStandard(DModCoords _dMod) const;
 
         /** 
          * Print the current tiles and pieces in a nice ASCII format.
@@ -86,9 +86,9 @@ class Board {
         };
 
         /**
-         * Gets the piece at the rank and file, zero indexed from current bounds.
+         * Gets the piece at the rank and file displayed.
          */
-        virtual PieceEnum getPiece(size_t _f, size_t _r) const = 0;
+        virtual PieceEnum getPiece(DModCoords _coords) const = 0;
 
         // /**
         //  * Attempt to move selection of tiles (_selectMinR, _selectMinF)-(_selectMaxR, _selectMaxF) to the new coords (_goalMinR, _goalMinF).

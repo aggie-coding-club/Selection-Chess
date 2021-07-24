@@ -28,7 +28,7 @@ class Ruleset {
     public:
         // initialize rules based on file
         bool init(std::string _ruleFile);
-        Ruleset(std::string _ruleFile="default.rules");
+        Ruleset(std::string _ruleFile="default.rules"); // FIXME: weird hardcoding
         // How many tiles can be deleted using TileDeletion in a single move
         int m_numDeletionsPerTurn = 1;
         // Allow TileMoves to rotate the moved piece
