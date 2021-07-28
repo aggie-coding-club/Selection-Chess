@@ -212,10 +212,10 @@ bool ArrayBoard::undo(std::shared_ptr<Move> _move) {
 }
 
 bool ArrayBoard::apply(std::shared_ptr<PieceMove> _move) {
-    tdout << "applying PieceMove " << _move->algebraic() << std::endl;
-    tdout << getAsciiBoard() << std::endl;;
-    ABModCoords startCoords = toInternalCoords(dModCoordsToStandard(_move->m_startPos));
-    ABModCoords endCoords = toInternalCoords(dModCoordsToStandard(_move->m_endPos));
+    // tdout << "applying PieceMove " << _move->algebraic() << std::endl;
+    // tdout << getAsciiBoard() << std::endl;;
+    ABModCoords startCoords = SAtoAB(DMtoSA(_move->m_startPos));
+    ABModCoords endCoords = SAtoAB(DMtoSA(_move->m_endPos));
 
     // Execute the move
     // Update PieceList
@@ -232,8 +232,8 @@ bool ArrayBoard::apply(std::shared_ptr<PieceMove> _move) {
 
 bool ArrayBoard::undo(std::shared_ptr<PieceMove> _move) {
     // tdout << "undoing move " << _move->algebraic() << std::endl;
-    ABModCoords startCoords = toInternalCoords(dModCoordsToStandard(_move->m_startPos));
-    ABModCoords endCoords = toInternalCoords(dModCoordsToStandard(_move->m_endPos));
+    ABModCoords startCoords = SAtoAB(DMtoSA(_move->m_startPos));
+    ABModCoords endCoords = SAtoAB(DMtoSA(_move->m_endPos));
 
     // Execute the undo
     // Update PieceList
@@ -249,25 +249,27 @@ bool ArrayBoard::undo(std::shared_ptr<PieceMove> _move) {
 
 bool ArrayBoard::apply(std::shared_ptr<TileMove> _move) {
     tdout << "applying tileMove " << _move->algebraic() << std::endl;
-    ABModCoords moveSelFirst = toInternalCoords(dModCoordsToStandard(_move->m_selFirst));
-    ABModCoords moveSelSecond = toInternalCoords(dModCoordsToStandard(_move->m_selSecond));
+    ABModCoords moveSelFirst = SAtoAB(DMtoSA(_move->m_selFirst));
+    ABModCoords moveSelSecond = SAtoAB(DMtoSA(_move->m_selSecond));
 
     // ----------- Cut out the selection ----------- //
     // Save old coords in case we have to undo the cut operation
     ABModCoords oldMin = m_minCoords, oldMax = m_maxCoords; 
     DModCoords oldDZero = m_displayCoordsZero;
     StandardArray cut = getSelection(moveSelFirst, moveSelSecond, true);
-    // dout << "Cut out " << cut.dumpAsciiArray() << std::endl;
-    // dout << "Now board is \n" << getAsciiBoard() << std::endl;
+    // tdout << "Cut out " << cut.dumpAsciiArray() << std::endl;
+    // tdout << "Now board is \n" << getAsciiBoard() << std::endl;
+    // tdout << "min coords are " << m_minCoords.first << ", " << m_minCoords.second << " and max are " << m_maxCoords.first << ", " << m_maxCoords.second << std::endl;
 
     // ----------- Paste in the selection ----------- //
     // Figure out if this move updates the minima
     // Check if m_min - 1 is in the range of the destination rectangle. //TODO: document the proof that this works.
     // We have to do this in DMod space so it does not depend on our board's minimum, because that is what we are trying to find.
+    // NOTE: this only works if we are ensured a contiguous board before and AFTER the paste. If the paste is not contiguous, this method will corrupt the board.
     DModCoords selectionSize = (_move->m_selSecond - _move->m_selFirst);
     DModCoords dModDestSecond = _move->m_destFirst + selectionSize;
     // What our m_minCoords is in DMod space
-    DModCoords minCoordsInDMod = standardToDModCoords(toStandardCoords(m_minCoords));
+    DModCoords minCoordsInDMod = SAtoDM(ABtoSA(m_minCoords));
     if ( //.first
         (minCoordsInDMod.first - 1)
         .lessThanOrEqual(dModDestSecond.first, _move->m_destFirst.first)) {
@@ -284,8 +286,8 @@ bool ArrayBoard::apply(std::shared_ptr<TileMove> _move) {
     }
     
     // Now that our m_minCoords is updated, these operations are valid.
-    ABModCoords moveDestFirst = toInternalCoords(dModCoordsToStandard(_move->m_destFirst));
-    ABModCoords moveDestSecond = toInternalCoords(dModCoordsToStandard(dModDestSecond));
+    ABModCoords moveDestFirst = SAtoAB(DMtoSA(_move->m_destFirst));
+    ABModCoords moveDestSecond = SAtoAB(DMtoSA(dModDestSecond));
 
     // Update m_maxCoords now. Same idea as updating the m_minCoords, but we can do this in ABCoord space now.
     if ( //.first
@@ -305,7 +307,7 @@ bool ArrayBoard::apply(std::shared_ptr<TileMove> _move) {
     for (ABModCoords i = moveDestFirst; i.second != moveDestSecond.second + 1; ++i.second) { // iterate rows
         for (i.first = moveDestFirst.first; i.first != moveDestSecond.first + 1; ++i.first) { // iterate columns
             if (m_grid[toIndex(i)] != INVALID) {
-                dout << WHERE << "FOUND PIECE [" << getCharFromPiece(m_grid[toIndex(i)]) << "] in DESTINATION, at " << coordsToAlgebraic(standardToDModCoords(toStandardCoords(i))) << std::endl;
+                dout << WHERE << "FOUND PIECE [" << getCharFromPiece(m_grid[toIndex(i)]) << "] in DESTINATION, at " << coordsToAlgebraic(SAtoDM(ABtoSA(i))) << std::endl;
                 paste(cut, moveSelFirst); // paste back in original position
                 m_minCoords = oldMin;
                 m_maxCoords = oldMax;
@@ -329,7 +331,7 @@ bool ArrayBoard::undo(std::shared_ptr<TileMove> _move) {
 bool ArrayBoard::apply(std::shared_ptr<TileDeletion> _move) {
     tdout << "applying TileDeletion move " << _move->algebraic() << std::endl;
     for (DModCoords& dModDeletion : _move->m_deleteCoords) {
-        ABModCoords deletionCoords = toInternalCoords(dModCoordsToStandard(dModDeletion));
+        ABModCoords deletionCoords = SAtoAB(DMtoSA(dModDeletion));
         // if (m_grid[toIndex(deletionCoords)] == EMPTY) { // TODO: check if empty. Want to make sure we can undo it if part way we find it is illegal move.
         m_grid[toIndex(deletionCoords)] = INVALID;
     }
@@ -359,8 +361,8 @@ bool ArrayBoard::undo(std::shared_ptr<TileDeletion> _move) {
     // TODO: would be nice if there was a better way to figure out which side it corresponds to easier than checking which is closer so our assumption is not needed.
     for (DModCoords& dModAddition : _move->m_deleteCoords) {
         // check if this addition would change m_minCoords
-        DModCoords dModMin = standardToDModCoords(toStandardCoords(m_minCoords));
-        DModCoords dModMax = standardToDModCoords(toStandardCoords(m_maxCoords));
+        DModCoords dModMin = SAtoDM(ABtoSA(m_minCoords));
+        DModCoords dModMax = SAtoDM(ABtoSA(m_maxCoords));
         // .first
         if (!dModAddition.first.lessThanOrEqual(dModMax.first, dModMin.first)) { // check if this is outside of our current bounds
             unsigned int distToMin = (dModMin.first - dModAddition.first).m_value;
@@ -385,7 +387,7 @@ bool ArrayBoard::undo(std::shared_ptr<TileDeletion> _move) {
         }
 
         // Now that m_minCoords is updated, this conversion is safe.
-        ABModCoords addedCoords = toInternalCoords(dModCoordsToStandard(dModAddition));
+        ABModCoords addedCoords = SAtoAB(DMtoSA(dModAddition));
         m_grid[toIndex(addedCoords)] = EMPTY;
     }
 
@@ -433,14 +435,14 @@ bool ArrayBoard::isLegal(std::shared_ptr<TileDeletion> _move) {
 }
 
 // Convert external coords to internal, e.g. (0,0) will be converted to m_minCoords
-ABModCoords ArrayBoard::toInternalCoords(Coords _extern) const {
+ABModCoords ArrayBoard::SAtoAB(Coords _extern) const {
     ABModCoords intern(_extern);
     intern.first += m_minCoords.first;
     intern.second += m_minCoords.second;
     return intern;
 }
 // Convert internal coords to external, e.g. m_minCoords will be converted to (0,0)
-Coords ArrayBoard::toStandardCoords(ABModCoords _intern) const {
+Coords ArrayBoard::ABtoSA(ABModCoords _intern) const {
     _intern.first -= m_minCoords.first;
     _intern.second -= m_minCoords.second;
     Coords external(_intern.first.m_value, _intern.second.m_value);
@@ -563,7 +565,7 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMovesFromMO(ABModCoords& _piec
             } else if (m_grid[toIndex(endCoords)] == EMPTY) {
                 if (_mo.m_properties.m_captureMode != CAPTURE_ONLY) {
                     // tdout << "found valid moved" << std::endl;
-                    std::unique_ptr<PieceMove> newMove (new PieceMove(standardToDModCoords(toStandardCoords(startCoords)), standardToDModCoords(toStandardCoords(endCoords))));//FIXME: gross syntax, need shorter expression
+                    std::unique_ptr<PieceMove> newMove (new PieceMove(SAtoDM(ABtoSA(startCoords)), SAtoDM(ABtoSA(endCoords))));
                     moves.push_back(std::move(newMove));
                 } // TODO: this smells like repeated code...
 
@@ -572,7 +574,7 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMovesFromMO(ABModCoords& _piec
                 if (isWhite(m_grid[toIndex(startCoords)]) != isWhite(m_grid[toIndex(endCoords)])) { // Is this an enemy piece
                     if (_mo.m_properties.m_captureMode != MOVE_ONLY) {
                         // tdout << "found valid capture" << std::endl;
-                        std::unique_ptr<PieceMove> newMove (new PieceMove(standardToDModCoords(toStandardCoords(startCoords)), standardToDModCoords(toStandardCoords(endCoords))));
+                        std::unique_ptr<PieceMove> newMove (new PieceMove(SAtoDM(ABtoSA(startCoords)), SAtoDM(ABtoSA(endCoords))));
                         newMove->m_capture = m_grid[toIndex(endCoords)];
                         moves.push_back(std::move(newMove));
                     }
@@ -617,7 +619,7 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMovesFromMO(ABModCoords& _piec
             } else if (m_grid[toIndex(endCoords)] == EMPTY) {
                 if (_mo.m_properties.m_captureMode != CAPTURE_ONLY) {
                     // tdout << "found valid moved" << std::endl;
-                    std::unique_ptr<PieceMove> newMove (new PieceMove(standardToDModCoords(toStandardCoords(startCoords)), standardToDModCoords(toStandardCoords(endCoords))));//FIXME: gross syntax, need shorter expression
+                    std::unique_ptr<PieceMove> newMove (new PieceMove(SAtoDM(ABtoSA(startCoords)), SAtoDM(ABtoSA(endCoords))));
                     moves.push_back(std::move(newMove));
                 }
 
@@ -626,7 +628,7 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMovesFromMO(ABModCoords& _piec
                 if (isWhite(m_grid[toIndex(startCoords)]) != isWhite(m_grid[toIndex(endCoords)])) { // Is this an enemy piece
                     if (_mo.m_properties.m_captureMode != MOVE_ONLY) {
                         // tdout << "found valid capture" << std::endl;
-                        std::unique_ptr<PieceMove> newMove (new PieceMove(standardToDModCoords(toStandardCoords(startCoords)), standardToDModCoords(toStandardCoords(endCoords))));
+                        std::unique_ptr<PieceMove> newMove (new PieceMove(SAtoDM(ABtoSA(startCoords)), SAtoDM(ABtoSA(endCoords))));
                         newMove->m_capture = m_grid[toIndex(endCoords)];
                         moves.push_back(std::move(newMove));
                     }
@@ -648,9 +650,9 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMoves(PieceColor _color) {
         // tdout << "  getting moves for pieces of type [" << getCharFromPiece(pieceType) << "]" << std::endl;
         auto& moveOptions = m_rules.m_pieceMoveOptionLists.at(pieceType);
         for (ABModCoords pieceCoords : m_pieceLocations[pieceType]) { // for all coords of pieces of this type
-            // tdout << "    checking MoveOptions for piece on coords " << standardToDModCoords(toStandardCoords(pieceCoords)) << std::endl;
+            // tdout << "    checking MoveOptions for piece on coords " << SAtoDM(ABtoSA(pieceCoords)) << std::endl;
             for (auto& mo : moveOptions) {
-                // tdout << "      checking a MoveOption for piece on coords " << standardToDModCoords(toStandardCoords(pieceCoords)) << std::endl;
+                // tdout << "      checking a MoveOption for piece on coords " << SAtoDM(ABtoSA(pieceCoords)) << std::endl;
                 auto newMoves = getMovesFromMO(pieceCoords, *(mo.get()));
                 // Moves new moves into our vector
                 legalMoves.insert(legalMoves.end(), std::make_move_iterator(newMoves.begin()), std::make_move_iterator(newMoves.end()));
@@ -658,21 +660,21 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMoves(PieceColor _color) {
         }
     }
     // ----------- TileDeletions ----------- //
-    // TODO: assumes only one tile can be deleted, implement for more tiles?
-    // TODO: gross iteration over the entire space, would be nice if I only iterated over tiles.
-    ABModCoords coords = std::make_pair(m_minCoords.first, m_maxCoords.second);
-    // iterate over rows
-    for (; coords.second != m_minCoords.second-1; --coords.second) {
-        coords.first = m_minCoords.first; // reset each loop to start at beginning of the row
-        // iterate over columns
-        for (; coords.first != m_maxCoords.first+1; ++coords.first) {
-            if (m_grid[toIndex(coords)] == EMPTY) {
-                std::unique_ptr<TileDeletion> newMove (new TileDeletion(standardToDModCoords(toStandardCoords(coords))));
-                legalMoves.push_back(std::move(newMove));
+        // TODO: gross iteration over the entire space, would be nice if I only iterated over tiles.
+    if (m_rules.m_numDeletionsPerTurn > 0) { // TODO: assumes only one tile can be deleted, implement for more tiles?
+        ABModCoords coords = std::make_pair(m_minCoords.first, m_maxCoords.second);
+        // iterate over rows
+        for (; coords.second != m_minCoords.second-1; --coords.second) {
+            coords.first = m_minCoords.first; // reset each loop to start at beginning of the row
+            // iterate over columns
+            for (; coords.first != m_maxCoords.first+1; ++coords.first) {
+                if (m_grid[toIndex(coords)] == EMPTY) {
+                    std::unique_ptr<TileDeletion> newMove (new TileDeletion(SAtoDM(ABtoSA(coords))));
+                    legalMoves.push_back(std::move(newMove));
+                }
             }
         }
     }
-
     // ----------- TileMoves ----------- //
     // TODO: assumes only one tile can be moved, implement for more tiles?
     // TODO: gross iteration over the entire space, would be nice if I only iterated over tiles.
@@ -691,9 +693,9 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMoves(PieceColor _color) {
                     for (; endCoords.first != m_maxCoords.first+2; ++endCoords.first) {
                         if (m_grid[toIndex(endCoords)] == INVALID && startCoords != endCoords) {
                             std::unique_ptr<TileMove> newMove (new TileMove(
-                                standardToDModCoords(toStandardCoords(startCoords)),
-                                standardToDModCoords(toStandardCoords(startCoords)),
-                                standardToDModCoords(toStandardCoords(endCoords))
+                                SAtoDM(ABtoSA(startCoords)),
+                                SAtoDM(ABtoSA(startCoords)),
+                                SAtoDM(ABtoSA(endCoords))
                             ));
                             legalMoves.push_back(std::move(newMove));
                         }
@@ -755,13 +757,16 @@ void ArrayBoard::paste(const StandardArray& _sa, const ABModCoords& _bl) {
 
     ABModCoords coords = std::make_pair(_bl.first, tr.second);
     // iterate over rows
+    // tdout << "pasted: ";
     for (; coords.second != _bl.second-1; --coords.second) {
         coords.first = _bl.first; // reset each loop to start at beginning of the row
         // iterate over columns
         for (; coords.first != tr.first+1; ++coords.first) {
             m_grid[toIndex(coords)] = _sa.m_array[i++];
+            // tdout << coordsToAlgebraic(SAtoDM(ABtoSA(coords))) << ", ";
         }
     }
+    // tdout << "\b\b  " << std::endl;
 }
 
 ABModCoords ArrayBoard::nextTileByRowOrder(const ABModCoords& _start, bool _reverse, bool _colReversed) const {

@@ -338,13 +338,13 @@ std::string StandardArray::dumpAsciiArray() {
     return result;
 }
 
-DModCoords Board::standardToDModCoords(Coords _standard) const {
+DModCoords Board::SAtoDM(Coords _standard) const { // TODO: surely we can simplify these 4 conversion functions by just inlining with the += op?
     DModCoords dMod (_standard);
     dMod.first += m_displayCoordsZero.first;
     dMod.second += m_displayCoordsZero.second;
     return dMod;
 }
-Coords Board::dModCoordsToStandard(DModCoords _dMod) const {
+Coords Board::DMtoSA(DModCoords _dMod) const {
     _dMod.first -= m_displayCoordsZero.first;
     _dMod.second -= m_displayCoordsZero.second;
     return std::make_pair(_dMod.first.m_value, _dMod.second.m_value);

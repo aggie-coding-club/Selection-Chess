@@ -70,8 +70,8 @@ class Board {
          */
         virtual bool operator==(const Board& _other) const;
 
-        DModCoords standardToDModCoords(Coords _standard) const;
-        Coords dModCoordsToStandard(DModCoords _dMod) const;
+        DModCoords SAtoDM(Coords _standard) const;
+        Coords DMtoSA(DModCoords _dMod) const;
 
         /** 
          * Print the current tiles and pieces in a nice ASCII format.

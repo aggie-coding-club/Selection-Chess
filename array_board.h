@@ -69,7 +69,7 @@ class ArrayBoard : public Board {
         }
 
         PieceEnum getPiece(DModCoords _coords) const { // TODO: replace other calls with this one, or vice versa
-            return m_grid[toIndex(toInternalCoords(dModCoordsToStandard(_coords)))];
+            return m_grid[toIndex(SAtoAB(DMtoSA(_coords)))];
         };
 
         bool apply(std::shared_ptr<Move> _move);
@@ -120,9 +120,9 @@ class ArrayBoard : public Board {
         size_t toIndex(ABModCoords _coords) const;
 
         // Convert external coords to internal, e.g. (0,0) will be converted to m_minCoords
-        ABModCoords toInternalCoords(Coords _extern) const;
+        ABModCoords SAtoAB(Coords _extern) const;
         // Convert internal coords to external, e.g. m_minCoords will be converted to (0,0)
-        Coords toStandardCoords(ABModCoords _intern) const;
+        Coords ABtoSA(ABModCoords _intern) const;
 
     protected: //TODO: sort some more stuff into protected?
         // check if adding a tile at _new ABModCoords will update m_minCoords or m_maxCoords
