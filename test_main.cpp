@@ -11,7 +11,7 @@
 int main() {
     std::cout << "Conducting tests..." << std::endl;
     // Meta
-    TEST("lambda", {
+    TEST("meta 1", {
         OPT_CASE("failed opt", false);
         OPT_CASE("success multiCheck", MULTI_CHECK(
             CHECK("1", true);
@@ -26,6 +26,22 @@ int main() {
             CHECK("3", false);
             CHECK("4", false);
         ));
+        OPT_CASE("opt F after req F", false);
+        OPT_CASE("opt S after req F", true);
+        REQ_CASE("req S after req F", true);
+        REQ_CASE("req F after req F", false);
+    });
+    TEST("meta 2", {
+        OPT_CASE("succeed opt", true);
+        OPT_CASE("failed opt", false);
+        for (int i = 0; i < 5; i++) {
+            REQ_CASE("loop " + std::to_string(i), MULTI_CHECK(
+                CHECK("a", true);
+                CHECK("b", i != 2);
+                CHECK("c", true);
+            ));
+        }
+        OPT_CASE("succeed opt", false);
     });
 
     TEST("StandardArray object", {

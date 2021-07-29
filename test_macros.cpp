@@ -4,6 +4,7 @@ namespace TestMacros {
     bool testState;
     bool tempBoolForCases;
     std::string failedCheckName;
+    bool skipRemCases;
 
     void printTestLabel(std::string _test) {
         std::cout << "Running test '" << _test << "'" << std::endl;
@@ -20,5 +21,9 @@ namespace TestMacros {
             }
             std::cout << std::endl;
         }
+    }
+    void printSkippedCase(std::string _case) {
+        std::cout << "   Case: " << std::setw(20) << std::setfill(' ') << std::left << _case << " "; 
+        std::cout << "[skipped]" << std::endl;
     }
 }
