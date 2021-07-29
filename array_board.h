@@ -21,6 +21,9 @@ class ArrayBoard : public Board {
         // max number of tiles the grid can contain, and also the length and height of the grid.
         size_t m_grid_size; 
 
+        // How many tiles (either empty or with pieces) there are.
+        unsigned int m_numTiles;
+
         // minimum x and y of this board. Because of wrap-around, the literal min integer value is not 
         // guaranteed to be the furtherest "left" or "down".
         // Also note that these overshadow variables of Board, which are of type Coords. //FIXME: this is bad design and should be addressed

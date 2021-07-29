@@ -44,7 +44,7 @@ void ArrayBoard::init(const std::string _sfen) {
     tdout << "running ArrayBoard::init" << std::endl;
 
     // ----------- loop through and count number of tiles ----------- //
-    m_grid_size = 1; // grid size = number of tiles + 1. See documentation on wrap-around for explanation of why
+    m_numTiles = 0;
     for (i = 0; i < _sfen.length() && _sfen[i] != ' '; i++) {
         const char c = _sfen[i];
         if (c == '/') { // Next row
@@ -71,13 +71,13 @@ void ArrayBoard::init(const std::string _sfen) {
             int num_empty_tiles = std::stoi(_sfen.substr(i, j));
             // update i to to account for the number of additional characters we read in
             i = j-1;
-            m_grid_size += num_empty_tiles;
+            m_numTiles += num_empty_tiles;
             continue;
         }
 
         PieceEnum thisTile = getPieceFromChar(c, ' '); // We look for empty as ' ' to ensure we never find empty this way, just in case.
         if (thisTile != INVALID) {
-            m_grid_size++;
+            m_numTiles++;
             continue;
         } else {
             std::cerr << "Invalid piece symbol '" << c << "' in SFen!" << std::endl;
@@ -85,6 +85,7 @@ void ArrayBoard::init(const std::string _sfen) {
         }
     }
     tdout << "Done counting." << std::endl;
+    m_grid_size = m_numTiles + 1; // grid size = init number of tiles + 1. See documentation on wrap-around for explanation of why
     // check for multiplication overflow
     if (m_grid_size > SIZE_MAX / m_grid_size) {
         std::cerr << "Board is too large to be stored as ArrayBoard!" << std::endl;
@@ -334,6 +335,7 @@ bool ArrayBoard::apply(std::shared_ptr<TileDeletion> _move) {
         ABModCoords deletionCoords = SAtoAB(DMtoSA(dModDeletion));
         // if (m_grid[toIndex(deletionCoords)] == EMPTY) { // TODO: check if empty. Want to make sure we can undo it if part way we find it is illegal move.
         m_grid[toIndex(deletionCoords)] = INVALID;
+        --m_numTiles;
     }
 
     // it is possible we cut off the min/max, so we need to update it accordingly
@@ -389,6 +391,7 @@ bool ArrayBoard::undo(std::shared_ptr<TileDeletion> _move) {
         // Now that m_minCoords is updated, this conversion is safe.
         ABModCoords addedCoords = SAtoAB(DMtoSA(dModAddition));
         m_grid[toIndex(addedCoords)] = EMPTY;
+        ++m_numTiles;
     }
 
     return false;
