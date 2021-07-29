@@ -49,8 +49,8 @@ class Board {
         // virtual Board(const std::string _sfen) = 0;
         // minimum x and y of this board. Because of wrap-around, the literal min integer value is not 
         // guaranteed to be the furtherest "left" or "down".
-        Coords m_minCoords; // TODO: consider removing this? This seems too implementation specific now...
-        Coords m_maxCoords;
+        DModCoords m_minCoords; // CAUTION: array_board and dll_board are not updating this, since it was added after they were deprecated.
+        DModCoords m_maxCoords;
 
         // Which displayCoords map to standardArray's (0, 0)
         // Usually, should update whenever minCoords update.
@@ -82,7 +82,8 @@ class Board {
          * Gets the size of the minimum rectangle needed to surround this board in its current configuration.
          */
         virtual Coords getDimensions() const {
-            return std::make_pair(m_maxCoords.first - m_minCoords.first + 1, m_maxCoords.second - m_minCoords.second + 1);
+            // Just taking the m_value here is OK because this distance is not affected by modulus, so it is guaranteed result to be a normal positive number.
+            return std::make_pair((m_maxCoords.first - m_minCoords.first + 1).m_value, (m_maxCoords.second - m_minCoords.second + 1).m_value);
         };
 
         /**
