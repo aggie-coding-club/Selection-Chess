@@ -677,26 +677,43 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMoves(PieceColor _color) {
     }
     // ----------- TileMoves ----------- //
     // TODO: assumes only one tile can be moved, implement for more tiles?
+    tdout << "Getting tileMoves" << std::endl;
+    // First, iterate over all possible tiles we can move.
     // TODO: gross iteration over the entire space, would be nice if I only iterated over tiles.
-    ABModCoords startCoords = std::make_pair(m_minCoords.first, m_maxCoords.second);
+    ABModCoords startCoords = m_minCoords;
     // iterate over rows
-    for (; startCoords.second != m_minCoords.second-1; --startCoords.second) {
+    for (; startCoords.second != m_maxCoords.second+1; ++startCoords.second) {
         startCoords.first = m_minCoords.first; // reset each loop to start at beginning of the row
         // iterate over columns
         for (; startCoords.first != m_maxCoords.first+1; ++startCoords.first) {
-            if (m_grid[toIndex(startCoords)] != INVALID) {
+            if (m_grid[toIndex(startCoords)] != INVALID) { // ignore non-tile spaces
 
-                ABModCoords endCoords = std::make_pair(m_minCoords.first, m_maxCoords.second+1); // FIXME: limited to playing within extrema. I kinda fixed this for max, but its gross.
-                for (; endCoords.second != m_minCoords.second-1; --endCoords.second) {
-                    endCoords.first = m_minCoords.first; // reset each loop to start at beginning of the row
+                DModCoords dmStartCoords = SAtoDM(ABtoSA(startCoords));
+                // Now, iterate over possible spaces that this tile can be moved to
+                // We do this in DModCoords because it can go smaller than m_minCoords.
+                DModCoords dmMinCoords = SAtoDM(ABtoSA(m_minCoords));
+                DModCoords dmMaxCoords = SAtoDM(ABtoSA(m_maxCoords));
+                DModCoords endCoordsMin = dmMinCoords - std::make_pair(1,1);
+                DModCoords endCoordsMax = dmMaxCoords + std::make_pair(1,1);
+                DModCoords endCoords = endCoordsMin;
+                for (; endCoords.second != endCoordsMax.second+1; ++endCoords.second) {
+                    endCoords.first = endCoordsMin.first; // reset each loop to start at beginning of the row
                     // iterate over columns
-                    for (; endCoords.first != m_maxCoords.first+2; ++endCoords.first) {
-                        if (m_grid[toIndex(endCoords)] == INVALID && startCoords != endCoords) {
-                            std::unique_ptr<TileMove> newMove (new TileMove(
-                                SAtoDM(ABtoSA(startCoords)),
-                                SAtoDM(ABtoSA(startCoords)),
-                                SAtoDM(ABtoSA(endCoords))
-                            ));
+                    for (; endCoords.first != endCoordsMax.first+1; ++endCoords.first) {
+                        if (
+                            // If endCoords is out of bounds, this is a valid move, but it is not safe to do conversions since m_minCoords affects conversion.
+                            (
+                                endCoords.first.lessThanOrEqual(dmMinCoords.first, dmMaxCoords.first) || //FIXME: rename function to 'withinBounds(lower, upper)' or smth
+                                endCoords.second.lessThanOrEqual(dmMinCoords.second, dmMaxCoords.second)
+                            )
+                            || // else endCoords is within bounds. This means we can safely convert it to ABCoords, but that we also have to check the array to see if there is a tile there blocking it.
+                            (
+                                m_grid[toIndex(SAtoAB(DMtoSA(endCoords)))] == INVALID && 
+                                dmStartCoords != endCoords // just in case
+                            )
+                        ) {
+                            //FIXME: NO CONTINUITY CHECK!!
+                            std::unique_ptr<TileMove> newMove (new TileMove(dmStartCoords, dmStartCoords, endCoords));
                             legalMoves.push_back(std::move(newMove));
                         }
                     }
