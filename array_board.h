@@ -127,13 +127,15 @@ class ArrayBoard : public Board {
         // Convert internal coords to external, e.g. m_minCoords will be converted to (0,0)
         Coords ABtoSA(ABModCoords _intern) const;
 
+        bool isContiguous() const;
+
     protected: //TODO: sort some more stuff into protected?
         // check if adding a tile at _new ABModCoords will update m_minCoords or m_maxCoords
         void updateExtrema(const ABModCoords& _new);
 
-        // Get the next coords at or after _start, sorted by row order. Assumes board is non-empty
+        // Get the next coords at or after _start, sorted by row order. Assumes board has tiles
         ABModCoords nextTileByRowOrder(const ABModCoords& _start, bool _reverse=false, bool _colReversed=false) const;
-        // Get the next coords at or after _start, sorted by column order. Assumes board is non-empty
+        // Get the next coords at or after _start, sorted by column order. Assumes board has tiles
         ABModCoords nextTileByColOrder(const ABModCoords& _start, bool _reverse=false, bool _rowReversed=false) const;
 
         // // 'Less than' comparators for comparing ABModCoords.

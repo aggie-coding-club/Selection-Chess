@@ -12,6 +12,8 @@
 #include <ctype.h>
 #include <limits.h>
 #include <tuple>
+#include <queue>
+#include <map>
 
 // TODO: this file is unmanageably big, need to split it up more. E.g. PieceList is an inner class, etc.
 
@@ -819,4 +821,58 @@ ABModCoords ArrayBoard::nextTileByColOrder(const ABModCoords& _start, bool _reve
         // tdout << current;
     }
     return current;
+}
+
+bool ArrayBoard::isContiguous() const {
+    // tdout << "starting isContiguous" << std::endl;
+    if (m_numTiles == 0) {
+        tdout << "found no tiles -> contiguous" << std::endl;
+        return true; // seems like no tiles should be considered a valid board, and a valid board must be contiguous.
+    }
+    ABModCoords bfsStart = m_minCoords;
+    // ensure that we are starting on a tile
+    bfsStart = nextTileByRowOrder(bfsStart);
+    // tdout << "starting on tile " << coordsToAlgebraic(SAtoDM(ABtoSA(bfsStart))) << std::endl;
+
+    std::map<ABModCoords, SearchState, compareModPairColOrder<ABModInt, ABModInt>> bfsMarkedTiles;
+    std::queue<ABModCoords> bfsQueue;
+
+    bfsQueue.push(bfsStart);
+    bfsMarkedTiles.insert(std::make_pair(bfsStart, QUEUED));
+
+    while (!bfsQueue.empty()) {
+        ABModCoords exploring = bfsQueue.front();
+        bfsQueue.pop();
+        // tdout << "exploring tile " << coordsToAlgebraic(SAtoDM(ABtoSA(exploring))) << std::endl;
+        for (DirectionEnum dir : ORTHO_DIRECTIONS) {
+            // make sure we don't consider ABCoord space wrap-arounds as adjacencies
+            if (
+                ((dir == UP) && (exploring.second == m_minCoords.second-1)) ||
+                ((dir == DOWN) && (exploring.second == m_minCoords.second)) ||
+                ((dir == RIGHT) && (exploring.first == m_minCoords.first-1)) ||
+                ((dir == LEFT) && (exploring.first == m_minCoords.first))
+            ) {
+                // tdout << "skipped direction " << getCharFromDirection(dir) << std::endl;
+                continue;
+            }
+            ABModCoords adjSpace = exploring + DIRECTION_SIGNS[dir];
+            PieceEnum adjSpacePiece = m_grid[toIndex((adjSpace))];
+            if (adjSpacePiece != INVALID) {
+                // tdout << "found adjacent " << coordsToAlgebraic(SAtoDM(ABtoSA(adjSpace)));
+                auto it = bfsMarkedTiles.find(adjSpace);
+                if (it == bfsMarkedTiles.end()) {
+                    // this means we've never found this adjSpace as either QUEUED or EXPLORED
+                    bfsQueue.push(adjSpace);
+                    bfsMarkedTiles.insert(std::make_pair(adjSpace, QUEUED));
+                    // tdout << " and added it to queue" << std::endl;
+                } else {
+                    // tdout << " but it was already found" << std::endl;
+                }
+            }
+        }
+        bfsMarkedTiles[exploring] = EXPLORED; // Note: I don't think there is a difference between EXPLORED or QUEUED marking, but it is easier to read probably.
+    }
+    // Number of explored tiles equals actual number of tiles iff tiles are contiguous.
+    // tdout << "Conclusion of isContiguous: " << bfsMarkedTiles.size() << " == " << m_numTiles << std::endl;
+    return bfsMarkedTiles.size() == m_numTiles;
 }

@@ -94,6 +94,53 @@ std::pair<T,U> operator*(const S& _scalar, std::pair<T,U> _pair) {
     return _pair *= _scalar;
 }
 
+// Comparators for pairs //TODO: remove if unneeded
+// Row order implies f0 < a8
+template <typename T, typename U>
+struct comparePairRowOrder {
+    bool operator()(const std::pair<T,U>& _a, const std::pair<T,U>& _b) const {
+        if (_a.second != _b.second) {
+            return _a.second < _b.second;
+        } else {
+            return _a.first < _b.first;
+        }
+    }
+};
+// Column Order implies a8 < f0
+template <typename T, typename U>
+struct comparePairColOrder {
+    bool operator()(const std::pair<T,U>& _a, const std::pair<T,U>& _b) const {
+        if (_a.first != _b.first) {
+            return _a.first < _b.first;
+        } else {
+            return _a.second < _b.second;
+        }
+    }
+};
+// Comparators for pairs of modular ints -- this is needed for storing them in maps
+// Row order implies f0 < a8
+template <typename T, typename U>
+struct compareModPairRowOrder {
+    bool operator()(const std::pair<T,U>& _a, const std::pair<T,U>& _b) const {
+        if (_a.second != _b.second) {
+            return _a.second.m_value < _b.second.m_value;
+        } else {
+            return _a.first.m_value < _b.first.m_value;
+        }
+    }
+};
+// Column Order implies a8 < f0
+template <typename T, typename U>
+struct compareModPairColOrder {
+    bool operator()(const std::pair<T,U>& _a, const std::pair<T,U>& _b) const {
+        if (_a.first != _b.first) {
+            return _a.first.m_value < _b.first.m_value;
+        } else {
+            return _a.second.m_value < _b.second.m_value;
+        }
+    }
+};
+
 // ----------- PieceEnum functions ----------- //
 
 /**

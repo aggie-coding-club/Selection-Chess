@@ -299,6 +299,31 @@ int main() {
     //     }
     //     std::cout << "\b\b] \b" << std::endl;
     // });
+    TEST("Continuity Checker", {
+        // CAUTION: overshadowing of game variable!
+        // Game game = Game("2 w 0 1", "testing/tileMove1.rules");
+        Ruleset rules ("testing/tileMove1.rules");
+        OPT_CASE("2 cont", MULTI_CHECK(
+            ArrayBoard ab(rules, "2 w 0 1");
+            tdout << ab.getAsciiBoard();
+            CHECK("isContinuous", ab.isContiguous());
+        ));
+        OPT_CASE("2 non cont", MULTI_CHECK(
+            ArrayBoard ab(rules, "1/(1)1 w 0 1");
+            tdout << ab.getAsciiBoard();
+            CHECK("isContinuous", ab.isContiguous()==false);
+        ));
+        OPT_CASE("cont w pieces", MULTI_CHECK(
+            ArrayBoard ab(rules, "(2)3/(2)1(1)1/(2)3/1k1(1)1/pQ1(1)1/1(3)1/(1)K3 w 0 1");
+            tdout << ab.getAsciiBoard();
+            CHECK("isContinuous", ab.isContiguous());
+        ));
+        OPT_CASE("noncont w pieces", MULTI_CHECK(
+            ArrayBoard ab(rules, "(2)3/(2)1(1)1/(3)2/1k1(1)1/pQ1(1)1/1(3)1/(1)K3 w 0 1");
+            tdout << ab.getAsciiBoard();
+            CHECK("isContinuous", ab.isContiguous()==false);
+        ));
+    });
 
     TEST("TileMove generation", {
         // CAUTION: overshadowing of game variable!

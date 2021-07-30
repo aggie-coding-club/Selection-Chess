@@ -2,6 +2,7 @@
 #define CONSTANTS_H
 
 #include <string>
+#include <vector>
 
 #define STARTING_MATERIAL 0 //FIXME: make constant type
 
@@ -17,6 +18,10 @@ inline SignedCoords operator-(SignedCoords _c) {
 
 typedef int CustomException;
 enum : CustomException {EXCP_ENGINE_DIED=101};
+
+// For search algorithms
+typedef unsigned char SearchState;
+enum : SearchState {QUEUED, EXPLORED};
 
 /**
  * White is odd, black is even, excluding EMPTY=0 and INVALID.
@@ -42,6 +47,13 @@ const std::string PIECE_LETTERS = ".PpRrNnBbQqKk?";
 */
 typedef unsigned char DirectionEnum;
 enum : DirectionEnum {LEFT, RIGHT, UP, DOWN, DOWN_LEFT, UP_RIGHT, DOWN_RIGHT, UP_LEFT};
+
+// Provided these for syntactic sugar of for looping through directions
+// TODO: replace old for loops with this new syntax.
+const std::vector<DirectionEnum> ORTHO_DIRECTIONS {LEFT, RIGHT, UP, DOWN};
+const std::vector<DirectionEnum> DIAG_DIRECTIONS {DOWN_LEFT, UP_RIGHT, DOWN_RIGHT, UP_LEFT};
+const std::vector<DirectionEnum> ALL_8_DIRECTIONS {LEFT, RIGHT, UP, DOWN, DOWN_LEFT, UP_RIGHT, DOWN_RIGHT, UP_LEFT};
+
 static const SignedCoords DIRECTION_SIGNS[] = {
     std::make_pair(-1,0), std::make_pair(1,0),
     std::make_pair(0,1), std::make_pair(0,-1),
