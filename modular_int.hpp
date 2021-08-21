@@ -62,6 +62,10 @@ class ModularInt {
         // Compares which int is more to the left or down from another, based on where the wrap-around happens (namely, at _relZero)
         // returns if this <= _other
         bool lessThanOrEqual(ModularInt _other, ModularInt _relZero) const;
+        // TODO: remove lessThan and lessThanOrEqual, now deprecated by the following
+        // Return true if this is between _lower and _upper, inclusive;
+        // i.e. starting at _lower and traveling positive, you will hit this before you hit _upper.
+        bool isBetween(ModularInt _lower, ModularInt _upper) const;
 
         friend std::ostream& operator<<(std::ostream& _os, const ModularInt<modulus>& _mi) {
             _os << _mi.m_value; // << " (mod " << *modulus << ")";
@@ -119,6 +123,10 @@ inline bool ModularInt<modulus>::lessThan(ModularInt<modulus> _other, ModularInt
 template <unsigned int* modulus>
 inline bool ModularInt<modulus>::lessThanOrEqual(ModularInt<modulus> _other, ModularInt<modulus> _relZero) const {
     return (m_value - _relZero).m_value <= (_other.m_value - _relZero).m_value;
+}
+template <unsigned int* modulus>
+inline bool ModularInt<modulus>::isBetween(ModularInt<modulus> _lower, ModularInt<modulus> _upper) const {
+    return (m_value - _lower).m_value <= (_upper.m_value - _lower).m_value;
 }
 
 #endif

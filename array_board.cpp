@@ -320,6 +320,17 @@ bool ArrayBoard::apply(std::shared_ptr<TileMove> _move) {
         }
     }
     paste(cut, moveDestFirst); // paste back in new position
+
+    // Now, we have to check for continuity.
+    if (!isContiguous()) {
+        dout << WHERE << "Move not contiguous, reverting!" << std::endl;
+        clearSelection(moveDestFirst, moveDestSecond); // remove the paste
+        paste(cut, moveSelFirst); // paste back in original position
+        m_minCoords = oldMin;
+        m_maxCoords = oldMax;
+        m_displayCoordsZero = oldDZero;
+        return false;
+    }
     return true;
 };
 
@@ -708,8 +719,8 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMoves(PieceColor _color) {
                         if (
                             // If endCoords is out of bounds, this is a valid move, but it is not safe to do conversions since m_minCoords affects conversion.
                             (
-                                endCoords.first.lessThanOrEqual(dmMinCoords.first, dmMaxCoords.first) || //FIXME: rename function to 'withinBounds(lower, upper)' or smth
-                                endCoords.second.lessThanOrEqual(dmMinCoords.second, dmMaxCoords.second)
+                                !endCoords.first.isBetween(dmMinCoords.first, dmMaxCoords.first) || //FIXME: rename function to 'withinBounds(lower, upper)' or smth
+                                !endCoords.second.isBetween(dmMinCoords.second, dmMaxCoords.second)
                             )
                             || // else endCoords is within bounds. This means we can safely convert it to ABCoords, but that we also have to check the array to see if there is a tile there blocking it.
                             (
@@ -717,9 +728,18 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMoves(PieceColor _color) {
                                 dmStartCoords != endCoords // just in case
                             )
                         ) {
-                            //FIXME: NO CONTINUITY CHECK!!
-                            std::unique_ptr<TileMove> newMove (new TileMove(dmStartCoords, dmStartCoords, endCoords));
-                            legalMoves.push_back(std::move(newMove));
+                            // tdout << "first LEQ " << !endCoords.first.isBetween(dmMinCoords.first, dmMaxCoords.first) <<
+                            // " second LEQ " << !endCoords.second.isBetween(dmMinCoords.second, dmMaxCoords.second) << 
+                            // " for move S-" << coordsToAlgebraic(dmStartCoords) << coordsToAlgebraic(endCoords)  << std::endl;
+                            // //FIXME: disgusting hack, we shouldn't have to apply/undo twice.
+                            // std::shared_ptr<Move> newMove (new TileMove(dmStartCoords, dmStartCoords, endCoords));
+                            // apply(newMove);
+                            // if(isContiguous()) {
+                            //     // WARNING: gross overshadowing of newMove
+                                std::unique_ptr<Move> newMove (new TileMove(dmStartCoords, dmStartCoords, endCoords));
+                                legalMoves.push_back(std::move(newMove));
+                            // }
+                            // undo(newMove);
                         }
                     }
                 }
@@ -791,6 +811,17 @@ void ArrayBoard::paste(const StandardArray& _sa, const ABModCoords& _bl) {
     // tdout << "\b\b  " << std::endl;
 }
 
+void ArrayBoard::clearSelection(const ABModCoords& _bl, const ABModCoords& _tr) {
+    ABModCoords coords = std::make_pair(_bl.first, _tr.second);
+    for (; coords.second != _bl.second-1; --coords.second) {
+        coords.first = _bl.first; // reset each loop to start at beginning of the row
+        // iterate over columns
+        for (; coords.first != _tr.first+1; ++coords.first) {
+            m_grid[toIndex(coords)] = INVALID;
+        }
+    }
+}
+
 ABModCoords ArrayBoard::nextTileByRowOrder(const ABModCoords& _start, bool _reverse, bool _colReversed) const {
     ABModCoords current = _start;
     // tdout << "nextTiles search:" << current;
@@ -823,13 +854,14 @@ ABModCoords ArrayBoard::nextTileByColOrder(const ABModCoords& _start, bool _reve
     return current;
 }
 
+// Algorithm: start on a tile, do a BFS, and see if the number of tiles we found matches m_numTiles. If less found, then it must be noncontiguous.
 bool ArrayBoard::isContiguous() const {
     // tdout << "starting isContiguous" << std::endl;
     if (m_numTiles == 0) {
         tdout << "found no tiles -> contiguous" << std::endl;
         return true; // seems like no tiles should be considered a valid board, and a valid board must be contiguous.
     }
-    ABModCoords bfsStart = m_minCoords;
+    ABModCoords bfsStart = m_minCoords; // semi-arbitrary starting point. There should be a tile in this row, so we only have to search 1 row at most.
     // ensure that we are starting on a tile
     bfsStart = nextTileByRowOrder(bfsStart);
     // tdout << "starting on tile " << coordsToAlgebraic(SAtoDM(ABtoSA(bfsStart))) << std::endl;

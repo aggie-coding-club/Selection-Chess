@@ -156,6 +156,9 @@ class ArrayBoard : public Board {
         // Copy the tiles from bottom left _bl to top right _tr into a standardarray. If _cut=true, remove the original copied section.
         StandardArray getSelection(const ABModCoords& _bl, const ABModCoords& _tr, bool _cut=false);
 
+        // Deletes all tiles from bottom left _bl to top right _tr.
+        void clearSelection(const ABModCoords& _bl, const ABModCoords& _tr);
+
         // Paste the tiles from _sa into our grid, matching bottom left _bl to bottom left of _sa.
         // WARNING: does not update m_minCoords, m_maxCoords, pieceList, or any other member besides m_grid!
         void paste(const StandardArray& _sa, const ABModCoords& _bl);

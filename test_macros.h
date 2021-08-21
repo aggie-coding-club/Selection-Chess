@@ -44,7 +44,7 @@ namespace TestMacros {
         TestMacros::printSkippedCase(_case);\
     }} while (false)
 
-// If this CASE fails, no more CASEs in that TEST are tried.
+// If this CASE fails, no more CASEs in that TEST are tried. //FIXME: does not currently skip code between cases
 #define REQ_CASE(_case, _bool) \
     OPT_CASE(_case, _bool);\
     if (!TestMacros::tempBoolForCases) TestMacros::skipRemCases=true

@@ -305,31 +305,50 @@ int main() {
         Ruleset rules ("testing/tileMove1.rules");
         OPT_CASE("2 cont", MULTI_CHECK(
             ArrayBoard ab(rules, "2 w 0 1");
-            tdout << ab.getAsciiBoard();
+            std::cout << ab.getAsciiBoard();
             CHECK("isContinuous", ab.isContiguous());
         ));
         OPT_CASE("2 non cont", MULTI_CHECK(
             ArrayBoard ab(rules, "1/(1)1 w 0 1");
-            tdout << ab.getAsciiBoard();
+            std::cout << ab.getAsciiBoard();
             CHECK("isContinuous", ab.isContiguous()==false);
         ));
         OPT_CASE("cont w pieces", MULTI_CHECK(
             ArrayBoard ab(rules, "(2)3/(2)1(1)1/(2)3/1k1(1)1/pQ1(1)1/1(3)1/(1)K3 w 0 1");
-            tdout << ab.getAsciiBoard();
+            std::cout << ab.getAsciiBoard();
             CHECK("isContinuous", ab.isContiguous());
         ));
         OPT_CASE("noncont w pieces", MULTI_CHECK(
             ArrayBoard ab(rules, "(2)3/(2)1(1)1/(3)2/1k1(1)1/pQ1(1)1/1(3)1/(1)K3 w 0 1");
-            tdout << ab.getAsciiBoard();
+            std::cout << ab.getAsciiBoard();
             CHECK("isContinuous", ab.isContiguous()==false);
         ));
     });
 
-    TEST("TileMove generation", {
+    TEST("apply/undo handles nonContiguous moves", {
+        OPT_CASE("two tiles", MULTI_CHECK(
+            game.reset("1P w 0 1");
+            std::cout << game.m_board->getAsciiBoard() << std::endl;
+            CHECK("returned false", game.applyMove(readAlgebraic("Sa0a0a1")) == false);
+            std::cout << game.m_board->getAsciiBoard() << std::endl;
+            CHECK("board state after", game.m_board->toSfen() == "1P");
+        ));
+        OPT_CASE("T", MULTI_CHECK(
+            game.reset("nkP/(1)Q w 0 1");
+            std::cout << game.m_board->getAsciiBoard() << std::endl;
+            CHECK("returned false", game.applyMove(readAlgebraic("Sb1b1b2")) == false);
+            std::cout << game.m_board->getAsciiBoard() << std::endl;
+            CHECK("board state after", game.m_board->toSfen() == "nkP/(1)Q");
+        ));
+        //TODO: when multiple tile moves are supported, add test cases for them here too
+    });
+
+
+    TEST("TileMove generation", { // TODO: remove or improve
         // CAUTION: overshadowing of game variable!
-        Game game = Game("2 w 0 1", "testing/tileMove1.rules");
+        Game game = Game("1P w 0 1", "testing/tileMove1.rules");
         OPT_CASE("simplest", MULTI_CHECK(
-            game.reset("2 w 0 1");
+            game.reset("1P w 0 1");
             std::cout << game.print() << std::endl;
 
             std::cout << "Possible moves: [" << std::flush;
@@ -341,9 +360,6 @@ int main() {
 
         ));
     });
-
-    std::cout << "Done testing, for now, at\n" << WHERE << std::endl;
-    return 0;
 
     std::cout << "Resetting to a simpler board" << std::endl;
     game.reset("P2/1K1/1pk w 0 1"); // simple case to play with

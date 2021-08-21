@@ -9,16 +9,20 @@ std::pair<int,std::shared_ptr<Move>> minmax(Game* _game, int _depth, std::string
         return std::make_pair(value, std::make_shared<Move>(Move()));
     }
 
-    std::vector<std::unique_ptr<Move>> legalMoves = _game->m_board->getMoves(_game->m_turn);
+    std::vector<std::unique_ptr<Move>> maybeMoves = _game->m_board->getMoves(_game->m_turn);
     std::string depthPadding = std::string(_depth-1, '\t');
     if (_game->m_turn == WHITE) {
-        if (legalMoves.size() == 0) { // FIXME: temporary hack to handle stalemates
+        if (maybeMoves.size() == 0) { // FIXME: temporary hack to handle stalemates
             return std::make_pair(-PIECE_VALUES[W_KING], std::make_shared<Move>(Move()));
         }
         auto bestResult = std::make_pair(std::numeric_limits<int>::min(), std::make_shared<Move>(Move()));
-        for (std::unique_ptr<Move>& m : legalMoves) {
+        for (std::unique_ptr<Move>& m : maybeMoves) {
             std::shared_ptr<Move> move = std::move(m);
-            _game->applyMove(move);
+            if(!_game->applyMove(move)) {
+                // Turns out this move wasn't legal, whoopsie
+                tdout << "skipping move " << move->algebraic() << " because it wasn't actually legal." << std::endl;
+                continue; // FIXME: this means checking maybeMoves.size() doesn't detect stalemates
+            }
             auto result = minmax(_game, _depth-1, _history);
             _history += depthPadding + std::to_string(result.first) + " " + move->algebraic() + '\n';
             _game->undoMove(1);
@@ -29,13 +33,17 @@ std::pair<int,std::shared_ptr<Move>> minmax(Game* _game, int _depth, std::string
         }
         return bestResult;
     } else { // turn is black's
-        if (legalMoves.size() == 0) { // FIXME: temporary hack to handle stalemates
+        if (maybeMoves.size() == 0) { // FIXME: temporary hack to handle stalemates
             return std::make_pair(-PIECE_VALUES[B_KING], std::make_shared<Move>(Move()));
         }
         auto bestResult = std::make_pair(std::numeric_limits<int>::max(), std::make_shared<Move>(Move()));
-        for (std::unique_ptr<Move>& m : legalMoves) {
+        for (std::unique_ptr<Move>& m : maybeMoves) {
             std::shared_ptr<Move> move = std::move(m);
-            _game->applyMove(move);
+            if(!_game->applyMove(move)) {
+                // Turns out this move wasn't legal, whoopsie
+                tdout << "skipping move " << move->algebraic() << " because it wasn't actually legal." << std::endl;
+                continue;
+            }
             auto result = minmax(_game, _depth-1, _history);
             _history += depthPadding + std::to_string(result.first) + " " + move->algebraic() + '\n';
             _game->undoMove(1);
@@ -64,7 +72,11 @@ std::pair<int,std::shared_ptr<Move>> negamax(Game* _game, int _depth) {
     auto bestResult = std::make_pair(std::numeric_limits<int>::min(), std::make_shared<Move>(Move()));
     for (std::unique_ptr<Move>& m : legalMoves) {
         std::shared_ptr<Move> move = std::move(m);
-        _game->applyMove(move);
+        if(!_game->applyMove(move)) {
+            // Turns out this move wasn't legal, whoopsie
+            tdout << "skipping move " << move->algebraic() << " because it wasn't actually legal." << std::endl;
+            continue;
+        }
         auto result = negamax(_game, _depth-1);
         result.first = - result.first; // Benefit to our opponent is our detriment
         _game->undoMove(1);
@@ -92,7 +104,11 @@ std::pair<int,std::shared_ptr<Move>> negamaxAB(Game* _game, int _depth, int _alp
     auto bestResult = std::make_pair(std::numeric_limits<int>::min(), std::make_shared<Move>(Move()));
     for (std::unique_ptr<Move>& m : legalMoves) {
         std::shared_ptr<Move> move = std::move(m);
-        _game->applyMove(move);
+        if(!_game->applyMove(move)) {
+            // Turns out this move wasn't legal, whoopsie
+            tdout << "skipping move " << move->algebraic() << " because it wasn't actually legal." << std::endl;
+            continue;
+        }
         auto result = negamaxAB(_game, _depth-1, -_beta, -_alpha);
         result.first = - result.first; // Benefit to our opponent is our detriment
         _game->undoMove(1);
