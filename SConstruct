@@ -46,6 +46,8 @@ if int(debug):
     # if (compiler == "msvc"): # TODO: I don't know how to use MSVC lol, need to figure it out better
     #     env.Append(CPPFLAGS = '/RTC ')
     #     env.Append(CPPFLAGS = '/EHr ')
+    if (compiler == "gcc"):
+        env.Append(CPPFLAGS = '-g')
 
 env.Append(LIBPATH = libPath)
 

@@ -186,7 +186,6 @@ bool ArrayBoard::removePieceFromPL(PieceEnum _piece, ABModCoords _location) {
 }
 
 bool ArrayBoard::apply(std::shared_ptr<Move> _move) {
-    tdout << "apply called" << std::endl;
     switch (_move->m_type) {
     case PIECE_MOVE:
         return apply(std::static_pointer_cast<PieceMove>(_move));
@@ -268,21 +267,23 @@ bool ArrayBoard::apply(std::shared_ptr<TileMove> _move) {
     // Figure out if this move updates the minima
     // Check if m_min - 1 is in the range of the destination rectangle. //TODO: document the proof that this works.
     // We have to do this in DMod space so it does not depend on our board's minimum, because that is what we are trying to find.
-    // NOTE: this only works if we are ensured a contiguous board before and AFTER the paste. If the paste is not contiguous, this method will corrupt the board.
-    DModCoords selectionSize = (_move->m_selSecond - _move->m_selFirst);
-    DModCoords dModDestSecond = _move->m_destFirst + selectionSize;
-    // What our m_minCoords is in DMod space
+    // NOTE: this only works if we are ensured a contiguous board before and AFTER the paste. If the paste is not contiguous, this method will corrupt the board. // TODO: investigate if these conditions ever occur
+    DModCoords dModDestSecond = _move->m_destFirst + (_move->m_selSecond - _move->m_selFirst);
+    // What our m_minCoords is in DMod space.
     DModCoords minCoordsInDMod = SAtoDM(ABtoSA(m_minCoords));
+    DModCoords maxCoordsInDMod = SAtoDM(ABtoSA(m_maxCoords));
     if ( //.first
-        (minCoordsInDMod.first - 1)
-        .lessThanOrEqual(dModDestSecond.first, _move->m_destFirst.first)) {
+        (_move->m_destFirst.first.heurLessThan(_move->m_selFirst.first)) && // selection is moving left/down
+        (! _move->m_destFirst.first.isBetween(minCoordsInDMod.first, maxCoordsInDMod.first)) // selection will be outside current bounds
+       ) {
             int difference = (minCoordsInDMod.first - _move->m_destFirst.first).m_value;
             m_minCoords.first -= difference;
             m_displayCoordsZero.first -= difference;
     }
     if ( //.second //TODO: combine these into one function somehow for readability
-        (minCoordsInDMod.second - 1)
-        .lessThanOrEqual(dModDestSecond.second, _move->m_destFirst.second)) {
+        (_move->m_destFirst.second.heurLessThan(_move->m_selFirst.second)) && // selection is moving left/down
+        (! _move->m_destFirst.second.isBetween(minCoordsInDMod.second, maxCoordsInDMod.second)) // selection will be outside current bounds
+       ) {
             int difference = (minCoordsInDMod.second - _move->m_destFirst.second).m_value;
             m_minCoords.second -= difference;
             m_displayCoordsZero.second -= difference;
@@ -293,15 +294,16 @@ bool ArrayBoard::apply(std::shared_ptr<TileMove> _move) {
     ABModCoords moveDestSecond = SAtoAB(DMtoSA(dModDestSecond));
 
     // Update m_maxCoords now. Same idea as updating the m_minCoords, but we can do this in ABCoord space now.
+    // TODO: make max use same method as min, instead of the old continuity-dependent method.
     if ( //.first
         (m_maxCoords.first + 1)
-        .lessThanOrEqual(moveDestSecond.first, moveDestFirst.first)) {
+        .isBetween(moveDestFirst.first, moveDestSecond.first)) {
             int difference = (moveDestSecond.first - m_maxCoords.first).m_value;
             m_maxCoords.first += difference;
     }
     if ( //.second
         (m_maxCoords.second + 1)
-        .lessThanOrEqual(moveDestSecond.second, moveDestFirst.second)) {
+        .isBetween(moveDestFirst.second, moveDestSecond.second)) {
             int difference = (moveDestSecond.second - m_maxCoords.second).m_value;
             m_maxCoords.second += difference;
     }
@@ -323,12 +325,13 @@ bool ArrayBoard::apply(std::shared_ptr<TileMove> _move) {
 
     // Now, we have to check for continuity.
     if (!isContiguous()) {
-        dout << WHERE << "Move not contiguous, reverting!" << std::endl;
+        tdout << WHERE << "Move not contiguous, reverting!" << std::endl;
         clearSelection(moveDestFirst, moveDestSecond); // remove the paste
         paste(cut, moveSelFirst); // paste back in original position
         m_minCoords = oldMin;
         m_maxCoords = oldMax;
         m_displayCoordsZero = oldDZero;
+        tdout << getAsciiBoard() << std::endl;
         return false;
     }
     return true;
@@ -344,6 +347,11 @@ bool ArrayBoard::undo(std::shared_ptr<TileMove> _move) {
 
 bool ArrayBoard::apply(std::shared_ptr<TileDeletion> _move) {
     tdout << "applying TileDeletion move " << _move->algebraic() << std::endl;
+    // Save values in case we have to revert
+    auto oldMinCoords = m_minCoords;
+    auto oldMaxCoords = m_maxCoords;
+    auto oldDCZero = m_displayCoordsZero;
+
     for (DModCoords& dModDeletion : _move->m_deleteCoords) {
         ABModCoords deletionCoords = SAtoAB(DMtoSA(dModDeletion));
         // if (m_grid[toIndex(deletionCoords)] == EMPTY) { // TODO: check if empty. Want to make sure we can undo it if part way we find it is illegal move.
@@ -356,7 +364,7 @@ bool ArrayBoard::apply(std::shared_ptr<TileDeletion> _move) {
     ABModCoords updatedMin = std::make_pair( //TODO: this is repeated code from getSelection -- consider making this into a function, as well as its counterpart in apply, too
         nextTileByColOrder(std::make_pair(m_minCoords.first, 0), false).first, 
         nextTileByRowOrder(std::make_pair(0, m_minCoords.second), false).second
-    );
+    ); // FIXME: something fishy going on with the literal zero's automatic type here
     ABModCoords updatedMax = std::make_pair(
         nextTileByColOrder(std::make_pair(m_maxCoords.first, 0), true, true).first,
         nextTileByRowOrder(std::make_pair(0, m_maxCoords.second), true, true).second
@@ -366,6 +374,22 @@ bool ArrayBoard::apply(std::shared_ptr<TileDeletion> _move) {
     m_minCoords = updatedMin;
     m_maxCoords = updatedMax;
     // tdout << "now minCoords=" << m_minCoords << " maxCoords=" << m_maxCoords << "before after the cut" << std::endl;
+
+    // Now, we have to check for continuity.
+    if (!isContiguous()) {
+        dout << WHERE << "Deletion not contiguous, reverting!" << std::endl;
+        m_minCoords = oldMinCoords;
+        m_maxCoords = oldMaxCoords;
+        m_displayCoordsZero = oldDCZero;
+        for (DModCoords& dModDeletion : _move->m_deleteCoords) {
+            ABModCoords deletionCoords = SAtoAB(DMtoSA(dModDeletion));
+            m_grid[toIndex(deletionCoords)] = EMPTY;
+            ++m_numTiles;
+        }
+        tdout << getAsciiBoard() << std::endl;
+        tdout << "minDisplay: " << coordsToAlgebraic(m_displayCoordsZero) << ", min: " << m_minCoords << ", max: " << m_maxCoords << std::endl;
+        return false;
+    }
 
     return true;
 }
@@ -746,7 +770,6 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMoves(PieceColor _color) {
             }
         }
     }
-
 
     return legalMoves;
 }

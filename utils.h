@@ -94,6 +94,13 @@ std::pair<T,U> operator*(const S& _scalar, std::pair<T,U> _pair) {
     return _pair *= _scalar;
 }
 
+// ModInt methods that are nice to do pairwise
+// TODO: this gross syntax emphasizes why we need a custom pair class
+template <typename T, typename U>
+std::pair<T,U> getDistTo(const std::pair<T,U>& _lhs, const std::pair<T,U>& _rhs) {
+    return std::make_pair(_lhs.first.getDistTo(_rhs.first), _lhs.second.getDistTo(_rhs.second));
+}
+
 // Comparators for pairs //TODO: remove if unneeded
 // Row order implies f0 < a8
 template <typename T, typename U>
@@ -210,6 +217,8 @@ DirectionEnum flipDirection(DirectionEnum _dir);
 
 // Compares which coords is more to the left or down from another coord, based on where the wrap-around happens (namely, at _relZero)
 // returns if _lhs < _rhs
+// TODO: consider merging with modularInt's methods
+// It seems this is only used by DLLBoard, so i'd consider this to be deprecated
 inline bool coordLessThan(unsigned int _lhs, unsigned int _rhs, unsigned int _relZero) {
     return (_lhs - _relZero) < (_rhs - _relZero);
 }

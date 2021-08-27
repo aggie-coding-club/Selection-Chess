@@ -53,6 +53,7 @@ std::string Board::toSfen() {
             }
         }
     }
+    endEmptySequence();
     return sfen;
 };
 

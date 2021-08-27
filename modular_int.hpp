@@ -10,7 +10,7 @@
 // Templated by a pointer to the modulus. This means each class created from template has a modulus shared by all its objects, 
 // and that modulus can be modified.
 // The behavior for a ModularInt object is not defined when modulus changes during its existence.
-template <unsigned int* modulus> // TODO: can I make this const or nah?
+template <unsigned int* modulus>
 class ModularInt {
     public:
         // Value stored by a specific object
@@ -67,12 +67,24 @@ class ModularInt {
         // i.e. starting at _lower and traveling positive, you will hit this before you hit _upper.
         bool isBetween(ModularInt _lower, ModularInt _upper) const;
 
+        // Heuristic Less Than. Maybe better name would be 'shortSideLessThan' or 'noWrapLessThan'.
+        // when _lhs and _rhs are close together, we can ignore the wrap-around and perform comparisons, i.e. less than.
+        // Note that the behavior of this function is undefined when the difference between _lhs and _rhs is close to ±1/2 the modulus
+        bool heurLessThan(ModularInt _rhs) const;
+
+        // Gets distance from *this to _target as a signed number, ignoring wrap around (similar to heurLessThan).
+        // E.g. if _target+5 == *this, and modulus ≫ 5, then -5 is returned.
+        // Note that the behavior of this function is undefined when the difference between _start and _end is close to ±1/2 the modulus
+        int getDistTo(const ModularInt& _target) const;
+
         friend std::ostream& operator<<(std::ostream& _os, const ModularInt<modulus>& _mi) {
             _os << _mi.m_value; // << " (mod " << *modulus << ")";
             return _os;
         }
 };
 
+
+//-------------- Implementations below ---------------//
 template <unsigned int* modulus>
 inline ModularInt<modulus>::ModularInt(int _x) {
     m_value = positiveModulo(_x, *modulus);
@@ -116,17 +128,36 @@ inline ModularInt<modulus> operator-(ModularInt<modulus> _mi1, ModularInt<modulu
     return _mi1;
 }
 
+// Deprecated // TODO: remove
 template <unsigned int* modulus>
 inline bool ModularInt<modulus>::lessThan(ModularInt<modulus> _other, ModularInt<modulus> _relZero) const {
     return (m_value - _relZero).m_value < (_other.m_value - _relZero).m_value;
 }
+// Deprecated // TODO: remove
 template <unsigned int* modulus>
 inline bool ModularInt<modulus>::lessThanOrEqual(ModularInt<modulus> _other, ModularInt<modulus> _relZero) const {
     return (m_value - _relZero).m_value <= (_other.m_value - _relZero).m_value;
 }
+
+
 template <unsigned int* modulus>
 inline bool ModularInt<modulus>::isBetween(ModularInt<modulus> _lower, ModularInt<modulus> _upper) const {
-    return (m_value - _lower).m_value <= (_upper.m_value - _lower).m_value;
+    return (m_value - _lower).m_value <= (_upper.m_value - _lower).m_value; // TODO: explain why I am converting to m_values then subtracting a modular? Is this a mistake?
 }
+
+template <unsigned int* modulus>
+inline bool ModularInt<modulus>::heurLessThan(ModularInt _rhs) const {
+    return (_rhs - *this).m_value < (*modulus) / 2;
+}
+
+template <unsigned int* modulus>
+inline int ModularInt<modulus>::getDistTo(const ModularInt& _target) const {
+    if (_target.heurLessThan(*this)) {
+        return -((*this - _target).m_value); // Avoids wrap-around by negating after converted to int.
+    } else {
+        return (_target - *this).m_value;
+    }
+}
+
 
 #endif
