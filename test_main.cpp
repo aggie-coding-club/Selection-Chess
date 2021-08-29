@@ -106,11 +106,20 @@ int main() {
         DDModInt minusFive(-5);
         DDModInt minusSeven(-7);
         OPT_CASE("5 < 7", five.heurLessThan(seven) == true); // Test small
-        OPT_CASE("7 >= 5", seven.heurLessThan(five) == false);
+        OPT_CASE("7 !< 5", seven.heurLessThan(five) == false);
         OPT_CASE("-7 < -5", minusSeven.heurLessThan(minusFive) == true); // Test large
-        OPT_CASE("-5 >= -7", minusFive.heurLessThan(minusSeven) == false);
+        OPT_CASE("-5 !< -7", minusFive.heurLessThan(minusSeven) == false);
         OPT_CASE("-5 < 5", minusFive.heurLessThan(five) == true); // Test across zero
-        OPT_CASE("5 >= -5", five.heurLessThan(minusFive) == false);
+        OPT_CASE("5 !< -5", five.heurLessThan(minusFive) == false);
+        OPT_CASE("5 !< 5", five.heurLessThan(five) == false); // Test irreflexive
+
+        OPT_CASE("5 <= 7", five.heurLessThanOrEqual(seven) == true); // Test small
+        OPT_CASE("7 !<= 5", seven.heurLessThanOrEqual(five) == false);
+        OPT_CASE("-7 <= -5", minusSeven.heurLessThanOrEqual(minusFive) == true); // Test large
+        OPT_CASE("-5 !<= -7", minusFive.heurLessThanOrEqual(minusSeven) == false);
+        OPT_CASE("-5 <= 5", minusFive.heurLessThanOrEqual(five) == true); // Test across zero
+        OPT_CASE("5 !<= -5", five.heurLessThanOrEqual(minusFive) == false);
+        OPT_CASE("5 <= 5", five.heurLessThanOrEqual(five) == true); // Test reflexive
 
         OPT_CASE("5 to 7", five.getDistTo(seven) == 2); // Test small
         OPT_CASE("7 to 5", seven.getDistTo(five) == -2);
@@ -118,6 +127,7 @@ int main() {
         OPT_CASE("-5 to -7", minusFive.getDistTo(minusSeven) == -2);
         OPT_CASE("-5 to 5", minusFive.getDistTo(five) == 10); // Test across zero
         OPT_CASE("5 to -5", five.getDistTo(minusFive) == -10);
+        OPT_CASE("5 to 5", five.getDistTo(five) == 0); // Test 0 dist
     });
 
     TEST("DModCoord algebraic converions", {
@@ -402,6 +412,7 @@ int main() {
     }
     std::cout << "\b\b] \b" << std::endl;
 
+    std::cout << game.print() << std::endl;
     std::string negaHistory = "";
     std::cout << "Testing minmax depth 1" << std::endl;
     auto result = minmax(&game, 1, negaHistory);
@@ -409,17 +420,23 @@ int main() {
     std::cout << "At depth 1, score is " << result.first << " and best move is " << result.second->algebraic() << std::endl;
     negaHistory = "";
 
+    std::cout << game.print() << std::endl;
+    // Cut and paste this to return early
+    std::cout << "Done testing at " << WHERE << std::endl;
+    return 0;
+
     game.m_turn = BLACK;
 
     std::cout << "Testing minmax depth 3" << std::endl;
     result = minmax(&game, 3, negaHistory);
     std::cout << negaHistory;
-    std::cout << "At depth 3, score is " << result.first << " and best move is " << result.second->algebraic() << std::endl;
-    result = negamax(&game, 3);
-    std::cout << "At depth 3, negmax found score is " << result.first << " and best move is " << result.second->algebraic() << std::endl;
-    result = negamaxAB(&game, 3);
-    std::cout << "At depth 3, negmaxAB found score is " << result.first << " and best move is " << result.second->algebraic() << std::endl;
-    negaHistory = "";
+    // std::cout << "At depth 3, score is " << result.first << " and best move is " << result.second->algebraic() << std::endl;
+    // result = negamax(&game, 3);
+    // std::cout << "At depth 3, negmax found score is " << result.first << " and best move is " << result.second->algebraic() << std::endl;
+    // result = negamaxAB(&game, 3);
+    // std::cout << "At depth 3, negmaxAB found score is " << result.first << " and best move is " << result.second->algebraic() << std::endl;
+    // negaHistory = "";
+    std::cout << game.print() << std::endl;
 
     game.m_turn = WHITE;
 
@@ -444,10 +461,6 @@ int main() {
     negaHistory = "";
 
     std::cout << "Done testing!" << std::endl;
-    return 0;
-
-    // Cut and paste this to return early
-    std::cout << "Done testing at " << WHERE << std::endl;
     return 0;
 
 }

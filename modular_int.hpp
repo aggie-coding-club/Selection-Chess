@@ -72,6 +72,8 @@ class ModularInt {
         // Note that the behavior of this function is undefined when the difference between _lhs and _rhs is close to ±1/2 the modulus
         bool heurLessThan(ModularInt _rhs) const;
 
+        bool heurLessThanOrEqual(ModularInt _rhs) const;
+
         // Gets distance from *this to _target as a signed number, ignoring wrap around (similar to heurLessThan).
         // E.g. if _target+5 == *this, and modulus ≫ 5, then -5 is returned.
         // Note that the behavior of this function is undefined when the difference between _start and _end is close to ±1/2 the modulus
@@ -147,6 +149,22 @@ inline bool ModularInt<modulus>::isBetween(ModularInt<modulus> _lower, ModularIn
 
 template <unsigned int* modulus>
 inline bool ModularInt<modulus>::heurLessThan(ModularInt _rhs) const {
+    // *this - _rhs gives the distance you have to travel in the positive direction to start from _rhs and end on *this.
+    // If the distance is greater than half of the space, that means traveling in the negative direction is shorter, so we assume it would wrap around if we took this long way.
+    // Since we can't wrap around, this means traveling in the positive direction from _rhs won't end on *this, so _rhs is greater.
+    // Therefore, if *this - _rhs > half of space, then *this < _rhs
+
+    // Basically like how a negative number converted to an unsigned number is big.
+    return (*this - _rhs).m_value > (*modulus) / 2;
+}
+
+template <unsigned int* modulus>
+inline bool ModularInt<modulus>::heurLessThanOrEqual(ModularInt _rhs) const {
+    // Basically like how a negative number converted to an unsigned number is big and a positive number stays small,
+    // (_rhs - *this) is "big" (i.e. > half of space) when *this > _rhs.
+    // The inverse of this is *this <= _rhs, which entails (_rhs - *this) is small (< half of space)
+    // heur< and heur<= differ because checking if 'x-y is small' or 'y-x is large' are the same check when x!=y, x-x=0 is small always,
+    // So whether we check x-y=small or y-x=large affects if 0 is included. // TODO: Make this documentation more concise
     return (_rhs - *this).m_value < (*modulus) / 2;
 }
 

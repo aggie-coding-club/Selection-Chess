@@ -25,7 +25,10 @@ std::pair<int,std::shared_ptr<Move>> minmax(Game* _game, int _depth, std::string
             }
             auto result = minmax(_game, _depth-1, _history);
             _history += depthPadding + std::to_string(result.first) + " " + move->algebraic() + '\n';
-            _game->undoMove(1);
+            if (!_game->undoMove(1)) {
+                std::cerr << "Board is corrupted, exiting!" << WHERE << std::endl;
+                exit(EXIT_FAILURE);
+            }
             if (result.first > bestResult.first) { // white tries to maximize
                 bestResult.first = result.first;
                 bestResult.second = move;
@@ -46,7 +49,10 @@ std::pair<int,std::shared_ptr<Move>> minmax(Game* _game, int _depth, std::string
             }
             auto result = minmax(_game, _depth-1, _history);
             _history += depthPadding + std::to_string(result.first) + " " + move->algebraic() + '\n';
-            _game->undoMove(1);
+            if (!_game->undoMove(1)) {
+                std::cerr << "Board is corrupted, exiting!" << WHERE << std::endl;
+                exit(EXIT_FAILURE);
+            }
             if (result.first < bestResult.first) { // black tries to minimize
                 bestResult.first = result.first;
                 bestResult.second = move;
@@ -79,7 +85,10 @@ std::pair<int,std::shared_ptr<Move>> negamax(Game* _game, int _depth) {
         }
         auto result = negamax(_game, _depth-1);
         result.first = - result.first; // Benefit to our opponent is our detriment
-        _game->undoMove(1);
+        if (!_game->undoMove(1)) {
+            std::cerr << "Board is corrupted, exiting!" << WHERE << std::endl; // TODO: would be nice to have cleaner crash
+            exit(EXIT_FAILURE);
+        }
         if (result.first > bestResult.first) { // maximize our benefit
             bestResult.first = result.first;
             bestResult.second = move;
@@ -111,7 +120,10 @@ std::pair<int,std::shared_ptr<Move>> negamaxAB(Game* _game, int _depth, int _alp
         }
         auto result = negamaxAB(_game, _depth-1, -_beta, -_alpha);
         result.first = - result.first; // Benefit to our opponent is our detriment
-        _game->undoMove(1);
+        if (!_game->undoMove(1)) {
+            std::cerr << "Board is corrupted, exiting!" << WHERE << std::endl;
+            exit(EXIT_FAILURE);
+        }
         if (result.first > bestResult.first) { // maximize our benefit
             bestResult.first = result.first;
             bestResult.second = move;

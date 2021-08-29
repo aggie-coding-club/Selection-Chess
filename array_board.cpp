@@ -14,6 +14,7 @@
 #include <tuple>
 #include <queue>
 #include <map>
+#include <assert.h>
 
 // TODO: this file is unmanageably big, need to split it up more. E.g. PieceList is an inner class, etc.
 
@@ -186,6 +187,8 @@ bool ArrayBoard::removePieceFromPL(PieceEnum _piece, ABModCoords _location) {
 }
 
 bool ArrayBoard::apply(std::shared_ptr<Move> _move) {
+    tdout << getAsciiBoard() << std::endl;
+    tdout << "apply " << _move->algebraic() << " called" << std::endl;
     switch (_move->m_type) {
     case PIECE_MOVE:
         return apply(std::static_pointer_cast<PieceMove>(_move));
@@ -199,6 +202,7 @@ bool ArrayBoard::apply(std::shared_ptr<Move> _move) {
     }
 }
 bool ArrayBoard::undo(std::shared_ptr<Move> _move) {
+    tdout << getAsciiBoard() << std::endl;
     tdout << "undo called" << std::endl;
     switch (_move->m_type) {
     case PIECE_MOVE:
@@ -250,70 +254,97 @@ bool ArrayBoard::undo(std::shared_ptr<PieceMove> _move) {
 };
 
 bool ArrayBoard::apply(std::shared_ptr<TileMove> _move) {
-    tdout << "applying tileMove " << _move->algebraic() << std::endl;
-    ABModCoords moveSelFirst = SAtoAB(DMtoSA(_move->m_selFirst));
-    ABModCoords moveSelSecond = SAtoAB(DMtoSA(_move->m_selSecond));
+    // tdout << "applying tileMove " << _move->algebraic() << std::endl;
+    // Store the absolute array position of our init selection
+    ABModCoords abSelFirst = SAtoAB(DMtoSA(_move->m_selFirst));
+    ABModCoords abSelSecond = SAtoAB(DMtoSA(_move->m_selSecond));
 
     // ----------- Cut out the selection ----------- //
     // Save old coords in case we have to undo the cut operation
     ABModCoords oldMin = m_minCoords, oldMax = m_maxCoords; 
     DModCoords oldDZero = m_displayCoordsZero;
-    StandardArray cut = getSelection(moveSelFirst, moveSelSecond, true);
+    StandardArray cut = getSelection(abSelFirst, abSelSecond, true);
     // tdout << "Cut out " << cut.dumpAsciiArray() << std::endl;
-    // tdout << "Now board is \n" << getAsciiBoard() << std::endl;
-    // tdout << "min coords are " << m_minCoords.first << ", " << m_minCoords.second << " and max are " << m_maxCoords.first << ", " << m_maxCoords.second << std::endl;
+    tdout << "Now board is \n" << getAsciiBoard() << std::endl;
+    tdout << "min coords are " << m_minCoords.first << ", " << m_minCoords.second << " and max are " << m_maxCoords.first << ", " << m_maxCoords.second << std::endl;
+    tdout << "and minDisplayCoords are " << m_displayCoordsZero << std::endl;
 
     // ----------- Paste in the selection ----------- //
     // Figure out if this move updates the minima
-    // Check if m_min - 1 is in the range of the destination rectangle. //TODO: document the proof that this works.
-    // We have to do this in DMod space so it does not depend on our board's minimum, because that is what we are trying to find.
-    // NOTE: this only works if we are ensured a contiguous board before and AFTER the paste. If the paste is not contiguous, this method will corrupt the board. // TODO: investigate if these conditions ever occur
-    DModCoords dModDestSecond = _move->m_destFirst + (_move->m_selSecond - _move->m_selFirst);
-    // What our m_minCoords is in DMod space.
-    DModCoords minCoordsInDMod = SAtoDM(ABtoSA(m_minCoords));
-    DModCoords maxCoordsInDMod = SAtoDM(ABtoSA(m_maxCoords));
+    // Assumes only 1-tiles moves in a large (#tiles < 1/2 DModuli)
+    // FIXME: God is dead and this code has killed him. This probs should be redone from scratch to handle more than 1 tile moves.
+    DModCoords destSecond = _move->m_destFirst + (_move->m_selSecond - _move->m_selFirst);
+    // What our extrema are in DMod space.
+    DModCoords displayCoordsMax = SAtoDM(ABtoSA(m_maxCoords));
+    tdout << 
+    "_move->m_destFirst: " << _move->m_destFirst <<
+    "\ndestSecond: " << destSecond <<
+    "\n_move->m_selFirst: " << _move->m_selFirst <<
+    "\n_move->m_selSecond: " << _move->m_selSecond <<
+    "\nm_displayCoordsZero: " << m_displayCoordsZero << 
+    "\ndisplayCoordsMax: " << displayCoordsMax <<
+    std::endl;
+
+    tdout << ((_move->m_destFirst.first.heurLessThan(_move->m_selFirst.first))?"moving left":"not moving left") << std::endl;
+    tdout << ((! _move->m_destFirst.first.isBetween(m_displayCoordsZero.first, displayCoordsMax.first))?"not in hor bounds":"in hor bounds") << std::endl;
     if ( //.first
-        (_move->m_destFirst.first.heurLessThan(_move->m_selFirst.first)) && // selection is moving left/down
-        (! _move->m_destFirst.first.isBetween(minCoordsInDMod.first, maxCoordsInDMod.first)) // selection will be outside current bounds
+        ( 
+            (oldMin.first != m_minCoords.first && _move->m_destFirst.first.heurLessThanOrEqual(_move->m_selFirst.first)) || // THE minimum tile is being moved, and not to the right; or
+            (_move->m_destFirst.first.heurLessThan(_move->m_selFirst.first)) // selection is moving left/down
+        )
+        &&
+        (! _move->m_destFirst.first.isBetween(m_displayCoordsZero.first, displayCoordsMax.first)) // selection will be outside current bounds
        ) {
-            int difference = (minCoordsInDMod.first - _move->m_destFirst.first).m_value;
-            m_minCoords.first -= difference;
-            m_displayCoordsZero.first -= difference;
+            // int difference = (m_displayCoordsZero.first - _move->m_destFirst.first).m_value;
+            int difference = m_displayCoordsZero.first.getDistTo(_move->m_destFirst.first);
+            m_minCoords.first += difference;
+            m_displayCoordsZero.first += difference;
+            tdout << "updated mins.first by " << difference << std::endl;
+            assert(difference < 0);
     }
+    tdout << ((_move->m_destFirst.second.heurLessThan(_move->m_selFirst.second))?"moving left":"not moving left") << std::endl;
+    tdout << ((! _move->m_destFirst.second.isBetween(m_displayCoordsZero.second, displayCoordsMax.second))?"not in vert bounds":"in vert bounds") << std::endl;
     if ( //.second //TODO: combine these into one function somehow for readability
-        (_move->m_destFirst.second.heurLessThan(_move->m_selFirst.second)) && // selection is moving left/down
-        (! _move->m_destFirst.second.isBetween(minCoordsInDMod.second, maxCoordsInDMod.second)) // selection will be outside current bounds
+        ( 
+            (oldMin.second != m_minCoords.second && _move->m_destFirst.second.heurLessThanOrEqual(_move->m_selFirst.second)) || // THE minimum tile is being moved, and not to the right; or
+            (_move->m_destFirst.second.heurLessThan(_move->m_selFirst.second)) // selection is moving left/down
+        )
+        &&
+        (! _move->m_destFirst.second.isBetween(m_displayCoordsZero.second, displayCoordsMax.second)) // selection will be outside current bounds
        ) {
-            int difference = (minCoordsInDMod.second - _move->m_destFirst.second).m_value;
-            m_minCoords.second -= difference;
-            m_displayCoordsZero.second -= difference;
+            // int difference = (m_displayCoordsZero.second - _move->m_destFirst.second).m_value;
+            int difference = m_displayCoordsZero.second.getDistTo(_move->m_destFirst.second);
+            m_minCoords.second += difference;
+            m_displayCoordsZero.second += difference;
+            tdout << "updated mins.second by " << difference << std::endl;
+            assert(difference < 0);
     }
-    
+
     // Now that our m_minCoords is updated, these operations are valid.
-    ABModCoords moveDestFirst = SAtoAB(DMtoSA(_move->m_destFirst));
-    ABModCoords moveDestSecond = SAtoAB(DMtoSA(dModDestSecond));
+    ABModCoords abDestFirst = SAtoAB(DMtoSA(_move->m_destFirst));
+    ABModCoords abDestSecond = SAtoAB(DMtoSA(destSecond));
 
     // Update m_maxCoords now. Same idea as updating the m_minCoords, but we can do this in ABCoord space now.
     // TODO: make max use same method as min, instead of the old continuity-dependent method.
     if ( //.first
         (m_maxCoords.first + 1)
-        .isBetween(moveDestFirst.first, moveDestSecond.first)) {
-            int difference = (moveDestSecond.first - m_maxCoords.first).m_value;
+        .isBetween(abDestFirst.first, abDestSecond.first)) {
+            int difference = (abDestSecond.first - m_maxCoords.first).m_value;
             m_maxCoords.first += difference;
     }
     if ( //.second
         (m_maxCoords.second + 1)
-        .isBetween(moveDestFirst.second, moveDestSecond.second)) {
-            int difference = (moveDestSecond.second - m_maxCoords.second).m_value;
+        .isBetween(abDestFirst.second, abDestSecond.second)) {
+            int difference = (abDestSecond.second - m_maxCoords.second).m_value;
             m_maxCoords.second += difference;
     }
 
     // Check destination rectangle is empty
-    for (ABModCoords i = moveDestFirst; i.second != moveDestSecond.second + 1; ++i.second) { // iterate rows
-        for (i.first = moveDestFirst.first; i.first != moveDestSecond.first + 1; ++i.first) { // iterate columns
+    for (ABModCoords i = abDestFirst; i.second != abDestSecond.second + 1; ++i.second) { // iterate rows
+        for (i.first = abDestFirst.first; i.first != abDestSecond.first + 1; ++i.first) { // iterate columns
             if (m_grid[toIndex(i)] != INVALID) {
                 dout << WHERE << "FOUND PIECE [" << getCharFromPiece(m_grid[toIndex(i)]) << "] in DESTINATION, at " << coordsToAlgebraic(SAtoDM(ABtoSA(i))) << std::endl;
-                paste(cut, moveSelFirst); // paste back in original position
+                paste(cut, abSelFirst); // paste back in original position
                 m_minCoords = oldMin;
                 m_maxCoords = oldMax;
                 m_displayCoordsZero = oldDZero;
@@ -321,17 +352,17 @@ bool ArrayBoard::apply(std::shared_ptr<TileMove> _move) {
             }
         }
     }
-    paste(cut, moveDestFirst); // paste back in new position
+    paste(cut, abDestFirst); // paste back in new position
 
     // Now, we have to check for continuity.
     if (!isContiguous()) {
         tdout << WHERE << "Move not contiguous, reverting!" << std::endl;
-        clearSelection(moveDestFirst, moveDestSecond); // remove the paste
-        paste(cut, moveSelFirst); // paste back in original position
+        clearSelection(abDestFirst, abDestSecond); // remove the paste
+        paste(cut, abSelFirst); // paste back in original position
         m_minCoords = oldMin;
         m_maxCoords = oldMax;
         m_displayCoordsZero = oldDZero;
-        tdout << getAsciiBoard() << std::endl;
+        // tdout << getAsciiBoard() << std::endl;
         return false;
     }
     return true;
@@ -346,7 +377,7 @@ bool ArrayBoard::undo(std::shared_ptr<TileMove> _move) {
 }
 
 bool ArrayBoard::apply(std::shared_ptr<TileDeletion> _move) {
-    tdout << "applying TileDeletion move " << _move->algebraic() << std::endl;
+    // tdout << "applying TileDeletion move " << _move->algebraic() << std::endl;
     // Save values in case we have to revert
     auto oldMinCoords = m_minCoords;
     auto oldMaxCoords = m_maxCoords;
@@ -386,8 +417,8 @@ bool ArrayBoard::apply(std::shared_ptr<TileDeletion> _move) {
             m_grid[toIndex(deletionCoords)] = EMPTY;
             ++m_numTiles;
         }
-        tdout << getAsciiBoard() << std::endl;
-        tdout << "minDisplay: " << coordsToAlgebraic(m_displayCoordsZero) << ", min: " << m_minCoords << ", max: " << m_maxCoords << std::endl;
+        // tdout << getAsciiBoard() << std::endl;
+        // tdout << "minDisplay: " << coordsToAlgebraic(m_displayCoordsZero) << ", min: " << m_minCoords << ", max: " << m_maxCoords << std::endl;
         return false;
     }
 
