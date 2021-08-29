@@ -365,6 +365,15 @@ bool ArrayBoard::apply(std::shared_ptr<TileMove> _move) {
         // tdout << getAsciiBoard() << std::endl;
         return false;
     }
+
+    // If we moved pieces, we need to update the pieceList.
+    // TODO: this implementation only works for single-tile moves.
+    if (isPiece(getPiece(_move->m_destFirst))) {
+        if (!updatePieceInPL(getPiece(_move->m_destFirst), abSelFirst, abDestFirst)) {
+            std::cerr << "Board pieceList is corrupted! " << WHERE << std::endl;
+            exit(EXIT_FAILURE); // TODO: crash more gracefully
+        }
+    }
     return true;
 };
 
@@ -431,7 +440,7 @@ bool ArrayBoard::undo(std::shared_ptr<TileDeletion> _move) {
     // TODO: would be nice if there was a better way to figure out which side it corresponds to easier than checking which is closer so our assumption is not needed.
     for (DModCoords& dModAddition : _move->m_deleteCoords) {
         // check if this addition would change m_minCoords
-        DModCoords dModMin = SAtoDM(ABtoSA(m_minCoords));
+        DModCoords dModMin = SAtoDM(ABtoSA(m_minCoords)); //TODO: clean up this function's code
         DModCoords dModMax = SAtoDM(ABtoSA(m_maxCoords));
         // .first
         if (!dModAddition.first.lessThanOrEqual(dModMax.first, dModMin.first)) { // check if this is outside of our current bounds
@@ -462,7 +471,7 @@ bool ArrayBoard::undo(std::shared_ptr<TileDeletion> _move) {
         ++m_numTiles;
     }
 
-    return false;
+    return true;
 }
 
 bool ArrayBoard::isLegal(std::shared_ptr<Move> _move) {

@@ -421,9 +421,6 @@ int main() {
     negaHistory = "";
 
     std::cout << game.print() << std::endl;
-    // Cut and paste this to return early
-    std::cout << "Done testing at " << WHERE << std::endl;
-    return 0;
 
     game.m_turn = BLACK;
 
@@ -450,6 +447,11 @@ int main() {
     std::cout << "At depth 3, negmaxAB found score is " << result.first << " and best move is " << result.second->algebraic() << std::endl;
     negaHistory = "";
 
+    // Cut and paste this to return early
+    std::cout << game.print() << std::endl;
+    std::cout << "Done testing at " << WHERE << std::endl;
+    return 0;
+
     std::cout << "Testing minmax depth 8" << std::endl;
     result = minmax(&game, 8, negaHistory);
     // std::cout << negaHistory;
@@ -460,7 +462,9 @@ int main() {
     std::cout << "At depth 8, negmaxAB found score is " << result.first << " and best move is " << result.second->algebraic() << std::endl;
     negaHistory = "";
 
+    std::cout << game.print() << std::endl;
     std::cout << "Done testing!" << std::endl;
     return 0;
+
 
 }
