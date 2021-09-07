@@ -113,6 +113,9 @@ class TileDeletion : public Move {
         std::string algebraic();
 };
 
+// Checks if the string is a move
+bool isAlgebraic(std::string _algrebra);
+// Construct and return the move from the string
 std::unique_ptr<Move> readAlgebraic(std::string _algebra);
 
 std::string coordsToAlgebraic(DModCoords _coords, DModCoords _offset=std::make_pair(0,0));

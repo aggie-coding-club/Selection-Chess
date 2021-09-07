@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-#define edout dout << "[" << m_name << "] "
+#define edout std::cout << "[" << m_name << "] " //FIXME:
 
 // TODO: idk if these macros are too ugly, maybe there is a cleaner solution
 #define parseIntSanity int value; if (!parseAsInt(featureValue, value)) { m_engineInputStream << "rejected " << featureName << " " << featureValue << std::endl; continue; }
@@ -52,6 +52,7 @@ bool EngineRunner::init(std::string _path) {
     return init();
 }
 bool EngineRunner::init() {
+    // Set the name like this until the engine can tell us its name
     m_name = m_enginePath;
     edout << "Creating boost child process..." << std::endl;
     bp::child c(m_enginePath, bp::std_in < m_engineInputStream, bp::std_out > m_pipeStream);
@@ -141,10 +142,15 @@ void EngineRunner::quit() {
 
 std::unique_ptr<Move> EngineRunner::getMove() {
     edout << "getMove" << std::endl;
-    return std::unique_ptr<Move>(nullptr);
+    m_engineInputStream << "go" << std::endl;
+    CmdTokenizer* cmd = processCommands("move");
+    cmd->next(); // pop 'move'
+    std::string moveString = cmd->next();
+    return readAlgebraic(moveString); // TODO: sanity checks
 }
 
-bool EngineRunner::setMove(std::unique_ptr<Move>& _move) {
+bool EngineRunner::setMove(std::shared_ptr<Move>& _move) {
+    m_engineInputStream << _move << std::endl;
     return true;
 }
 
@@ -170,7 +176,7 @@ CmdTokenizer* EngineRunner::getCommand() {
         edout << "got line " << line << std::endl;
         CmdTokenizer* tokenizer = new CmdTokenizer(line); //TODO: feels weird using the heap for this
         if(tokenizer->peek()[0] == '#') {
-            edout << "got comment from engine" << std::endl;
+            // edout << "got comment from engine" << std::endl;
             // TODO: process comments
             continue;
         }
@@ -180,7 +186,7 @@ CmdTokenizer* EngineRunner::getCommand() {
 
 CmdTokenizer* EngineRunner::processCommands(std::string _cmdName, bool _ignore) {
     for (;;) {
-        CmdTokenizer* cmd = getCommand();
+        CmdTokenizer* cmd = getCommand(); // TODO: it's kinda weird CmdTokenizer is constructed here
         if (cmd == nullptr) {
             // reached end of commands buffer without finding our command
             return nullptr;
@@ -201,4 +207,10 @@ CmdTokenizer* EngineRunner::processCommands(std::string _cmdName, bool _ignore) 
 
 void EngineRunner::run() {
 
+}
+
+bool EngineRunner::setBoard(std::string _fen) {
+
+    m_engineInputStream << "setboard " << _fen << std::endl;
+    return true;
 }

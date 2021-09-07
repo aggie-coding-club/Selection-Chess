@@ -201,7 +201,7 @@ std::string Board::getAsciiBoard() {
     if (m_printSettings.m_showCoords) {
         result += dividerLine + "\n";
     }
-    tdout << "Length of printable string = " << result.length() << std::endl;
+    // tdout << "Length of printable string = " << result.length() << std::endl;
     return result;
 }
 
@@ -224,7 +224,7 @@ StandardArray::StandardArray(std::string _sfen) {
     //TODO: I feel like the two loops through the string can be simplified into some sort 
     // of function call instead. This could then be used if other board wanted to implement 
     // their own init from sfen function.
-    tdout << "created SA from Sfen" << std::endl;
+    // tdout << "created SA from Sfen" << std::endl;
     _sfen = _sfen.substr(0, _sfen.find(" ")); // remove game info, which we do not need
     auto sfenLines = split(_sfen, "/"); // split into lines
     m_dimensions.second = sfenLines.size();
@@ -265,7 +265,7 @@ StandardArray::StandardArray(std::string _sfen) {
         }
         m_dimensions.first = std::max(m_dimensions.first, spaceCount);
     }
-    dout << "Found dimension of " << m_dimensions.first << ", " << m_dimensions.second << std::endl;
+    dlog("Found dimension of " , m_dimensions.first , ", " , m_dimensions.second);
     // allocate the array
     m_array.resize(m_dimensions.first * m_dimensions.second, INVALID);
 

@@ -72,7 +72,7 @@ void DLLBoard::init(const std::string _sfen) {
     // Define starting corner like this so we don't have to fuss with wrap around.
     // The rank coord is -1 because we FEN reads rank in backwards, and -1 of unsigned is the max.
     const Coords STARTING_CORNER = std::make_pair(0,-1);
-    dout << "STARTING_CORNER is " << STARTING_CORNER.first << ", " << STARTING_CORNER.second << std::endl;
+    // dout << "STARTING_CORNER is " << STARTING_CORNER.first << ", " << STARTING_CORNER.second << std::endl;
 
     // Set extrema so that they are guaranteed to update
     m_minCoords = std::make_pair(-1, -1);
@@ -148,7 +148,7 @@ void DLLBoard::init(const std::string _sfen) {
             throw "Invalid piece symbol in SFen!";
         }
     }
-    dout << "Done parsing FEN." << std::endl;
+    // dout << "Done parsing FEN." << std::endl;
     // Parse remaining fields
     // TODO: implement
 }
@@ -364,7 +364,7 @@ std::string DLLBoard::getAsciiBoard() {
     if (m_printSettings.m_showCoords) {
         result += dividerLine + "\n";
     }
-    tdout << "Length of printable string = " << result.length() << std::endl;
+    // tdout << "Length of printable string = " << result.length() << std::endl;
     return result;
 }
 
@@ -393,7 +393,7 @@ bool DLLBoard::apply(std::shared_ptr<Move> _move) {
     case TILE_MOVE:
         return apply(std::static_pointer_cast<TileMove>(_move));
     default:
-        dout << "FEATURE NOT IMPLEMENTED YET. Unknown Move Type [" << _move->m_type << "]\n" << WHERE << std::endl;
+        // dout << "FEATURE NOT IMPLEMENTED YET. Unknown Move Type [" << _move->m_type << "]\n" << WHERE << std::endl;
         return false;
     }
 }
@@ -404,7 +404,7 @@ bool DLLBoard::undo(std::shared_ptr<Move> _move) {
     case TILE_MOVE:
         return undo(std::static_pointer_cast<TileMove>(_move));
     default:
-        dout << "FEATURE NOT IMPLEMENTED YET. Unknown Move Type [" << _move->m_type << "]\n" << WHERE << std::endl;
+        // dout << "FEATURE NOT IMPLEMENTED YET. Unknown Move Type [" << _move->m_type << "]\n" << WHERE << std::endl;
         return false;
     }
 }
@@ -416,11 +416,11 @@ bool DLLBoard::apply(std::shared_ptr<PieceMove> _move) {
 
     // Check this is valid
     if (startTile == nullptr || endTile == nullptr) {
-        dout << "# INVALID MOVE, TILE MISSING " << _move->algebraic() << std::endl;
+        // dout << "# INVALID MOVE, TILE MISSING " << _move->algebraic() << std::endl;
         return false;
     }
     if (endTile->m_contents != _move->m_capture) {
-        dout << "# INVALID MOVE, CAPTURE MISMATCH " << _move->algebraic() << std::endl;
+        // dout << "# INVALID MOVE, CAPTURE MISMATCH " << _move->algebraic() << std::endl;
         return false;
     }
     // Execute the move
@@ -440,11 +440,11 @@ bool DLLBoard::undo(std::shared_ptr<PieceMove> _move) {
 
     // Check this is valid
     if (startTile == nullptr || endTile == nullptr) {
-        dout << "# INVALID UNDO, TILE MISSING " << _move->algebraic() << std::endl;
+        // dout << "# INVALID UNDO, TILE MISSING " << _move->algebraic() << std::endl;
         return false;
     }
     if (startTile->m_contents != EMPTY) {
-        dout << "# INVALID UNDO, MOVING FROM OCCUPIED SQUARE " << _move->algebraic() << std::endl;
+        // dout << "# INVALID UNDO, MOVING FROM OCCUPIED SQUARE " << _move->algebraic() << std::endl;
         return false;
     }
     // Execute the undo
@@ -458,7 +458,7 @@ bool DLLBoard::undo(std::shared_ptr<PieceMove> _move) {
 };
 
 bool DLLBoard::apply(std::shared_ptr<TileMove> _move) {
-    tdout << "applying move " << _move->algebraic() << std::endl;
+    // tdout << "applying move " << _move->algebraic() << std::endl;
     std::vector<Tile*> selection;
 
     // Get the Internal Coords (IC) of the range of tiles in this selection
@@ -474,7 +474,7 @@ bool DLLBoard::apply(std::shared_ptr<TileMove> _move) {
             !coordGreaterThan(moveSelFirstIC.second, tile->m_coords.second, m_minCoords.second) && // selFirst <= tile
             !coordGreaterThan(tile->m_coords.second, moveSelSecondIC.second, m_minCoords.second) // tile <= selSecond
         ) {
-            tdout << "selection includes " << tile->m_coords.first << ", " << tile->m_coords.second << std::endl;
+            // tdout << "selection includes " << tile->m_coords.first << ", " << tile->m_coords.second << std::endl;
             selection.push_back(tile);
         }
     }

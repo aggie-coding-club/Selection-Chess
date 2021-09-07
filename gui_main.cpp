@@ -19,8 +19,6 @@ bool debugTests();
 
 int main(int argc, char *argv[]) {
     std::cout << ASCII_LOGO << std::endl;
-    dout << "dout is enabled" << std::endl;
-    tdout << "tdout is enabled" << std::endl;
     // initialize GUI input thread and/or godot stuff
 
     // for now, let's assume engines are passed via command line
@@ -63,7 +61,24 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    // TODO: spin up input thread / Godot interface
+    std::string fen = "rkr3/6/6/6/6/3RKR w 0 1";
+    Game game(fen, "default.rules");
+    whiteEngine->setBoard(fen);
+    blackEngine->setBoard(fen);
+    std::cout << "boards init'd, going into game loop" << std::endl;
+    for(;;) { // TODO: remove redundant code for both black and white
+        std::shared_ptr<Move> whiteMove = std::move(whiteEngine->getMove());
+        //TODO: check if legal
+        game.applyMove(whiteMove);
+        blackEngine->setMove(whiteMove);
+        // TODO: handle if black rejects move as being legal
 
+        std::shared_ptr<Move> blackMove = std::move(blackEngine->getMove());
+        //TODO: check if legal
+        game.applyMove(blackMove);
+        whiteEngine->setMove(blackMove);
+        // TODO: handle if white rejects move as being legal
+    }
+    std::cout << "Exiting SelChess GUI" << std::endl;
     return 0;
 }

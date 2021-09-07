@@ -17,7 +17,9 @@ class PlayerRunner {
 
         virtual std::unique_ptr<Move> getMove() = 0;
 
-        virtual bool setMove(std::unique_ptr<Move>& _move) = 0;
+        virtual bool setMove(std::shared_ptr<Move>& _move) = 0;
+
+        virtual bool setBoard(std::string _fen) = 0;
 
         virtual void run() = 0;
 };

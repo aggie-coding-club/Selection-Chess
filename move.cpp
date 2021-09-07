@@ -3,6 +3,7 @@
 #include "utils.h"
 
 #include <math.h>
+#include <regex>
 
 // Note: all of the error checks to make sure the format is correct can be ommited by a chess engine when it communicates with the gui, if it wants to.
 
@@ -16,7 +17,7 @@ unsigned int DDModulus = 1000;
 // Note that upper case letters are prohibited
 DAModInt lettersToInt(std::string _letters) {
     if (_letters.length() > 2) {
-        dout << "ERROR: coords too big. " << WHERE << std::endl;
+        dlog("ERROR: coords too big. " , WHERE);
         return -1;
     }
     unsigned int value = 0;
@@ -59,8 +60,17 @@ std::string TileDeletion::algebraic() {
     return result;
 }
 
+bool isAlgebraic(std::string _algrebra) {
+    // TODO:
+    // Regex components:
+    // match coords: [:alpha:]{1,3}[:d:]{1,3}
+    // 
+    const std::regex MOVE_ALGEBRA_REGEX("[SD]?");
+    return false;
+}
+
 std::unique_ptr<Move> readAlgebraic(std::string _algebra) {
-    tdout << "readAlgebraic(" << _algebra << ")" << std::endl;
+    // tdout << "readAlgebraic(" << _algebra << ")" << std::endl;
     AlgebraicTokenizer tokenizer(_algebra);
 
     if (isalpha(tokenizer.peek()[0]) && isupper(tokenizer.peek()[0])) { // got a capital prefix
@@ -83,7 +93,7 @@ std::unique_ptr<Move> readAlgebraic(std::string _algebra) {
                         // tdout << "has flip" << std::endl;
                         move->m_symmetry *= -1;
                     } else {
-                        dout << "UNKNOWN SUFFIX '" << tokenizer.peek() << "'" << WHERE << std::endl;
+                        dlog("UNKNOWN SUFFIX '" , tokenizer.peek() , "'" , WHERE);
                     }
                 }
             }
@@ -98,7 +108,7 @@ std::unique_ptr<Move> readAlgebraic(std::string _algebra) {
             return std::make_unique<TileDeletion>(deletions);
 
         } else {
-            dout << "UNKNOWN PREFIX '" << tokenizer.peek() << "' " << WHERE << std::endl;
+            dlog("UNKNOWN PREFIX '" , tokenizer.peek() , "' " , WHERE);
         }
     }
     // If no prefix, then this is a piece move
@@ -163,7 +173,7 @@ std::string AlgebraicTokenizer::next() {
         return std::string(1, lookahead);
 
     } else {
-        dout << WHERE << "Error: Unknown character in algebraic string '" << lookahead << "'" << std::endl;
+        dlog(WHERE , "Error: Unknown character in algebraic string '" , lookahead , "'");
         return "[ERROR!]";
     }
 }

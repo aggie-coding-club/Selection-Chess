@@ -13,7 +13,7 @@ Ruleset::Ruleset(std::string _ruleFile) {
 
 void Ruleset::match(std::string _given, std::string _expected) {
     if (_given != _expected) {
-        dout << WHERE << "Error: Expected '" << _expected << "' in rules file, found '" << _given << "'" << std::endl;
+        dlog(WHERE , "Error: Expected '" , _expected , "' in rules file, found '" , _given , "'");
     }
 }
 
@@ -37,29 +37,29 @@ void Ruleset::updateMoveOptionProperties(RulesetTokenizer& _tokenizer, MoveOptio
         } else if (property == "flyOverPieces") {
             _mop.m_flyOverPieces = _tokenizer.nextBool();
         } else {
-            dout << WHERE << "Error: Unknown move option property '" << property << "' in rules file" << std::endl; //TODO: would be nice if error reported line number
+            dlog(WHERE , "Error: Unknown move option property '" , property , "' in rules file"); //TODO: would be nice if error reported line number
         }
     }
 }
 
 // Parses the pieceMoveOptions, from '{' to '}'.
 void Ruleset::addPieceMoveOptions(RulesetTokenizer& _tokenizer, std::vector<std::vector<std::unique_ptr<MoveOption>>>& _allPmoLists) {
-    tdout << "parsing PMOs..." << std::endl;
+    // tdout << "parsing PMOs..." << std::endl;
     match(_tokenizer.next(), "{");
     MoveOptionProperties defaultMop;
     for (;;) {
         std::string targetPiece = _tokenizer.next();
-        tdout << "targetPiece = [" << targetPiece << "]" << std::endl;
+        // tdout << "targetPiece = [" << targetPiece << "]" << std::endl;
         if (targetPiece == "defaults") {
             updateMoveOptionProperties(_tokenizer, defaultMop);
 
         // Check this is a valid piece name
         } else if (targetPiece.length() == 1 && isPiece(getPieceFromChar(targetPiece[0]))) {
             PieceEnum pieceEnum = getPieceFromChar(toupper(targetPiece[0]));
-            tdout << "got pieceEnum as [" << getCharFromPiece(pieceEnum) << "]" << std::endl;
+            // tdout << "got pieceEnum as [" << getCharFromPiece(pieceEnum) << "]" << std::endl;
             // A black pieceEnum is always 1 more than its white counterpart
             auto& whitePmoList = _allPmoLists.at(pieceEnum);
-            tdout << "please don't be off by one" << std::endl;
+            // tdout << "please don't be off by one" << std::endl;
             auto& blackPmoList = _allPmoLists.at(pieceEnum+1);
             match(_tokenizer.next(), "add");
             std::string moveTypeString = _tokenizer.next();
@@ -68,35 +68,35 @@ void Ruleset::addPieceMoveOptions(RulesetTokenizer& _tokenizer, std::vector<std:
             // Handle all of the stuff specific to what type of move option this is
             std::unique_ptr<MoveOption> moPtr;
             if (moveTypeString == "slide") {
-                tdout << "This is a slide move" << std::endl;
+                // tdout << "This is a slide move" << std::endl;
                 auto tempPtr = std::make_unique<SlideMoveOption>();
                 tempPtr->m_maxDist = _tokenizer.nextInt();
                 tempPtr->m_isDiagonal = _tokenizer.nextBool();
                 moPtr = std::move(tempPtr); // convert this into pointer to base class
             } else if (moveTypeString == "leap") {
-                tdout << "This is a leap move" << std::endl;
+                // tdout << "This is a leap move" << std::endl;
                 auto tempPtr = std::make_unique<LeapMoveOption>();
                 tempPtr->m_forwardDist = _tokenizer.nextInt();
                 tempPtr->m_sideDist = _tokenizer.nextInt();
                 moPtr = std::move(tempPtr); // convert this into pointer to base class
             } else {
-                dout << WHERE << "Error: Unknown move option type '" << moveTypeString << "' in rules file" << std::endl;
+                dlog(WHERE , "Error: Unknown move option type '" , moveTypeString , "' in rules file");
             }
             match(_tokenizer.next(), ")");
-            tdout << "Matched closing )" << std::endl;
+            // tdout << "Matched closing )" << std::endl;
 
             // Check if has properties to parse
             if (_tokenizer.peek() == "{") {
-                tdout << "Found prop list" << std::endl;
+                // tdout << "Found prop list" << std::endl;
                 MoveOptionProperties mop = defaultMop; // copy
                 updateMoveOptionProperties(_tokenizer, mop);
                 moPtr->m_properties = mop;
-                tdout << "prop list updated" << std::endl;
+                // tdout << "prop list updated" << std::endl;
             }
 
             // Finally, add our object to the lists
             whitePmoList.push_back(std::move(moPtr));
-            tdout << "added to whitePmoList" << std::endl;
+            // tdout << "added to whitePmoList" << std::endl;
             // auto hyelp = moPtr->clone(); // FIXME: clone isn't working at runtime and I don't know why
             // auto hyelpheylp = std::unique_ptr<MoveOption>(hyelp);
             // blackPmoList.push_back(std::move(hyelp));
@@ -106,7 +106,7 @@ void Ruleset::addPieceMoveOptions(RulesetTokenizer& _tokenizer, std::vector<std:
         } else if (targetPiece == "}") { // we found the matching brace, so we are done
             break;
         } else {
-            dout << WHERE << "Error: Expected piece identifier, found '" << targetPiece << "' in rules file" << std::endl;
+            dlog(WHERE , "Error: Expected piece identifier, found '" , targetPiece , "' in rules file");
         }
     }
 };
@@ -121,7 +121,7 @@ bool Ruleset::init(std::string _ruleFile) {
     RulesetTokenizer tokenizer(infile);
     for(;;) {
         std::string ruleName = tokenizer.next();
-        tdout << "got next rule as " << ruleName << std::endl;
+        // tdout << "got next rule as " << ruleName << std::endl;
         if (ruleName == "numDeletionsPerTurn") {
             match(tokenizer.next(), "=");
             m_numDeletionsPerTurn = tokenizer.nextInt();
@@ -137,7 +137,7 @@ bool Ruleset::init(std::string _ruleFile) {
         } else if (ruleName == "") { // We've reach EOF
             return true;
         } else {
-            dout << WHERE << "Error: Unknown rule '" << ruleName << "' in rules file" << std::endl;
+            dlog(WHERE , "Error: Unknown rule '" , ruleName , "' in rules file");
         }
     }
 }
@@ -207,7 +207,7 @@ std::string RulesetTokenizer::next() {
         return ""; // Return empty string for EOF
 
     } else {
-        dout << WHERE << "Error: Unknown character in rules file '" << lookahead << "'" << std::endl;
+        dlog(WHERE , "Error: Unknown character in rules file '" , lookahead , "'");
         return "[ERROR!]";
     }
 }
@@ -228,7 +228,7 @@ bool RulesetTokenizer::nextBool() {
     if (boolLexemesMap.count(token) > 0) {
         return boolLexemesMap.at(token);
     } else {
-        dout << WHERE << "Error: Expected a bool in rules file, got '" << token << "'" << std::endl;
+        dlog(WHERE , "Error: Expected a bool in rules file, got '" , token , "'");
         return false; //TODO: error handling should be better. For starts, a line number of file would be nice.
     }
 

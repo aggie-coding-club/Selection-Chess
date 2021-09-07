@@ -20,7 +20,7 @@ std::pair<int,std::shared_ptr<Move>> minmax(Game* _game, int _depth, std::string
             std::shared_ptr<Move> move = std::move(m);
             if(!_game->applyMove(move)) {
                 // Turns out this move wasn't legal, whoopsie
-                tdout << "skipping move " << move->algebraic() << " because it wasn't actually legal." << std::endl;
+                // tdout << "skipping move " << move->algebraic() << " because it wasn't actually legal." << std::endl;
                 continue; // FIXME: this means checking maybeMoves.size() doesn't detect stalemates
             }
             auto result = minmax(_game, _depth-1, _history);
@@ -44,7 +44,7 @@ std::pair<int,std::shared_ptr<Move>> minmax(Game* _game, int _depth, std::string
             std::shared_ptr<Move> move = std::move(m);
             if(!_game->applyMove(move)) {
                 // Turns out this move wasn't legal, whoopsie
-                tdout << "skipping move " << move->algebraic() << " because it wasn't actually legal." << std::endl;
+                // tdout << "skipping move " << move->algebraic() << " because it wasn't actually legal." << std::endl;
                 continue;
             }
             auto result = minmax(_game, _depth-1, _history);
@@ -80,7 +80,7 @@ std::pair<int,std::shared_ptr<Move>> negamax(Game* _game, int _depth) {
         std::shared_ptr<Move> move = std::move(m);
         if(!_game->applyMove(move)) {
             // Turns out this move wasn't legal, whoopsie
-            tdout << "skipping move " << move->algebraic() << " because it wasn't actually legal." << std::endl;
+            // tdout << "skipping move " << move->algebraic() << " because it wasn't actually legal." << std::endl;
             continue;
         }
         auto result = negamax(_game, _depth-1);
@@ -115,7 +115,7 @@ std::pair<int,std::shared_ptr<Move>> negamaxAB(Game* _game, int _depth, int _alp
         std::shared_ptr<Move> move = std::move(m);
         if(!_game->applyMove(move)) {
             // Turns out this move wasn't legal, whoopsie
-            tdout << "skipping move " << move->algebraic() << " because it wasn't actually legal." << std::endl;
+            // tdout << "skipping move " << move->algebraic() << " because it wasn't actually legal." << std::endl;
             continue;
         }
         auto result = negamaxAB(_game, _depth-1, -_beta, -_alpha);

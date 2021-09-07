@@ -9,25 +9,68 @@
 #include <ios>
 #include <stdlib.h>
 #include <vector>
+#include <regex>
 
-// ----------- debugging macros ----------- //
-// dout macro 'debug output'
-// like cout, cerr, etc., except only outputs to console/log in debug mode.
-extern std::ostream g_nullout;
+/* ---------------------------- Debugging Macros ---------------------------- */
+// Control where dlog is sent to
 #ifdef DEBUG
-    #if DEBUG & (1<<0)
-        #define dout std::cout
-    #else 
-        #define dout g_nullout
-    #endif
-    #if DEBUG & (1<<1)
-        #define tdout std::cout
-    #else 
-        #define tdout g_nullout
-    #endif
+    // Forward declarations required
+    template <typename... Targs> void dlogStart(Targs... _args);
+    template <typename T> void dlogMid(T _val);
+    template <typename T, typename... Targs> void dlogMid(T _val, Targs... _args);
+    template <typename... Targs> void dlogEnd(Targs... _args);
+
+    extern std::stringstream dlogStream;
+    // Engine's can't just write anything to cout, so we need to comment it first.
+
+    // Debug log. Takes anynumber of arguments, and outputs them to the 
+    // appropriate place with the appropriate format. Assumes it is being
+    // called on the start of a new line. Outputs newline at the end automatically.
+    template <typename... Targs> 
+    void dlog(Targs... _args) {
+        std::cout << "# ";
+        dlogMid(_args...);
+        std::cout << std::endl;
+    }
+
+/* - If you have to output on the same line with different calls, use these - */
+
+    // Alternative dlog that does not output newline at end. Make sure to follow 
+    // this up with a dlogMid or dlogEnd to ensure newline is added.
+    template <typename... Targs> 
+    void dlogStart(Targs... _args) {
+        std::cout << "# ";
+        dlogMid(_args...);
+    }
+    // Alternative dlog that does not output # at start. Make sure this is between
+    // A dlogStart/dlogMid and a dlogEnd/dlogMid.
+    template <typename T> 
+    void dlogMid(T _val) {
+        dlogStream << _val;
+        std::cout << std::regex_replace(dlogStream.str() , std::regex("\n"), "\n# ") << std::flush;
+        dlogStream.str(""); // clear the stream
+    }
+    // Alternative dlog that does not output # at start. Make sure this is between
+    // A dlogStart/dlogMid and a dlogEnd/dlogMid.
+    template <typename T, typename... Targs> 
+    void dlogMid(T _val, Targs... _args) {
+        dlogStream << _val;
+        dlogMid(_args...);
+    }
+    // Alternative dlog that does not output # at start. Make sure this is preceeded
+    // by a dlogStart or dlogMid to ensure # is added.
+    template <typename... Targs> 
+    void dlogEnd(Targs... _args) {
+        dlogMid(_args...);
+        std::cout << std::endl;
+    }
+/* -------------------------------------------------------------------------- */
 #else
-    #define dout g_nullout
-    #define tdout g_nullout
+    // Set these to noops
+    #define dlog(...) (void*)0
+    #define dlogStart(...) (void*)0
+    #define dlogMid(...) (void*)0
+    #define dlogEnd(...) (void*)0
 #endif
 
 // USAGE: FORMAT(foo << bar << ... << baz) returns a std::string
@@ -41,6 +84,8 @@ extern std::ostream g_nullout;
 
 // USAGE: returns a string describing where in the source code this macro is.
 #define WHERE (FORMAT("\tFile: " << __FILE__ << "\n\tLine: " << __LINE__ << std::endl))
+
+/* ---------------------------------- Misc ---------------------------------- */
 
 std::vector<std::string> split(const std::string str, const std::string regex_str);
 

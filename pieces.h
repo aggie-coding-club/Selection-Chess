@@ -47,7 +47,7 @@ class SlideMoveOption : public MoveOption {
         bool m_isDiagonal;
 
         std::unique_ptr<MoveOption> clone() const {
-            tdout << "slide clone called" << std::endl;
+            // tdout << "slide clone called" << std::endl;
             return std::make_unique<SlideMoveOption>(*this);
         }
 };
@@ -61,7 +61,7 @@ class LeapMoveOption : public MoveOption {
         int m_sideDist = 1; // default is normal Knight behavior
 
         std::unique_ptr<MoveOption> clone() const {
-            tdout << "leap clone called" << std::endl;
+            // tdout << "leap clone called" << std::endl;
             return std::make_unique<LeapMoveOption>(*this);
         }
 };

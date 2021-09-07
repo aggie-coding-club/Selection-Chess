@@ -18,8 +18,10 @@ namespace asio = boost::asio;
 
 class EngineRunner : public PlayerRunner {
     protected:
+        // Send commands to the engine's std::cin using this
         bp::opstream m_engineInputStream;
         boost::asio::io_service m_ios; // TODO: remove?
+        // Recieve commands/info from the engine's std::cout using this // TODO: rename?
         bp::ipstream m_pipeStream;
         std::queue<std::string> m_cmdQueue;
         std::string m_enginePath;
@@ -44,10 +46,13 @@ class EngineRunner : public PlayerRunner {
 
         std::unique_ptr<Move> getMove();
 
-        bool setMove(std::unique_ptr<Move>& _move);
+        bool setMove(std::shared_ptr<Move>& _move);
 
         // fills m_cmdQueue as input comes in
         void run();
+
+        bool setBoard(std::string _fen);
+
 };
 
 #endif

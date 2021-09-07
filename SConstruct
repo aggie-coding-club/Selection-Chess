@@ -66,7 +66,8 @@ engine = env.Program(compiled_path + 'engines/Hippocrene', Split(
     'hippo_main.cpp utils.cpp '
     'array_board.cpp board.cpp '
     'game.cpp move.cpp pieces.cpp ruleset.cpp '
-    'min_max.cpp'
+    'min_max.cpp '
+    'cmd_tokenizer.cpp'
 ))
 
 unittest = env.Program(compiled_path + 'UnitTest', Split(
@@ -75,5 +76,6 @@ unittest = env.Program(compiled_path + 'UnitTest', Split(
     'array_board.cpp board.cpp '
     'game.cpp move.cpp pieces.cpp ruleset.cpp '
     'min_max.cpp '
-    'human_runner.cpp cmd_tokenizer.cpp'
+    'human_runner.cpp '
+    'cmd_tokenizer.cpp'
 ))

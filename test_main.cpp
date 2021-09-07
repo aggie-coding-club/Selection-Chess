@@ -10,6 +10,13 @@
 
 int main() {
     std::cout << "Conducting tests..." << std::endl;
+
+    dlog("Testing dlogs...");
+    dlogStart("start "); dlogEnd("end");
+    dlogStart("start "); dlogMid("mid "); dlogEnd("end");
+    dlogStart("start "); dlogMid("mid "); dlogMid("mid "); dlogEnd("end");
+    dlog("dlog\nwith\nmultilines!");
+
     // Meta
     TEST("meta 1", {
         OPT_CASE("failed opt", false);
@@ -447,20 +454,20 @@ int main() {
     std::cout << "At depth 3, negmaxAB found score is " << result.first << " and best move is " << result.second->algebraic() << std::endl;
     negaHistory = "";
 
-    // Cut and paste this to return early
-    std::cout << game.print() << std::endl;
-    std::cout << "Done testing at " << WHERE << std::endl;
-    return 0;
+    // // Cut and paste this to return early
+    // std::cout << game.print() << std::endl;
+    // std::cout << "Done testing at " << WHERE << std::endl;
+    // return 0;
 
-    std::cout << "Testing minmax depth 8" << std::endl;
-    result = minmax(&game, 8, negaHistory);
-    // std::cout << negaHistory;
-    std::cout << "At depth 8, score is " << result.first << " and best move is " << result.second->algebraic() << std::endl;
-    result = negamax(&game, 8);
-    std::cout << "At depth 8, negmax found score is " << result.first << " and best move is " << result.second->algebraic() << std::endl;
-    result = negamaxAB(&game, 8);
-    std::cout << "At depth 8, negmaxAB found score is " << result.first << " and best move is " << result.second->algebraic() << std::endl;
-    negaHistory = "";
+    // std::cout << "Testing minmax depth 8" << std::endl;
+    // result = minmax(&game, 8, negaHistory);
+    // // std::cout << negaHistory;
+    // std::cout << "At depth 8, score is " << result.first << " and best move is " << result.second->algebraic() << std::endl;
+    // result = negamax(&game, 8);
+    // std::cout << "At depth 8, negmax found score is " << result.first << " and best move is " << result.second->algebraic() << std::endl;
+    // result = negamaxAB(&game, 8);
+    // std::cout << "At depth 8, negmaxAB found score is " << result.first << " and best move is " << result.second->algebraic() << std::endl;
+    // negaHistory = "";
 
     std::cout << game.print() << std::endl;
     std::cout << "Done testing!" << std::endl;

@@ -33,7 +33,7 @@ std::string CmdTokenizer::matchQuotedToken(std::istream& _stream, char _delim, b
             return token;
         }
         if (lookahead == '\n' || lookahead == EOF) {
-            dout << "Error with command: unmatched " << _delim << std::endl;
+            dlog("Error with command: unmatched " , _delim);
             return "[ERROR]"; // TODO:
         }
         token += lookahead;
@@ -85,4 +85,22 @@ std::string CmdTokenizer::next() {
     } else {
         return matchWordToken(m_stream);
     }
+}
+
+std::string CmdTokenizer::nextFen() {
+    // TODO: we can do something similar to xboard by taking a piece-to-char table and maybe variant info? Probably better to just use the rules file tbf
+    // First part of FEN is always the board position
+    std::string fullFen = next();
+    // get remaining fields. //TODO: handle how many fields we need. Maybe even consider specifying Fen fields in the .rules file?
+    const int NUM_FEN_FIELDS = 3;
+    for (int i = 0; i < NUM_FEN_FIELDS; i++) {
+        std::string nextField = next();
+        if (nextField == "") {
+            // TODO: handle partial info given? Or just reject somehow?
+            return fullFen;
+        }
+        fullFen += " " + nextField;
+    }
+    // tdout << "Got Fen token as '" << fullFen << std::endl;
+    return fullFen;
 }

@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-#define edout dout << "[" << m_name << "] "
+#define edout std::cout << "[" << m_name << "] " //FIXME
 
 HumanRunner::HumanRunner(std::string _name) {
     m_name = _name;
@@ -19,16 +19,24 @@ void HumanRunner::quit() {
 }
 
 std::unique_ptr<Move> HumanRunner::getMove() {
-    edout << "getMove" << std::endl;
-    //TODO: literally get move from human
-    return std::unique_ptr<Move>(nullptr);
+    std::cout << "Human, tell me your move: " << std::flush;
+    std::string humanMove;
+    std::cin >> humanMove;
+    std::cout << "Thanks, human." << std::endl;
+    return readAlgebraic(humanMove);
 }
 
-bool HumanRunner::setMove(std::unique_ptr<Move>& _move) {
+bool HumanRunner::setMove(std::shared_ptr<Move>& _move) {
+    edout << "recieved move " << _move->algebraic() << std::endl;
     return true;
 }
 
 
 void HumanRunner::run() {
 
+}
+
+bool HumanRunner::setBoard(std::string _fen) {
+    edout << "setboard(" << _fen << ")" << std::endl;
+    return true; // TODO
 }

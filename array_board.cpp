@@ -44,7 +44,7 @@ void ArrayBoard::updateExtrema(const ABModCoords& _new) {
 void ArrayBoard::init(const std::string _sfen) {
     resetPL();
     int i; // which character of _sfen we are on
-    tdout << "running ArrayBoard::init" << std::endl;
+    // tdout << "running ArrayBoard::init" << std::endl;
 
     // ----------- loop through and count number of tiles ----------- //
     m_numTiles = 0;
@@ -87,7 +87,7 @@ void ArrayBoard::init(const std::string _sfen) {
             throw "Invalid piece symbol in SFen!";
         }
     }
-    tdout << "Done counting." << std::endl;
+    // tdout << "Done counting." << std::endl;
     m_grid_size = m_numTiles + 1; // grid size = init number of tiles + 1. See documentation on wrap-around for explanation of why
     // check for multiplication overflow
     if (m_grid_size > SIZE_MAX / m_grid_size) {
@@ -108,7 +108,7 @@ void ArrayBoard::init(const std::string _sfen) {
     ABModulus = m_grid_size;
 
     // ----------- loop through again to initialize the grid ----------- //
-    tdout << "ArrayBoard::init counted " << m_grid_size << " size required and will now init" << std::endl;
+    // tdout << "ArrayBoard::init counted " << m_grid_size << " size required and will now init" << std::endl;
 
     // some arbitrary starting point
     const ABModCoords STARTING_CORNER = std::make_pair(0, 0);
@@ -162,7 +162,7 @@ void ArrayBoard::init(const std::string _sfen) {
     }
     // Parse remaining fields
     // TODO: implement
-    tdout << "min coords are " << m_minCoords.first << ", " << m_minCoords.second << " and max are " << m_maxCoords.first << ", " << m_maxCoords.second << std::endl;
+    // tdout << "min coords are " << m_minCoords.first << ", " << m_minCoords.second << " and max are " << m_maxCoords.first << ", " << m_maxCoords.second << std::endl;
     // dout << "Done parsing." << std::endl;
 }
 
@@ -187,8 +187,8 @@ bool ArrayBoard::removePieceFromPL(PieceEnum _piece, ABModCoords _location) {
 }
 
 bool ArrayBoard::apply(std::shared_ptr<Move> _move) {
-    tdout << getAsciiBoard() << std::endl;
-    tdout << "apply " << _move->algebraic() << " called" << std::endl;
+    // tdout << getAsciiBoard() << std::endl;
+    // tdout << "apply " << _move->algebraic() << " called" << std::endl;
     switch (_move->m_type) {
     case PIECE_MOVE:
         return apply(std::static_pointer_cast<PieceMove>(_move));
@@ -197,13 +197,13 @@ bool ArrayBoard::apply(std::shared_ptr<Move> _move) {
     case TILE_DELETION:
         return apply(std::static_pointer_cast<TileDeletion>(_move));
     default:
-        dout << "Unknown Move Type [" << _move->m_type << "]\n" << WHERE << std::endl;
+        dlog("Unknown Move Type [", _move->m_type, "]\n", WHERE);
         return false;
     }
 }
 bool ArrayBoard::undo(std::shared_ptr<Move> _move) {
-    tdout << getAsciiBoard() << std::endl;
-    tdout << "undo called" << std::endl;
+    // tdout << getAsciiBoard() << std::endl;
+    // tdout << "undo called" << std::endl;
     switch (_move->m_type) {
     case PIECE_MOVE:
         return undo(std::static_pointer_cast<PieceMove>(_move));
@@ -212,7 +212,7 @@ bool ArrayBoard::undo(std::shared_ptr<Move> _move) {
     case TILE_DELETION:
         return undo(std::static_pointer_cast<TileDeletion>(_move));
     default:
-        dout << "Unknown Move Type [" << _move->m_type << "]\n" << WHERE << std::endl;
+        dlog("Unknown Move Type [" , _move->m_type , "]\n" , WHERE);
         return false;
     }
 }
@@ -265,9 +265,9 @@ bool ArrayBoard::apply(std::shared_ptr<TileMove> _move) {
     DModCoords oldDZero = m_displayCoordsZero;
     StandardArray cut = getSelection(abSelFirst, abSelSecond, true);
     // tdout << "Cut out " << cut.dumpAsciiArray() << std::endl;
-    tdout << "Now board is \n" << getAsciiBoard() << std::endl;
-    tdout << "min coords are " << m_minCoords.first << ", " << m_minCoords.second << " and max are " << m_maxCoords.first << ", " << m_maxCoords.second << std::endl;
-    tdout << "and minDisplayCoords are " << m_displayCoordsZero << std::endl;
+    // tdout << "Now board is \n" << getAsciiBoard() << std::endl;
+    // tdout << "min coords are " << m_minCoords.first << ", " << m_minCoords.second << " and max are " << m_maxCoords.first << ", " << m_maxCoords.second << std::endl;
+    // tdout << "and minDisplayCoords are " << m_displayCoordsZero << std::endl;
 
     // ----------- Paste in the selection ----------- //
     // Figure out if this move updates the minima
@@ -276,17 +276,17 @@ bool ArrayBoard::apply(std::shared_ptr<TileMove> _move) {
     DModCoords destSecond = _move->m_destFirst + (_move->m_selSecond - _move->m_selFirst);
     // What our extrema are in DMod space.
     DModCoords displayCoordsMax = SAtoDM(ABtoSA(m_maxCoords));
-    tdout << 
-    "_move->m_destFirst: " << _move->m_destFirst <<
-    "\ndestSecond: " << destSecond <<
-    "\n_move->m_selFirst: " << _move->m_selFirst <<
-    "\n_move->m_selSecond: " << _move->m_selSecond <<
-    "\nm_displayCoordsZero: " << m_displayCoordsZero << 
-    "\ndisplayCoordsMax: " << displayCoordsMax <<
-    std::endl;
+    // tdout << 
+    // "_move->m_destFirst: " << _move->m_destFirst <<
+    // "\ndestSecond: " << destSecond <<
+    // "\n_move->m_selFirst: " << _move->m_selFirst <<
+    // "\n_move->m_selSecond: " << _move->m_selSecond <<
+    // "\nm_displayCoordsZero: " << m_displayCoordsZero << 
+    // "\ndisplayCoordsMax: " << displayCoordsMax <<
+    // std::endl;
 
-    tdout << ((_move->m_destFirst.first.heurLessThan(_move->m_selFirst.first))?"moving left":"not moving left") << std::endl;
-    tdout << ((! _move->m_destFirst.first.isBetween(m_displayCoordsZero.first, displayCoordsMax.first))?"not in hor bounds":"in hor bounds") << std::endl;
+    // tdout << ((_move->m_destFirst.first.heurLessThan(_move->m_selFirst.first))?"moving left":"not moving left") << std::endl;
+    // tdout << ((! _move->m_destFirst.first.isBetween(m_displayCoordsZero.first, displayCoordsMax.first))?"not in hor bounds":"in hor bounds") << std::endl;
     if ( //.first
         ( 
             (oldMin.first != m_minCoords.first && _move->m_destFirst.first.heurLessThanOrEqual(_move->m_selFirst.first)) || // THE minimum tile is being moved, and not to the right; or
@@ -299,11 +299,11 @@ bool ArrayBoard::apply(std::shared_ptr<TileMove> _move) {
             int difference = m_displayCoordsZero.first.getDistTo(_move->m_destFirst.first);
             m_minCoords.first += difference;
             m_displayCoordsZero.first += difference;
-            tdout << "updated mins.first by " << difference << std::endl;
+            // tdout << "updated mins.first by " << difference << std::endl;
             assert(difference < 0);
     }
-    tdout << ((_move->m_destFirst.second.heurLessThan(_move->m_selFirst.second))?"moving left":"not moving left") << std::endl;
-    tdout << ((! _move->m_destFirst.second.isBetween(m_displayCoordsZero.second, displayCoordsMax.second))?"not in vert bounds":"in vert bounds") << std::endl;
+    // tdout << ((_move->m_destFirst.second.heurLessThan(_move->m_selFirst.second))?"moving left":"not moving left") << std::endl;
+    // tdout << ((! _move->m_destFirst.second.isBetween(m_displayCoordsZero.second, displayCoordsMax.second))?"not in vert bounds":"in vert bounds") << std::endl;
     if ( //.second //TODO: combine these into one function somehow for readability
         ( 
             (oldMin.second != m_minCoords.second && _move->m_destFirst.second.heurLessThanOrEqual(_move->m_selFirst.second)) || // THE minimum tile is being moved, and not to the right; or
@@ -316,7 +316,7 @@ bool ArrayBoard::apply(std::shared_ptr<TileMove> _move) {
             int difference = m_displayCoordsZero.second.getDistTo(_move->m_destFirst.second);
             m_minCoords.second += difference;
             m_displayCoordsZero.second += difference;
-            tdout << "updated mins.second by " << difference << std::endl;
+            // tdout << "updated mins.second by " << difference << std::endl;
             assert(difference < 0);
     }
 
@@ -343,7 +343,7 @@ bool ArrayBoard::apply(std::shared_ptr<TileMove> _move) {
     for (ABModCoords i = abDestFirst; i.second != abDestSecond.second + 1; ++i.second) { // iterate rows
         for (i.first = abDestFirst.first; i.first != abDestSecond.first + 1; ++i.first) { // iterate columns
             if (m_grid[toIndex(i)] != INVALID) {
-                dout << WHERE << "FOUND PIECE [" << getCharFromPiece(m_grid[toIndex(i)]) << "] in DESTINATION, at " << coordsToAlgebraic(SAtoDM(ABtoSA(i))) << std::endl;
+                dlog(WHERE , "FOUND PIECE [" , getCharFromPiece(m_grid[toIndex(i)]) , "] in DESTINATION, at " , coordsToAlgebraic(SAtoDM(ABtoSA(i))));
                 paste(cut, abSelFirst); // paste back in original position
                 m_minCoords = oldMin;
                 m_maxCoords = oldMax;
@@ -356,7 +356,7 @@ bool ArrayBoard::apply(std::shared_ptr<TileMove> _move) {
 
     // Now, we have to check for continuity.
     if (!isContiguous()) {
-        tdout << WHERE << "Move not contiguous, reverting!" << std::endl;
+        // tdout << WHERE << "Move not contiguous, reverting!" << std::endl;
         clearSelection(abDestFirst, abDestSecond); // remove the paste
         paste(cut, abSelFirst); // paste back in original position
         m_minCoords = oldMin;
@@ -417,7 +417,7 @@ bool ArrayBoard::apply(std::shared_ptr<TileDeletion> _move) {
 
     // Now, we have to check for continuity.
     if (!isContiguous()) {
-        dout << WHERE << "Deletion not contiguous, reverting!" << std::endl;
+        // dout << WHERE << "Deletion not contiguous, reverting!" << std::endl;
         m_minCoords = oldMinCoords;
         m_maxCoords = oldMaxCoords;
         m_displayCoordsZero = oldDCZero;
@@ -483,7 +483,7 @@ bool ArrayBoard::isLegal(std::shared_ptr<Move> _move) {
     case TILE_DELETION:
         return isLegal(std::static_pointer_cast<TileDeletion>(_move));
     default:
-        dout << "Unknown Move Type [" << _move->m_type << "]\n" << WHERE << std::endl;
+        dlog("Unknown Move Type [" , _move->m_type , "]\n" , WHERE);
         return false;
     }
 }
@@ -585,7 +585,7 @@ bool ArrayBoard::moveIsFromMO(std::shared_ptr<Move> _move, const MoveOption& _mo
     case SLIDE_MO_TYPE:
         return moveIsFromMO(_move, dynamic_cast<const SlideMoveOption&>(_mo));
     default:
-        dout << "Unknown MoveOption Type [" << _mo.m_type << "]\n" << WHERE << std::endl;
+        dlog("Unknown MoveOption Type [" , _mo.m_type , "]\n" , WHERE);
         return false;
     }
 }
@@ -597,7 +597,7 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMovesFromMO(ABModCoords& _piec
     case SLIDE_MO_TYPE:
         return getMovesFromMO(_pieceCoords, dynamic_cast<const SlideMoveOption&>(_mo));
     default:
-        dout << "Unknown MoveOption Type [" << _mo.m_type << "]\n" << WHERE << std::endl;
+        dlog("Unknown MoveOption Type [" , _mo.m_type , "]\n" , WHERE);
         return std::vector<std::unique_ptr<Move>>();
     }
 }
@@ -615,10 +615,10 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMovesFromMO(ABModCoords& _piec
     DirectionEnum fwdLoopEndCond = DOWN;
 
     if (_mo.m_properties.m_forwardOnly) {
-        dout << "UNIMPLEMENTED FEATURE: forwardOnly" << WHERE << std::endl;
+        dlog("UNIMPLEMENTED FEATURE: forwardOnly" , WHERE);
     }
     if (!_mo.m_properties.m_flyOverGaps || !_mo.m_properties.m_flyOverPieces) {
-        dout << "UNIMPLEMENTED FEATURE: flyOverX=false" << WHERE << std::endl;
+        dlog("UNIMPLEMENTED FEATURE: flyOverX=false" , WHERE);
     }
 
     for (DirectionEnum direction = fwdLoopStartCond; direction <= fwdLoopEndCond; ++direction) { // iterate over 4 directions
@@ -681,7 +681,7 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMovesFromMO(ABModCoords& _piec
     DirectionEnum loopEndCond = _mo.m_isDiagonal ? UP_LEFT : DOWN;
 
     if (_mo.m_properties.m_forwardOnly) {
-        dout << "UNIMPLEMENTED FEATURE: forwardOnly" << WHERE << std::endl;
+        dlog("UNIMPLEMENTED FEATURE: forwardOnly" , WHERE);
     }
 
     for (DirectionEnum direction = loopStartCond; direction <= loopEndCond; ++direction) { // iterate over 4 directions
@@ -757,7 +757,7 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMoves(PieceColor _color) {
     }
     // ----------- TileMoves ----------- //
     // TODO: assumes only one tile can be moved, implement for more tiles?
-    tdout << "Getting tileMoves" << std::endl;
+    // tdout << "Getting tileMoves" << std::endl;
     // First, iterate over all possible tiles we can move.
     // TODO: gross iteration over the entire space, would be nice if I only iterated over tiles.
     ABModCoords startCoords = m_minCoords;
@@ -921,7 +921,7 @@ ABModCoords ArrayBoard::nextTileByColOrder(const ABModCoords& _start, bool _reve
 bool ArrayBoard::isContiguous() const {
     // tdout << "starting isContiguous" << std::endl;
     if (m_numTiles == 0) {
-        tdout << "found no tiles -> contiguous" << std::endl;
+        // tdout << "found no tiles -> contiguous" << std::endl;
         return true; // seems like no tiles should be considered a valid board, and a valid board must be contiguous.
     }
     ABModCoords bfsStart = m_minCoords; // semi-arbitrary starting point. There should be a tile in this row, so we only have to search 1 row at most.

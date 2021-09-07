@@ -5,6 +5,8 @@
 #include <map>
 #include <regex>
 
+std::stringstream dlogStream;
+
 std::vector<std::string> split(const std::string str, const std::string regex_str) {
     std::regex regexz(regex_str);
     std::sregex_token_iterator token_iter(str.begin(), str.end(), regexz, -1);
@@ -86,12 +88,3 @@ char getCharFromDirection(DirectionEnum _dir) {
     }
     return '?';
 }
-
-// Throw away stream inputs. We use this for hiding debugging outputs in the 'dout' macro
-// TODO: See if there is a better implementation to debugging prints, which still uses ostream syntax like cout.
-class NullBuffer : public std::streambuf {
-    public:
-        int overflow(int c) { return c; }
-};
-NullBuffer null_buffer;
-std::ostream g_nullout(&null_buffer);
