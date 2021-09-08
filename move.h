@@ -32,7 +32,7 @@ enum : MoveType {INVALID_MOVE, PIECE_MOVE, TILE_MOVE, TILE_DELETION};
 class Move {
     public:
         virtual std::string algebraic() {
-            return "[INVALID MOVE]";
+            return "[VOID MOVE]";
         };
         MoveType m_type = INVALID_MOVE;
 };

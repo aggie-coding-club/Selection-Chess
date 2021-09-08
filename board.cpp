@@ -33,14 +33,14 @@ std::string Board::toSfen() {
         // start of new line
         if (row != 0) { // check if this is not first iteration of loop, i.e. this is a line break
             endEmptySequence();
-            numOfInvalid = 0; // we can ignore trailing invalid spaces
+            numOfInvalid = 0; // we can ignore trailing void spaces
             sfen += "/";
         }
 
         // iterate over columns
         for (int col = 0; col < sa.m_dimensions.first; col++) { // for each element
             PieceEnum thisPiece = sa.m_array[col + sa.m_dimensions.first*row];
-            if (thisPiece == INVALID) {
+            if (thisPiece == VOID) {
                 endEmptySequence();
                 numOfInvalid++;
             } else if (thisPiece == EMPTY) {
@@ -120,7 +120,7 @@ std::string Board::getAsciiBoard() {
             PieceEnum thisPiece = sa.m_array[col + sa.m_dimensions.first*row];
             size_t lowerLine = activeLineNum + m_printSettings.m_height + 1;
 
-            if (thisPiece == INVALID) { // print empty space where there is no tiles
+            if (thisPiece == VOID) { // print empty space where there is no tiles
                 for (int i = 1; i <= m_printSettings.m_height; i++) {
                     lines[activeLineNum + i] += (trailingEdge ? "" : " ") + h_fill_out;
                 }
@@ -217,7 +217,7 @@ StandardArray::StandardArray() {
 
 StandardArray::StandardArray(Coords _size) {
     m_dimensions = _size;
-    m_array.resize(m_dimensions.first * m_dimensions.second, INVALID);
+    m_array.resize(m_dimensions.first * m_dimensions.second, VOID);
 }
 
 StandardArray::StandardArray(std::string _sfen) {
@@ -267,7 +267,7 @@ StandardArray::StandardArray(std::string _sfen) {
     }
     dlog("Found dimension of " , m_dimensions.first , ", " , m_dimensions.second);
     // allocate the array
-    m_array.resize(m_dimensions.first * m_dimensions.second, INVALID);
+    m_array.resize(m_dimensions.first * m_dimensions.second, VOID);
 
     // iterate thru lines in reverse to initialize array
     unsigned int lineNumber = 0;
@@ -285,7 +285,7 @@ StandardArray::StandardArray(std::string _sfen) {
                 unsigned int nonTileCount = std::stoi((*lineIt).substr(i+1, j)); //i+1 to ignore '('
                 currentIndex += nonTileCount;
                 // for (int ntci = 0; ntci < nonTileCount; ntci++) {
-                //     m_array[currentIndex++] = INVALID;
+                //     m_array[currentIndex++] = VOID;
                 // }
                 // update i to to account for the number of additional characters we read in
                 i = j;
@@ -305,7 +305,7 @@ StandardArray::StandardArray(std::string _sfen) {
 
             } else {
                 PieceEnum thisTile = getPieceFromChar(c, ' '); // We look for empty as ' ' to ensure we never find empty this way, just in case.
-                if (thisTile != INVALID) {
+                if (thisTile != VOID) {
                     m_array[currentIndex++] = thisTile;
                 } else {
                     std::cerr << "Invalid piece symbol '" << c << "' in SFen!" << std::endl;
@@ -313,9 +313,9 @@ StandardArray::StandardArray(std::string _sfen) {
                 }
             }
         }
-        // fill trailing non-tile spaces with invalid
+        // fill trailing non-tile spaces with void
         for (; currentIndex % m_dimensions.first != 0; currentIndex++) {
-            m_array[currentIndex++] = INVALID;
+            m_array[currentIndex++] = VOID;
         }
         lineNumber++;
     }

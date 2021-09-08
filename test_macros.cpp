@@ -5,6 +5,8 @@ namespace TestMacros {
     bool tempBoolForCases;
     std::string failedCheckName;
     bool skipRemCases;
+    int numTestsFailed;
+    int numTestsPassed;
 
     void printTestLabel(std::string _test) {
         std::cout << "Running test '" << _test << "'" << std::endl;

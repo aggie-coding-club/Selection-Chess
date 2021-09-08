@@ -31,7 +31,7 @@ char getCharFromPiece(PieceEnum _enumValue, char _empty, char _invalid) {
     if (_enumValue == EMPTY) {
         return _empty;
     }
-    if (_enumValue == INVALID) {
+    if (_enumValue == VOID) {
         return _invalid;
     }
     return PIECE_LETTERS[_enumValue];
@@ -43,7 +43,7 @@ PieceEnum getPieceFromChar(char _char, char _empty) {
     }
     std::size_t found = PIECE_LETTERS.find(_char);
     if (found == std::string::npos) {
-        return INVALID;
+        return VOID;
     }
     return found;
 }
@@ -64,7 +64,7 @@ std::string getUnicodeCharFromEnum(PieceEnum _enumValue, std::string _empty) {
         {B_QUEEN, "♛"},
         {W_KING, "♔"},
         {B_KING, "♚"},
-        {INVALID, "?"} // not sure how this is intended to work
+        {VOID, "?"} // not sure how this is intended to work
     };
     if (unicodePieceChars.count(_enumValue) > 0) {
         return unicodePieceChars[_enumValue];

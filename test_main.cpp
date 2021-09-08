@@ -51,6 +51,9 @@ int main() {
         OPT_CASE("succeed opt", false);
     });
 
+    TestMacros::numTestsFailed = 0; // Reset this so that meta tests don't affect the actual tests.
+    TestMacros::numTestsPassed = 0;
+
     TEST("StandardArray object", {
         StandardArray sa ("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
         // std::cout << sa.dumpAsciiArray() << std::endl;
@@ -59,7 +62,7 @@ int main() {
         REQ_CASE("fenn ctor 0,0", sa.m_array[0] == W_ROOK);
         REQ_CASE("fenn ctor r/f ~swap", sa.m_array[7] == W_ROOK); // make sure we haven't flipped rank/file
         OPT_CASE("fenn ctor col order", sa.m_array[3] == W_QUEEN); // make sure we haven't reversed column order
-        OPT_CASE("fenn ctor invld fill", sa.m_array[9] == INVALID); // check padding is there
+        OPT_CASE("fenn ctor invld fill", sa.m_array[9] == VOID); // check padding is there
         REQ_CASE("fenn ctor 1Darr wrap", sa.m_array[18*7] == B_ROOK); // check wrap matches dimension given
     });
 
@@ -423,7 +426,7 @@ int main() {
     std::string negaHistory = "";
     std::cout << "Testing minmax depth 1" << std::endl;
     auto result = minmax(&game, 1, negaHistory);
-    std::cout << negaHistory;
+    // std::cout << negaHistory;
     std::cout << "At depth 1, score is " << result.first << " and best move is " << result.second->algebraic() << std::endl;
     negaHistory = "";
 
@@ -433,7 +436,7 @@ int main() {
 
     std::cout << "Testing minmax depth 3" << std::endl;
     result = minmax(&game, 3, negaHistory);
-    std::cout << negaHistory;
+    // std::cout << negaHistory;
     // std::cout << "At depth 3, score is " << result.first << " and best move is " << result.second->algebraic() << std::endl;
     // result = negamax(&game, 3);
     // std::cout << "At depth 3, negmax found score is " << result.first << " and best move is " << result.second->algebraic() << std::endl;
@@ -446,7 +449,7 @@ int main() {
 
     std::cout << "Testing minmax depth 3" << std::endl;
     result = minmax(&game, 3, negaHistory);
-    std::cout << negaHistory;
+    // std::cout << negaHistory;
     std::cout << "At depth 3, score is " << result.first << " and best move is " << result.second->algebraic() << std::endl;
     result = negamax(&game, 3);
     std::cout << "At depth 3, negmax found score is " << result.first << " and best move is " << result.second->algebraic() << std::endl;
@@ -470,7 +473,12 @@ int main() {
     // negaHistory = "";
 
     std::cout << game.print() << std::endl;
-    std::cout << "Done testing!" << std::endl;
+    std::cout << "Done testing," << std::endl;
+    if (TestMacros::numTestsFailed == 0) {
+        std::cout << "Passed all " << TestMacros::numTestsPassed << " tests" << std::endl;
+    } else {
+        std::cout << "Failed " << TestMacros::numTestsFailed << " out of " << TestMacros::numTestsPassed + TestMacros::numTestsFailed << " tests." << std::endl;
+    }
     return 0;
 
 

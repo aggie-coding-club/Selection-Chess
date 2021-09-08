@@ -20,6 +20,9 @@ namespace TestMacros {
     // Name of the specific check of a case that failed, if using a multi-check case.
     extern std::string failedCheckName;
 
+    extern int numTestsPassed;
+    extern int numTestsFailed;
+
     void printTestLabel(std::string _test);
     void printTestCase(std::string _case, bool _condition);
     void printSkippedCase(std::string _case);
@@ -31,7 +34,9 @@ namespace TestMacros {
     TestMacros::testState=true;\
     TestMacros::skipRemCases=false;\
     TestMacros::printTestLabel(_test);\
-    do {_code} while (false)
+    do {_code} while (false);\
+    ++(TestMacros::testState ? TestMacros::numTestsPassed : TestMacros::numTestsFailed);\
+    do {} while(false)
 
 // If this CASE fails, just set testState to false but continue with the next CASE.
 #define OPT_CASE(_case, _bool) \

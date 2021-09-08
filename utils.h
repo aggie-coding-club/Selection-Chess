@@ -197,13 +197,13 @@ struct compareModPairColOrder {
 
 /**
  * Gets letter respresentation of piece type enum
- * Optionally set empty to desired character representation of EMPTY and INVALID
+ * Optionally set empty to desired character representation of EMPTY and VOID
  */
-char getCharFromPiece(PieceEnum _enumValue, char _empty=PIECE_LETTERS[EMPTY], char _invalid=PIECE_LETTERS[INVALID]);
+char getCharFromPiece(PieceEnum _enumValue, char _empty=PIECE_LETTERS[EMPTY], char _invalid=PIECE_LETTERS[VOID]);
 /**
  * Gets piece enum from letter
  * Optionally set empty to desired character representation of EMPTY
- * Returns INVALID for unknown characters.
+ * Returns VOID for unknown characters.
  */
 PieceEnum getPieceFromChar(char _char, char _empty=PIECE_LETTERS[EMPTY]);
 
@@ -215,7 +215,7 @@ std::string getUnicodeCharFromEnum(PieceEnum _enumValue, std::string _empty=" ")
 
 /** Is this a valid nonempty piece enum? */
 inline bool isPiece(PieceEnum spaceEnum) {
-    return spaceEnum != EMPTY && spaceEnum != INVALID; 
+    return spaceEnum != EMPTY && spaceEnum != VOID; 
 }
 /** Assuming a valid nonempty piece enum, is the piece white or black? */
 inline bool isWhite(PieceEnum piece) {
@@ -225,12 +225,12 @@ inline bool isWhite(PieceEnum piece) {
 inline bool isBlack(PieceEnum piece) {
     return !isWhite(piece); // Assumes black pieces are even enums
 }
-/** Converts the piece to white, if not already. Note this also converts INVALID to EMPTY. */
+/** Converts the piece to white, if not already. Note this also converts VOID to EMPTY. */
 inline PieceEnum toWhite(PieceEnum piece) {
     // just overwrite LSB.
     return piece | 1u; //Assumes white pieces are odd enums
 }
-/** Converts the piece to black, if not already. Note this also converts EMPTY to INVALID. */
+/** Converts the piece to black, if not already. Note this also converts EMPTY to VOID. */
 inline PieceEnum toBlack(PieceEnum piece) {
     // just overwrite LSB.
     return piece & !1u; //Assumes black pieces are even enums

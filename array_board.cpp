@@ -79,7 +79,7 @@ void ArrayBoard::init(const std::string _sfen) {
         }
 
         PieceEnum thisTile = getPieceFromChar(c, ' '); // We look for empty as ' ' to ensure we never find empty this way, just in case.
-        if (thisTile != INVALID) {
+        if (thisTile != VOID) {
             m_numTiles++;
             continue;
         } else {
@@ -101,7 +101,7 @@ void ArrayBoard::init(const std::string _sfen) {
     m_grid = new PieceEnum[m_grid_size*m_grid_size];
     // initialize all to non-tiles
     for (size_t i = 0; i < m_grid_size*m_grid_size; i++) {
-        m_grid[i] = INVALID;
+        m_grid[i] = VOID;
     }
 
     // set the class' modulus to match the wrap-around of our array.
@@ -342,7 +342,7 @@ bool ArrayBoard::apply(std::shared_ptr<TileMove> _move) {
     // Check destination rectangle is empty
     for (ABModCoords i = abDestFirst; i.second != abDestSecond.second + 1; ++i.second) { // iterate rows
         for (i.first = abDestFirst.first; i.first != abDestSecond.first + 1; ++i.first) { // iterate columns
-            if (m_grid[toIndex(i)] != INVALID) {
+            if (m_grid[toIndex(i)] != VOID) {
                 dlog(WHERE , "FOUND PIECE [" , getCharFromPiece(m_grid[toIndex(i)]) , "] in DESTINATION, at " , coordsToAlgebraic(SAtoDM(ABtoSA(i))));
                 paste(cut, abSelFirst); // paste back in original position
                 m_minCoords = oldMin;
@@ -395,7 +395,7 @@ bool ArrayBoard::apply(std::shared_ptr<TileDeletion> _move) {
     for (DModCoords& dModDeletion : _move->m_deleteCoords) {
         ABModCoords deletionCoords = SAtoAB(DMtoSA(dModDeletion));
         // if (m_grid[toIndex(deletionCoords)] == EMPTY) { // TODO: check if empty. Want to make sure we can undo it if part way we find it is illegal move.
-        m_grid[toIndex(deletionCoords)] = INVALID;
+        m_grid[toIndex(deletionCoords)] = VOID;
         --m_numTiles;
     }
 
@@ -638,7 +638,7 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMovesFromMO(ABModCoords& _piec
             ABModCoords endCoords = startCoords + leapAmount;
 
             // check if void
-            if (m_grid[toIndex(endCoords)] == INVALID) {
+            if (m_grid[toIndex(endCoords)] == VOID) {
                 // Do nothing
 
             // check if empty
@@ -691,7 +691,7 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMovesFromMO(ABModCoords& _piec
             endCoords += DIRECTION_SIGNS[direction];
 
             // check if void
-            if (m_grid[toIndex(endCoords)] == INVALID) {
+            if (m_grid[toIndex(endCoords)] == VOID) {
                 if (!_mo.m_properties.m_flyOverGaps) {
                     break; // stop searching in this direction
                 }
@@ -766,7 +766,7 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMoves(PieceColor _color) {
         startCoords.first = m_minCoords.first; // reset each loop to start at beginning of the row
         // iterate over columns
         for (; startCoords.first != m_maxCoords.first+1; ++startCoords.first) {
-            if (m_grid[toIndex(startCoords)] != INVALID) { // ignore non-tile spaces
+            if (m_grid[toIndex(startCoords)] != VOID) { // ignore non-tile spaces
 
                 DModCoords dmStartCoords = SAtoDM(ABtoSA(startCoords));
                 // Now, iterate over possible spaces that this tile can be moved to
@@ -788,7 +788,7 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMoves(PieceColor _color) {
                             )
                             || // else endCoords is within bounds. This means we can safely convert it to ABCoords, but that we also have to check the array to see if there is a tile there blocking it.
                             (
-                                m_grid[toIndex(SAtoAB(DMtoSA(endCoords)))] == INVALID && 
+                                m_grid[toIndex(SAtoAB(DMtoSA(endCoords)))] == VOID && 
                                 dmStartCoords != endCoords // just in case
                             )
                         ) {
@@ -830,7 +830,7 @@ StandardArray ArrayBoard::getSelection(const ABModCoords& _bl, const ABModCoords
         for (; coords.first != _tr.first+1; ++coords.first) {
             sa.m_array[i++] = m_grid[toIndex(coords)];
             if (_cut) {
-                m_grid[toIndex(coords)] = INVALID;
+                m_grid[toIndex(coords)] = VOID;
             }
         }
     }
@@ -880,7 +880,7 @@ void ArrayBoard::clearSelection(const ABModCoords& _bl, const ABModCoords& _tr) 
         coords.first = _bl.first; // reset each loop to start at beginning of the row
         // iterate over columns
         for (; coords.first != _tr.first+1; ++coords.first) {
-            m_grid[toIndex(coords)] = INVALID;
+            m_grid[toIndex(coords)] = VOID;
         }
     }
 }
@@ -890,7 +890,7 @@ ABModCoords ArrayBoard::nextTileByRowOrder(const ABModCoords& _start, bool _reve
     // tdout << "nextTiles search:" << current;
     int rankIncr = (_reverse? -1:1);
     int fileIncr = (_reverse? -1:1) * (_colReversed? -1:1);
-    while (m_grid[toIndex(current)] == INVALID) {
+    while (m_grid[toIndex(current)] == VOID) {
         // check if reached end of row. If positive fileIncr, end of row is m_grid_size-1, otherwise end of row is 0
         if (current.first.m_value == (fileIncr==1 ? m_grid_size-1 : 0)) { 
             current.second += rankIncr;
@@ -906,7 +906,7 @@ ABModCoords ArrayBoard::nextTileByColOrder(const ABModCoords& _start, bool _reve
     // tdout << "nextTiles search:" << current;
     int fileIncr = (_reverse? -1:1);
     int rankIncr = (_reverse? -1:1) * (_rowReversed? -1:1);
-    while (m_grid[toIndex(current)] == INVALID) {
+    while (m_grid[toIndex(current)] == VOID) {
         // check if reached end of column. If positive rankIncr, end of column is m_grid_size-1, otherwise end of column is 0
         if (current.second.m_value == (rankIncr==1 ? m_grid_size-1 : 0)) { 
             current.first += fileIncr;
@@ -952,7 +952,7 @@ bool ArrayBoard::isContiguous() const {
             }
             ABModCoords adjSpace = exploring + DIRECTION_SIGNS[dir];
             PieceEnum adjSpacePiece = m_grid[toIndex((adjSpace))];
-            if (adjSpacePiece != INVALID) {
+            if (adjSpacePiece != VOID) {
                 // tdout << "found adjacent " << coordsToAlgebraic(SAtoDM(ABtoSA(adjSpace)));
                 auto it = bfsMarkedTiles.find(adjSpace);
                 if (it == bfsMarkedTiles.end()) {

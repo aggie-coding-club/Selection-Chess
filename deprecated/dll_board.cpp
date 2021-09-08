@@ -134,7 +134,7 @@ void DLLBoard::init(const std::string _sfen) {
 
         PieceEnum thisTile = getPieceFromChar(c, ' '); // We look for empty as ' ' to ensure we never find empty this way, just in case.
         // dout << "This tile is piece #" << (int)thisTile << std::endl;
-        if (thisTile != INVALID) {
+        if (thisTile != VOID) {
             Tile* newTile = new Tile(thisTile, currentFR);
             updateExtrema(currentFR);
             newTile->SetAdjacent(LEFT, getTile(std::make_pair(currentFR.first - 1, currentFR.second), true));
@@ -416,11 +416,11 @@ bool DLLBoard::apply(std::shared_ptr<PieceMove> _move) {
 
     // Check this is valid
     if (startTile == nullptr || endTile == nullptr) {
-        // dout << "# INVALID MOVE, TILE MISSING " << _move->algebraic() << std::endl;
+        // dout << "# VOID MOVE, TILE MISSING " << _move->algebraic() << std::endl;
         return false;
     }
     if (endTile->m_contents != _move->m_capture) {
-        // dout << "# INVALID MOVE, CAPTURE MISMATCH " << _move->algebraic() << std::endl;
+        // dout << "# VOID MOVE, CAPTURE MISMATCH " << _move->algebraic() << std::endl;
         return false;
     }
     // Execute the move
@@ -440,11 +440,11 @@ bool DLLBoard::undo(std::shared_ptr<PieceMove> _move) {
 
     // Check this is valid
     if (startTile == nullptr || endTile == nullptr) {
-        // dout << "# INVALID UNDO, TILE MISSING " << _move->algebraic() << std::endl;
+        // dout << "# VOID UNDO, TILE MISSING " << _move->algebraic() << std::endl;
         return false;
     }
     if (startTile->m_contents != EMPTY) {
-        // dout << "# INVALID UNDO, MOVING FROM OCCUPIED SQUARE " << _move->algebraic() << std::endl;
+        // dout << "# VOID UNDO, MOVING FROM OCCUPIED SQUARE " << _move->algebraic() << std::endl;
         return false;
     }
     // Execute the undo
