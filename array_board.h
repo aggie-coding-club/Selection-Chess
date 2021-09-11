@@ -17,7 +17,7 @@ typedef std::pair<ABModInt, ABModInt> ABModCoords;
 
 class ArrayBoard : public Board {
     public:
-        PieceEnum* m_grid = nullptr;
+        SquareEnum* m_grid = nullptr;
         // max number of tiles the grid can contain, and also the length and height of the grid.
         size_t m_grid_size; 
 
@@ -31,8 +31,8 @@ class ArrayBoard : public Board {
         ABModCoords m_maxCoords;
         
         /** For looking up where pieces are at by their type and color. 
-         * Organized in same order as PieceEnum: 
-         *      since PieceEnum starts pieces on 1, the zero element of this is a placeholder.
+         * Organized in same order as SquareEnum: 
+         *      since SquareEnum starts pieces on 1, the zero element of this is a placeholder.
         */
         std::vector<ABModCoords> m_pieceLocations[2 * NUM_PIECE_TYPES+1];
 
@@ -48,7 +48,7 @@ class ArrayBoard : public Board {
          * Clears entire piece list
          */
         void resetPL() {
-            for (PieceEnum _piece = 0; _piece < 2 * NUM_PIECE_TYPES + 1; _piece++) { // loop for all lists
+            for (SquareEnum _piece = 0; _piece < 2 * NUM_PIECE_TYPES + 1; _piece++) { // loop for all lists
                 m_pieceLocations[_piece].clear();
             }
         }
@@ -57,26 +57,26 @@ class ArrayBoard : public Board {
          * Update the position oldLocation to be newLocation for type piece.
          * Returns false if it does not find such a piece to update.
          */
-        bool updatePieceInPL(PieceEnum _piece, ABModCoords _oldLocation, ABModCoords _newLocation);
+        bool updatePieceInPL(SquareEnum _piece, ABModCoords _oldLocation, ABModCoords _newLocation);
 
         /** 
          * Remove the piece at location for type piece.
          * Returns false if it does not find such a piece to remove.
          */
-        bool removePieceFromPL(PieceEnum _piece, ABModCoords _location);
+        bool removePieceFromPL(SquareEnum _piece, ABModCoords _location);
         /** 
          * Adds the piece at location for type piece.
          */
-        void addPieceToPL(PieceEnum _piece, ABModCoords _location) {
+        void addPieceToPL(SquareEnum _piece, ABModCoords _location) {
             m_pieceLocations[_piece].push_back(_location);
         }
 
         // public function for getting the piece
-        PieceEnum getPiece(DModCoords _coords) const {
+        SquareEnum getPiece(DModCoords _coords) const {
             return m_grid[toIndex(SAtoAB(DMtoSA(_coords)))];
         };
         // // public function for setting the piece
-        // void setPiece(DModCoords _coords, PieceEnum _piece) {
+        // void setPiece(DModCoords _coords, SquareEnum _piece) {
             
         // }
 
@@ -104,10 +104,10 @@ class ArrayBoard : public Board {
         std::string printPieces() {
             std::string result = "[";
             for (int i = 1; i < NUM_PIECE_TYPES*2+1; i++) {
-                result += PIECE_LETTERS[i];
+                result += TILE_LETTERS[i];
                 result += "=" + std::to_string(m_pieceLocations[i].size()) + "{";
                 for (ABModCoords& t : m_pieceLocations[i]) {
-                    result += PIECE_LETTERS[m_grid[toIndex(t)]];
+                    result += TILE_LETTERS[m_grid[toIndex(t)]];
                     result += " ";
                 }
                 result += "} ";

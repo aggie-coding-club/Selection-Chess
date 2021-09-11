@@ -42,7 +42,7 @@ class PieceMove : public Move {
     public:
         DModCoords m_startPos;
         DModCoords m_endPos;
-        PieceEnum m_capture;
+        SquareEnum m_capture;
 
         PieceMove (DModCoords _startPos, DModCoords _endPos) : PieceMove() { 
             m_startPos =_startPos;

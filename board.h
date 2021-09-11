@@ -24,7 +24,7 @@ class BoardPrintSettings {
 class StandardArray {
     public:
     Coords m_dimensions;
-    std::vector<PieceEnum> m_array;
+    std::vector<SquareEnum> m_array;
 
     StandardArray();
     // Creates a new empty array of size
@@ -80,7 +80,7 @@ class Board {
         /**
          * Returns the type of piece/tile at these _coords.
          */
-        virtual PieceEnum getPiece(DModCoords _coords) const = 0;
+        virtual SquareEnum getPiece(DModCoords _coords) const = 0;
 
         // /**
         //  * Attempt to move selection of tiles (_selectMinR, _selectMinF)-(_selectMaxR, _selectMaxF) to the new coords (_goalMinR, _goalMinF).

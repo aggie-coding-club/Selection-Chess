@@ -27,30 +27,30 @@ DirectionEnum flipDirection(DirectionEnum _dir) {
     }
 }
 
-char getCharFromPiece(PieceEnum _enumValue, char _empty, char _invalid) {
+char getCharFromSquare(SquareEnum _enumValue, char _empty, char _invalid) {
     if (_enumValue == EMPTY) {
         return _empty;
     }
     if (_enumValue == VOID) {
         return _invalid;
     }
-    return PIECE_LETTERS[_enumValue];
+    return TILE_LETTERS[_enumValue];
 }
 
-PieceEnum getPieceFromChar(char _char, char _empty) {
+SquareEnum getSquareFromChar(char _char, char _empty) {
     if (_char == _empty) {
         return EMPTY;
     }
-    std::size_t found = PIECE_LETTERS.find(_char);
+    std::size_t found = TILE_LETTERS.find(_char);
     if (found == std::string::npos) {
         return VOID;
     }
     return found;
 }
 
-std::string getUnicodeCharFromEnum(PieceEnum _enumValue, std::string _empty) {
+std::string getUnicodeCharFromSquare(SquareEnum _enumValue, std::string _empty) {
     // This could be put into constants.h?
-    std::map<PieceEnum, std::string> unicodePieceChars = {
+    std::map<SquareEnum, std::string> unicodePieceChars = {
         {EMPTY, _empty},
         {W_PAWN, "♙"},
         {B_PAWN, "♟︎"},

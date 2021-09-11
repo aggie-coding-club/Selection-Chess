@@ -54,9 +54,9 @@ void Ruleset::addPieceMoveOptions(RulesetTokenizer& _tokenizer, std::vector<std:
             updateMoveOptionProperties(_tokenizer, defaultMop);
 
         // Check this is a valid piece name
-        } else if (targetPiece.length() == 1 && isPiece(getPieceFromChar(targetPiece[0]))) {
-            PieceEnum pieceEnum = getPieceFromChar(toupper(targetPiece[0]));
-            // tdout << "got pieceEnum as [" << getCharFromPiece(pieceEnum) << "]" << std::endl;
+        } else if (targetPiece.length() == 1 && isPiece(getSquareFromChar(targetPiece[0]))) {
+            SquareEnum pieceEnum = getSquareFromChar(toupper(targetPiece[0]));
+            // tdout << "got pieceEnum as [" << getCharFromSquare(pieceEnum) << "]" << std::endl;
             // A black pieceEnum is always 1 more than its white counterpart
             auto& whitePmoList = _allPmoLists.at(pieceEnum);
             // tdout << "please don't be off by one" << std::endl;

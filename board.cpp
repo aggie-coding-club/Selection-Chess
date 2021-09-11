@@ -12,7 +12,7 @@ std::string Board::toSfen() {
     std::string sfen = ""; // returned result
 
     unsigned int numOfEmpty = 0;
-    unsigned int numOfInvalid = 0;
+    unsigned int numOfVoid = 0;
 
     // function to improve code readability
     auto endEmptySequence = [&]() {
@@ -21,10 +21,10 @@ std::string Board::toSfen() {
             numOfEmpty = 0;
         }
     };
-    auto endInvalidSequence = [&]() {
-        if (numOfInvalid != 0) {
-            sfen += "(" + std::to_string(numOfInvalid) + ")";
-            numOfInvalid = 0;
+    auto endVoidSequence = [&]() {
+        if (numOfVoid != 0) {
+            sfen += "(" + std::to_string(numOfVoid) + ")";
+            numOfVoid = 0;
         }
     };
 
@@ -33,23 +33,23 @@ std::string Board::toSfen() {
         // start of new line
         if (row != 0) { // check if this is not first iteration of loop, i.e. this is a line break
             endEmptySequence();
-            numOfInvalid = 0; // we can ignore trailing void spaces
+            numOfVoid = 0; // we can ignore trailing void squares
             sfen += "/";
         }
 
         // iterate over columns
         for (int col = 0; col < sa.m_dimensions.first; col++) { // for each element
-            PieceEnum thisPiece = sa.m_array[col + sa.m_dimensions.first*row];
-            if (thisPiece == VOID) {
+            SquareEnum thisSquare = sa.m_array[col + sa.m_dimensions.first*row];
+            if (thisSquare == VOID) {
                 endEmptySequence();
-                numOfInvalid++;
-            } else if (thisPiece == EMPTY) {
-                endInvalidSequence();
+                numOfVoid++;
+            } else if (thisSquare == EMPTY) {
+                endVoidSequence();
                 numOfEmpty++;
             } else { // is a piece
                 endEmptySequence();
-                endInvalidSequence();
-                sfen += PIECE_LETTERS[thisPiece];
+                endVoidSequence();
+                sfen += TILE_LETTERS[thisSquare];
             }
         }
     }
@@ -117,10 +117,10 @@ std::string Board::getAsciiBoard() {
             }
         }
         for (int col = 0; col < sa.m_dimensions.first; col++) { // for each element
-            PieceEnum thisPiece = sa.m_array[col + sa.m_dimensions.first*row];
+            SquareEnum thisSquare = sa.m_array[col + sa.m_dimensions.first*row];
             size_t lowerLine = activeLineNum + m_printSettings.m_height + 1;
 
-            if (thisPiece == VOID) { // print empty space where there is no tiles
+            if (thisSquare == VOID) { // print empty space where there is no tiles
                 for (int i = 1; i <= m_printSettings.m_height; i++) {
                     lines[activeLineNum + i] += (trailingEdge ? "" : " ") + h_fill_out;
                 }
@@ -132,7 +132,7 @@ std::string Board::getAsciiBoard() {
                 // Output our tile's bottom border and center.
                 for (int i = 1; i <= m_printSettings.m_height; i++) {
                     if (i == m_printSettings.m_height / 2 + 1) { // Is this the row which contains the piece
-                        lines[activeLineNum + i] += (trailingEdge ? "" : V_SEP) + h_pad_left + getCharFromPiece(thisPiece, m_printSettings.m_tileFillChar) + h_pad_right + V_SEP;
+                        lines[activeLineNum + i] += (trailingEdge ? "" : V_SEP) + h_pad_left + getCharFromSquare(thisSquare, m_printSettings.m_tileFillChar) + h_pad_right + V_SEP;
                     } else {
                         lines[activeLineNum + i] += (trailingEdge ? "" : V_SEP) + h_fill_in + V_SEP;
                     }
@@ -232,15 +232,15 @@ StandardArray::StandardArray(std::string _sfen) {
     // get other dimension by counting max length
     m_dimensions.first = 0;
     for (std::string& line : sfenLines) { // for each line
-        unsigned int spaceCount = 0; // how many spaces this line has
+        unsigned int squareCount = 0; // how many squares this line has //FIXME: make a parseFen function that takes all this crap as lambda, reducing code repeated.
         for (size_t i = 0; i < line.length() && line[i] != ' '; i++) {
             const char c = line[i];
-            if (c == '(') { // Space(s) have no tile(s)
+            if (c == '(') { // Void square(s)
                 int j;
                 // set j to be the next non-numeric character
                 for (j = i+1; isdigit(line[j]); j++);
                 // Get the next characters as integer
-                spaceCount += std::stoi(line.substr(i+1, j)); //i+1 to ignore '('
+                squareCount += std::stoi(line.substr(i+1, j)); //i+1 to ignore '('
                 // make sure that it has this closing paren
                 if (line[j] != ')') {
                     std::cerr << "Expected ')' after non tile sequence in SFen!" << std::endl;
@@ -249,21 +249,21 @@ StandardArray::StandardArray(std::string _sfen) {
                 // update i to to account for the number of additional characters we read in
                 i = j;
 
-            } else if (isdigit(c)) { // Spaces are empty tiles
+            } else if (isdigit(c)) { // empty tiles
                 int j;
                 // set j to be the next non-numeric character
                 for (j = i+1; isdigit(line[j]); j++);
                 // Get the next characters as integer
-                spaceCount += std::stoi(line.substr(i, j));
+                squareCount += std::stoi(line.substr(i, j));
                 // update i to to account for the number of additional characters we read in
                 i = j-1;
 
             } else {
                 // this is a tile with a piece on it
-                spaceCount++;
+                squareCount++;
             }
         }
-        m_dimensions.first = std::max(m_dimensions.first, spaceCount);
+        m_dimensions.first = std::max(m_dimensions.first, squareCount);
     }
     dlog("Found dimension of " , m_dimensions.first , ", " , m_dimensions.second);
     // allocate the array
@@ -277,20 +277,20 @@ StandardArray::StandardArray(std::string _sfen) {
 
         for (size_t i = 0; i < lineIt->length() && (*lineIt)[i] != ' '; i++) {
             const char c = (*lineIt)[i];
-            if (c == '(') { // Space(s) have no tile(s)
+            if (c == '(') { // void
                 int j;
                 // set j to be the next non-numeric character
                 for (j = i+1; isdigit((*lineIt)[j]); j++);
                 // Get the next characters as integer
-                unsigned int nonTileCount = std::stoi((*lineIt).substr(i+1, j)); //i+1 to ignore '('
-                currentIndex += nonTileCount;
-                // for (int ntci = 0; ntci < nonTileCount; ntci++) {
+                unsigned int voidCount = std::stoi((*lineIt).substr(i+1, j)); //i+1 to ignore '('
+                currentIndex += voidCount;
+                // for (int ntci = 0; ntci < voidCount; ntci++) {
                 //     m_array[currentIndex++] = VOID;
                 // }
                 // update i to to account for the number of additional characters we read in
                 i = j;
 
-            } else if (isdigit(c)) { // Spaces are empty tiles
+            } else if (isdigit(c)) { // empty tiles
                 int j;
                 // set j to be the next non-numeric character
                 for (j = i+1; isdigit((*lineIt)[j]); j++);
@@ -304,7 +304,7 @@ StandardArray::StandardArray(std::string _sfen) {
                 i = j-1;
 
             } else {
-                PieceEnum thisTile = getPieceFromChar(c, ' '); // We look for empty as ' ' to ensure we never find empty this way, just in case.
+                SquareEnum thisTile = getSquareFromChar(c, ' '); // We look for empty as ' ' to ensure we never find empty this way, just in case.
                 if (thisTile != VOID) {
                     m_array[currentIndex++] = thisTile;
                 } else {
@@ -313,7 +313,7 @@ StandardArray::StandardArray(std::string _sfen) {
                 }
             }
         }
-        // fill trailing non-tile spaces with void
+        // fill trailing non-tile squares with void
         for (; currentIndex % m_dimensions.first != 0; currentIndex++) {
             m_array[currentIndex++] = VOID;
         }
@@ -326,7 +326,7 @@ std::string StandardArray::dumpAsciiArray() {
     for (int row = 0; row < m_dimensions.second; row++) {
         result += "\n";
         for (int col = 0; col < m_dimensions.first; col++) {
-            result += getCharFromPiece(m_array[col + m_dimensions.first*row], '=', '.');
+            result += getCharFromSquare(m_array[col + m_dimensions.first*row], '=', '.');
         }
     }
     result += "\n]";

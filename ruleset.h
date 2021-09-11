@@ -37,7 +37,7 @@ class Ruleset {
         bool m_allowReflections = false;
 
         // Vectors of MoveOptions for each piece type. This is of size NUM_PIECE_TYPES_BY_COLOR + 1,
-        // and is indexed by PieceEnum (the +1 reserves m_pieceMoveOptionLists[EMPTY] as placeholder so indices are not off by 1.)
+        // and is indexed by SquareEnum (the +1 reserves m_pieceMoveOptionLists[EMPTY] as placeholder so indices are not off by 1.)
         // E.g. m_pieceMoveOptionLists[B_ROOK] returns vector of all PMOs for black rooks.
         std::vector<std::vector<std::unique_ptr<MoveOption>>> m_pieceMoveOptionLists;
         // TODO: maybe timing info can be put here too?

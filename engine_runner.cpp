@@ -166,7 +166,7 @@ CmdTokenizer* EngineRunner::getCommand() {
         if (!m_fromEngineStream || !std::getline(m_fromEngineStream, line)) {
             // break;
             edout << "engine died!" << std::endl;
-            throw EXCP_ENGINE_DIED;
+            throw CustomException::ENGINE_DIED;
         }
         if (line.empty()) {
             edout << "got empty line from engine" << std::endl;
