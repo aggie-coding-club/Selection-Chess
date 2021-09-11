@@ -71,9 +71,14 @@ class ArrayBoard : public Board {
             m_pieceLocations[_piece].push_back(_location);
         }
 
-        PieceEnum getPiece(DModCoords _coords) const { // TODO: replace other calls with this one, or vice versa
+        // public function for getting the piece
+        PieceEnum getPiece(DModCoords _coords) const {
             return m_grid[toIndex(SAtoAB(DMtoSA(_coords)))];
         };
+        // // public function for setting the piece
+        // void setPiece(DModCoords _coords, PieceEnum _piece) {
+            
+        // }
 
         bool apply(std::shared_ptr<Move> _move);
         bool apply(std::shared_ptr<PieceMove> _move);
@@ -138,19 +143,13 @@ class ArrayBoard : public Board {
         // Get the next coords at or after _start, sorted by column order. Assumes board has tiles
         ABModCoords nextTileByColOrder(const ABModCoords& _start, bool _reverse=false, bool _rowReversed=false) const;
 
-        // // 'Less than' comparators for comparing ABModCoords.
-        // bool compareFileInts(const ABModInt& _a, const ABModInt& _b) const {
-        //     return _a.lessThan(_b, m_minCoords.first);
-        // }
-        // bool compareRankInts(const ABModInt& _a, const ABModInt& _b) const {
-        //     return _a.lessThan(_b, m_minCoords.second);
-        // }
-        // Alternative version of above function
         inline bool compareFileCoords(const ABModCoords& _a, const ABModCoords& _b) const {
-            return _a.first.lessThan(_b.first, m_minCoords.first);
+            // effectively a < b
+            return _a.first.isBetween(m_minCoords.first, _b.first, true);
         }
         inline bool compareRankCoords(const ABModCoords& _a, const ABModCoords& _b) const {
-            return _a.second.lessThan(_b.second, m_minCoords.second);
+            // effectively a < b
+            return _a.second.isBetween(m_minCoords.second, _b.second, true);
         }
 
         // Copy the tiles from bottom left _bl to top right _tr into a standardarray. If _cut=true, remove the original copied section.

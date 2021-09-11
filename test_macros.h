@@ -1,8 +1,6 @@
 #ifndef TEST_MACROS_H
 #define TEST_MACROS_H
 
-// TODO: rename this file
-
 #include <iostream>
 #include <iomanip>
 

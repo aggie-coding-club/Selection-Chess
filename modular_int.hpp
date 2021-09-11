@@ -56,16 +56,23 @@ class ModularInt {
             return m_value != _other.m_value;
         }
 
-        // Compares which int is more to the left or down from another, based on where the wrap-around happens (namely, at _relZero)
-        // returns if this < _other
-        bool lessThan(ModularInt _other, ModularInt _relZero) const;
-        // Compares which int is more to the left or down from another, based on where the wrap-around happens (namely, at _relZero)
-        // returns if this <= _other
-        bool lessThanOrEqual(ModularInt _other, ModularInt _relZero) const;
-        // TODO: remove lessThan and lessThanOrEqual, now deprecated by the following
         // Return true if this is between _lower and _upper, inclusive;
+        // if _excludeUpper=true, then returns true if this is between [_lower, _upper) instead.
         // i.e. starting at _lower and traveling positive, you will hit this before you hit _upper.
-        bool isBetween(ModularInt _lower, ModularInt _upper) const;
+        // Edge cases: 
+        //      x.isBetween(x,x) = true       x.isBetween(x,x, true) = true 
+        //      y.isBetween(x,x) = false      y.isBetween(x,x, true) = true
+        //      y.isBetween(x, y) = true      y.isBetween(x, y, true) = false
+        bool isBetween(ModularInt _lower, ModularInt _upper, bool _excludeUpper=false) const;
+        // Compares which int is more to the left or down from another, based on where the wrap-around happens (namely, at _relZero)
+        // returns if this < _other.
+        // NOTE: Is the same as isBetween(_relZero, _other, true), except for the poorly defined half-closed interval [x, x),
+        // so try to use isBetween unless you need to handle that edge.
+        // Edge cases: 
+        //      x.lessThan(x,x) = false
+        //      y.lessThan(x,x) = false
+        //      y.lessThan(y,x) = false
+        bool lessThan(ModularInt _other, ModularInt _relZero) const;
 
         // Heuristic Less Than. Maybe better name would be 'shortSideLessThan' or 'noWrapLessThan'.
         // when _lhs and _rhs are close together, we can ignore the wrap-around and perform comparisons, i.e. less than.
@@ -130,21 +137,14 @@ inline ModularInt<modulus> operator-(ModularInt<modulus> _mi1, ModularInt<modulu
     return _mi1;
 }
 
-// Deprecated // TODO: remove
+template <unsigned int* modulus>
+inline bool ModularInt<modulus>::isBetween(ModularInt<modulus> _lower, ModularInt<modulus> _upper, bool _excludeUpper) const {
+    auto actualUpper = (_excludeUpper? _upper-1 : _upper); // since integers, [a,b) = [a, b-1]
+    return (*this - _lower).m_value <= (actualUpper - _lower).m_value;
+}
 template <unsigned int* modulus>
 inline bool ModularInt<modulus>::lessThan(ModularInt<modulus> _other, ModularInt<modulus> _relZero) const {
-    return (m_value - _relZero).m_value < (_other.m_value - _relZero).m_value;
-}
-// Deprecated // TODO: remove
-template <unsigned int* modulus>
-inline bool ModularInt<modulus>::lessThanOrEqual(ModularInt<modulus> _other, ModularInt<modulus> _relZero) const {
-    return (m_value - _relZero).m_value <= (_other.m_value - _relZero).m_value;
-}
-
-
-template <unsigned int* modulus>
-inline bool ModularInt<modulus>::isBetween(ModularInt<modulus> _lower, ModularInt<modulus> _upper) const {
-    return (m_value - _lower).m_value <= (_upper.m_value - _lower).m_value; // TODO: explain why I am converting to m_values then subtracting a modular? Is this a mistake?
+    return (*this - _relZero).m_value < (_other - _relZero).m_value;
 }
 
 template <unsigned int* modulus>

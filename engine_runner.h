@@ -19,10 +19,9 @@ namespace asio = boost::asio;
 class EngineRunner : public PlayerRunner {
     protected:
         // Send commands to the engine's std::cin using this
-        bp::opstream m_engineInputStream;
-        boost::asio::io_service m_ios; // TODO: remove?
-        // Recieve commands/info from the engine's std::cout using this // TODO: rename?
-        bp::ipstream m_pipeStream;
+        bp::opstream m_toEngineStream;
+        // Recieve commands/info from the engine's std::cout using this
+        bp::ipstream m_fromEngineStream;
         std::queue<std::string> m_cmdQueue;
         std::string m_enginePath;
 

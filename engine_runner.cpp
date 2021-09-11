@@ -3,12 +3,12 @@
 
 #include <iostream>
 
-#define edout std::cout << "[" << m_name << "] " //FIXME:
+#define edout std::cout << "[" << m_name << "] " //TODO: consider replacing with something similar to dlog.
 
 // TODO: idk if these macros are too ugly, maybe there is a cleaner solution
-#define parseIntSanity int value; if (!parseAsInt(featureValue, value)) { m_engineInputStream << "rejected " << featureName << " " << featureValue << std::endl; continue; }
-#define parseBoolSanity bool value; if (!parseAsBool(featureValue, value)) { m_engineInputStream << "rejected " << featureName << " " << featureValue << std::endl; continue; }
-#define parseStringSanity std::string value; if (!parseAsQuoted(featureValue, value)) { m_engineInputStream << "rejected " << featureName << " " << featureValue << std::endl; continue; }
+#define parseIntSanity int value; if (!parseAsInt(featureValue, value)) { m_toEngineStream << "rejected " << featureName << " " << featureValue << std::endl; continue; }
+#define parseBoolSanity bool value; if (!parseAsBool(featureValue, value)) { m_toEngineStream << "rejected " << featureName << " " << featureValue << std::endl; continue; }
+#define parseStringSanity std::string value; if (!parseAsQuoted(featureValue, value)) { m_toEngineStream << "rejected " << featureName << " " << featureValue << std::endl; continue; }
 
 
 // functions to parse command-line values. Return false if it is the wrong type.
@@ -55,20 +55,20 @@ bool EngineRunner::init() {
     // Set the name like this until the engine can tell us its name
     m_name = m_enginePath;
     edout << "Creating boost child process..." << std::endl;
-    bp::child c(m_enginePath, bp::std_in < m_engineInputStream, bp::std_out > m_pipeStream);
+    bp::child c(m_enginePath, bp::std_in < m_toEngineStream, bp::std_out > m_fromEngineStream);
     m_alive = true;
 
     std::vector<char> m_engineOutputBuffer(4096);
 
     // bp::child c(m_enginePath,
-    //     bp::std_in < m_engineInputStream,
+    //     bp::std_in < m_toEngineStream,
     //     bp::std_out > asio::buffer(m_engineOutputBuffer), 
     //     m_ios);
 
     // We are using xboard protocol
     // processCommands("", true); // Can't do this without io timeouts
-    m_engineInputStream << "xboard" << std::endl;
-    m_engineInputStream << "protover 2" << std::endl;
+    m_toEngineStream << "xboard" << std::endl;
+    m_toEngineStream << "protover 2" << std::endl;
 
     // ----------- Feature parsing ----------- //
     // TODO: listen for 'feature' commands for 2 seconds.
@@ -95,7 +95,7 @@ bool EngineRunner::init() {
             edout << "got featureValue:" << featureValue << std::endl;
             if (featureName == "done") {
                 parseIntSanity // sanitizes featureValue to value & handles errors
-                m_engineInputStream << "accepted " << featureName << std::endl;
+                m_toEngineStream << "accepted " << featureName << std::endl;
                 if (value == 1) { // Done with sending features
                     done = true;
                     break;
@@ -105,28 +105,28 @@ bool EngineRunner::init() {
                 }
             } else if (featureName == "debug") {
                 parseBoolSanity
-                m_engineInputStream << "accepted " << featureName << std::endl;
+                m_toEngineStream << "accepted " << featureName << std::endl;
             } else if (featureName == "myname") {
                 parseStringSanity
                 m_name = value;
-                m_engineInputStream << "accepted " << featureName << std::endl;
+                m_toEngineStream << "accepted " << featureName << std::endl;
             } else {
-                m_engineInputStream << "rejected " << featureName << std::endl;
+                m_toEngineStream << "rejected " << featureName << std::endl;
             } //TODO: add all features
             edout << "done analyzing feature: " << featureName << "." << std::endl;
         }
     }
 
-    m_engineInputStream << "new" << std::endl;
+    m_toEngineStream << "new" << std::endl;
     // TODO: check engine actually can play selchess, return false otherwise.
-    m_engineInputStream << "variant selchess" << std::endl;
+    m_toEngineStream << "variant selchess" << std::endl;
     edout << "Done initializing" << std::endl;
     return true;
 }
 
 
 void EngineRunner::quit() {
-        m_engineInputStream << "quit" << std::endl;
+        m_toEngineStream << "quit" << std::endl;
         // m_ios.run(); // blocking
 
         // std::cout << "Read buffer as: [";
@@ -142,7 +142,7 @@ void EngineRunner::quit() {
 
 std::unique_ptr<Move> EngineRunner::getMove() {
     edout << "getMove" << std::endl;
-    m_engineInputStream << "go" << std::endl;
+    m_toEngineStream << "go" << std::endl;
     CmdTokenizer* cmd = processCommands("move");
     cmd->next(); // pop 'move'
     std::string moveString = cmd->next();
@@ -150,7 +150,7 @@ std::unique_ptr<Move> EngineRunner::getMove() {
 }
 
 bool EngineRunner::setMove(std::shared_ptr<Move>& _move) {
-    m_engineInputStream << _move << std::endl;
+    m_toEngineStream << _move << std::endl;
     return true;
 }
 
@@ -163,7 +163,7 @@ CmdTokenizer* EngineRunner::getCommand() {
     std::string line;
     for (;;) {
         edout << "getting line..." << std::endl;
-        if (!m_pipeStream || !std::getline(m_pipeStream, line)) {
+        if (!m_fromEngineStream || !std::getline(m_fromEngineStream, line)) {
             // break;
             edout << "engine died!" << std::endl;
             throw EXCP_ENGINE_DIED;
@@ -211,6 +211,6 @@ void EngineRunner::run() {
 
 bool EngineRunner::setBoard(std::string _fen) {
 
-    m_engineInputStream << "setboard " << _fen << std::endl;
+    m_toEngineStream << "setboard " << _fen << std::endl;
     return true;
 }

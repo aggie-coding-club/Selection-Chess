@@ -4,17 +4,8 @@
 #include <string>
 #include <vector>
 
-#define STARTING_MATERIAL 0 //FIXME: make constant type
-
 typedef std::pair<unsigned int, unsigned int> Coords;
 typedef std::pair<int, int> SignedCoords;
-
-// enable negation on signedCoords. //TODO: move elsewhere?
-inline SignedCoords operator-(SignedCoords _c) {
-    _c.first = -_c.first;
-    _c.second = -_c.second;
-    return _c;
-}
 
 typedef int CustomException;
 enum : CustomException {EXCP_ENGINE_DIED=101};
@@ -65,7 +56,7 @@ const int NUM_PIECE_TYPES = 6;
 static const PieceEnum BLACK_PIECES[NUM_PIECE_TYPES] = {B_PAWN, B_ROOK, B_KNIGHT, B_BISHOP, B_QUEEN, B_KING};
 static const PieceEnum WHITE_PIECES[NUM_PIECE_TYPES] = {W_PAWN, W_ROOK, W_KNIGHT, W_BISHOP, W_QUEEN, W_KING};
 
-// piece value list: //FIXME: this is very limited way to look at piece value
+// piece value list: //TODO: this is very limited way to look at piece value
 // used as follows: PIECE_VALUES[W_PAWN], for example
 const short PIECE_VALUES[] = {0, 100, -100, 500, -500, 300, -300, 300, -300, 900, -900, 10000, -10000};
 

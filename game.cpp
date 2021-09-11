@@ -49,10 +49,9 @@ bool Game::undoMove(size_t _numMoves) {
     for (; _numMoves > 0; _numMoves--) {
         std::shared_ptr<Move> undone = m_moveHistory.top();
         if (!m_board->undo(undone)) {
-            return false; // TODO: idk if I need to delete 'undone' here or not
+            return false;
         }
         m_moveHistory.pop();
-        // delete undone; // TODO: not sure if we should delete this here? Yeah we probably should use smart pointers
         m_turn = -m_turn;
         // TODO: how do we restore moveSinceLastCapture?
     }

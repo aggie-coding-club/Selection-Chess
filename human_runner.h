@@ -6,7 +6,6 @@
 #include "constants.h"
 
 #include <cstdint>
-#include <stack> // TODO: remove?
 #include <queue>
 
 class HumanRunner : public PlayerRunner {

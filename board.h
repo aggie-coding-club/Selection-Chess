@@ -31,7 +31,6 @@ class StandardArray {
     StandardArray(Coords _size);
     // Creates new array from sfen
     StandardArray(std::string _sfen);
-    ~StandardArray();
 
     // Just print the entire contents of the array as-is.
     // For debugging purposes only.
@@ -46,11 +45,6 @@ class Board {
 
         // Resets board from SFEN.
         virtual void init(const std::string _sfen) = 0;
-        // virtual Board(const std::string _sfen) = 0;
-        // minimum x and y of this board. Because of wrap-around, the literal min integer value is not 
-        // guaranteed to be the furtherest "left" or "down".
-        Coords m_minCoords; // TODO: consider removing this? This seems too implementation specific now...
-        Coords m_maxCoords;
 
         // Which displayCoords map to standardArray's (0, 0)
         // Usually, should update whenever minCoords update.
@@ -81,12 +75,10 @@ class Board {
         /**
          * Gets the size of the minimum rectangle needed to surround this board in its current configuration.
          */
-        virtual Coords getDimensions() const {
-            return std::make_pair(m_maxCoords.first - m_minCoords.first + 1, m_maxCoords.second - m_minCoords.second + 1);
-        };
+        virtual Coords getDimensions() const = 0;
 
         /**
-         * Gets the piece at the rank and file displayed.
+         * Returns the type of piece/tile at these _coords.
          */
         virtual PieceEnum getPiece(DModCoords _coords) const = 0;
 

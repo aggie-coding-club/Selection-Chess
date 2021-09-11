@@ -71,7 +71,7 @@ void ArrayBoard::init(const std::string _sfen) {
             // set j to be the next non-numeric character
             for (j = i+1; isdigit(_sfen[j]); j++);
             // Get the next characters as integer
-            int num_empty_tiles = std::stoi(_sfen.substr(i, j));
+            int num_empty_tiles = std::stoi(_sfen.substr(i, j-i));
             // update i to to account for the number of additional characters we read in
             i = j-1;
             m_numTiles += num_empty_tiles;
@@ -129,8 +129,7 @@ void ArrayBoard::init(const std::string _sfen) {
             // If it is the edge case where there is no numbers, i.e. "()", we can skip this part
             if (j != i+1) {
                 // Get the next characters as integer
-                // FIXME: I've been using .substr wrong, need to go and change all occurences.
-                int num_no_tiles = std::stoi(_sfen.substr(i+1, j)); //i+1 to ignore '('
+                int num_no_tiles = std::stoi(_sfen.substr(i+1, j-(i+1))); //i+1 to ignore '('
                 currentFR.first += num_no_tiles;
             }
             // update i to to account for the number of additional characters we read in
@@ -142,7 +141,7 @@ void ArrayBoard::init(const std::string _sfen) {
             // set j to be the next non-numeric character
             for (j = i+1; isdigit(_sfen[j]); j++);
             // Get the next characters as integer
-            int num_empty_tiles = std::stoi(_sfen.substr(i, j));
+            int num_empty_tiles = std::stoi(_sfen.substr(i, j-i));
             // update i to to account for the number of additional characters we read in
             i = j-1;
 
@@ -443,7 +442,7 @@ bool ArrayBoard::undo(std::shared_ptr<TileDeletion> _move) {
         DModCoords dModMin = SAtoDM(ABtoSA(m_minCoords)); //TODO: clean up this function's code
         DModCoords dModMax = SAtoDM(ABtoSA(m_maxCoords));
         // .first
-        if (!dModAddition.first.lessThanOrEqual(dModMax.first, dModMin.first)) { // check if this is outside of our current bounds
+        if (!dModAddition.first.isBetween(dModMin.first, dModMax.first)) { // check if this is outside of our current bounds
             unsigned int distToMin = (dModMin.first - dModAddition.first).m_value;
             unsigned int distToMax = (dModAddition.first - dModMax.first).m_value;
             if (distToMin < distToMax) {
@@ -454,7 +453,7 @@ bool ArrayBoard::undo(std::shared_ptr<TileDeletion> _move) {
             }
         }
         // .second
-        if (!dModAddition.second.lessThanOrEqual(dModMax.second, dModMin.second)) { // check if this is outside of our current bounds
+        if (!dModAddition.second.isBetween(dModMin.second, dModMax.second)) { // check if this is outside of our current bounds
             unsigned int distToMin = (dModMin.second - dModAddition.second).m_value;
             unsigned int distToMax = (dModAddition.second - dModMax.second).m_value;
             if (distToMin < distToMax) {
@@ -611,8 +610,7 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMovesFromMO(ABModCoords& _piec
     // tdout << "getMovesFrom Leaping MO called" << std::endl;
     ABModCoords& startCoords = _pieceCoords;
     std::vector<std::unique_ptr<Move>> moves;
-    DirectionEnum fwdLoopStartCond = LEFT;
-    DirectionEnum fwdLoopEndCond = DOWN;
+
 
     if (_mo.m_properties.m_forwardOnly) {
         dlog("UNIMPLEMENTED FEATURE: forwardOnly" , WHERE);
@@ -621,7 +619,7 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMovesFromMO(ABModCoords& _piec
         dlog("UNIMPLEMENTED FEATURE: flyOverX=false" , WHERE);
     }
 
-    for (DirectionEnum direction = fwdLoopStartCond; direction <= fwdLoopEndCond; ++direction) { // iterate over 4 directions
+    for (DirectionEnum direction : ORTHO_DIRECTIONS) { // iterate over 4 directions
         // tdout << "checking in direction " << getCharFromDirection(direction) << std::endl;
         DirectionEnum bwdLoopStartCond;
         DirectionEnum bwdLoopEndCond;
@@ -633,6 +631,7 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMovesFromMO(ABModCoords& _piec
             bwdLoopStartCond = LEFT;
             bwdLoopEndCond = RIGHT;
         }
+        // KLUDGE: weird way of iterating the two `perDirections` perpendicular to `direction`.
         for (DirectionEnum perpDirection = bwdLoopStartCond; perpDirection <= bwdLoopEndCond; ++perpDirection) {
             SignedCoords leapAmount = (DIRECTION_SIGNS[direction] * _mo.m_forwardDist) + (DIRECTION_SIGNS[perpDirection] * _mo.m_sideDist);
             ABModCoords endCoords = startCoords + leapAmount;
@@ -677,14 +676,13 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMovesFromMO(ABModCoords& _piec
     // tdout << "getMovesFrom Sliding MO called" << std::endl;
     ABModCoords& startCoords = _pieceCoords;
     std::vector<std::unique_ptr<Move>> moves;
-    DirectionEnum loopStartCond = _mo.m_isDiagonal ? DOWN_LEFT : LEFT;
-    DirectionEnum loopEndCond = _mo.m_isDiagonal ? UP_LEFT : DOWN;
+    auto& loopDirections = (_mo.m_isDiagonal ? DIAG_DIRECTIONS : ORTHO_DIRECTIONS);
 
     if (_mo.m_properties.m_forwardOnly) {
         dlog("UNIMPLEMENTED FEATURE: forwardOnly" , WHERE);
     }
 
-    for (DirectionEnum direction = loopStartCond; direction <= loopEndCond; ++direction) { // iterate over 4 directions
+    for (DirectionEnum direction : loopDirections) { // iterate over 4 directions
         // tdout << "checking in direction " << getCharFromDirection(direction) << std::endl;
         ABModCoords endCoords = startCoords;
         for (int slideRemaining = _mo.m_maxDist; slideRemaining != 0; --slideRemaining) { // Loop until we can't slide any further. Note != is used instead of > to ensure -1 loops forever
@@ -783,7 +781,7 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMoves(PieceColor _color) {
                         if (
                             // If endCoords is out of bounds, this is a valid move, but it is not safe to do conversions since m_minCoords affects conversion.
                             (
-                                !endCoords.first.isBetween(dmMinCoords.first, dmMaxCoords.first) || //FIXME: rename function to 'withinBounds(lower, upper)' or smth
+                                !endCoords.first.isBetween(dmMinCoords.first, dmMaxCoords.first) ||
                                 !endCoords.second.isBetween(dmMinCoords.second, dmMaxCoords.second)
                             )
                             || // else endCoords is within bounds. This means we can safely convert it to ABCoords, but that we also have to check the array to see if there is a tile there blocking it.
@@ -792,18 +790,8 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMoves(PieceColor _color) {
                                 dmStartCoords != endCoords // just in case
                             )
                         ) {
-                            // tdout << "first LEQ " << !endCoords.first.isBetween(dmMinCoords.first, dmMaxCoords.first) <<
-                            // " second LEQ " << !endCoords.second.isBetween(dmMinCoords.second, dmMaxCoords.second) << 
-                            // " for move S-" << coordsToAlgebraic(dmStartCoords) << coordsToAlgebraic(endCoords)  << std::endl;
-                            // //FIXME: disgusting hack, we shouldn't have to apply/undo twice.
-                            // std::shared_ptr<Move> newMove (new TileMove(dmStartCoords, dmStartCoords, endCoords));
-                            // apply(newMove);
-                            // if(isContiguous()) {
-                            //     // WARNING: gross overshadowing of newMove
-                                std::unique_ptr<Move> newMove (new TileMove(dmStartCoords, dmStartCoords, endCoords));
-                                legalMoves.push_back(std::move(newMove));
-                            // }
-                            // undo(newMove);
+                            std::unique_ptr<Move> newMove (new TileMove(dmStartCoords, dmStartCoords, endCoords));
+                            legalMoves.push_back(std::move(newMove));
                         }
                     }
                 }

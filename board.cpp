@@ -321,12 +321,6 @@ StandardArray::StandardArray(std::string _sfen) {
     }
 }
 
-StandardArray::~StandardArray() {
-    //TODO: remove this if we are jsut using std::vector now
-    // delete[] m_array;
-    // m_array = nullptr; // just in case
-}
-
 std::string StandardArray::dumpAsciiArray() {
     std::string result = "[";
     for (int row = 0; row < m_dimensions.second; row++) {
