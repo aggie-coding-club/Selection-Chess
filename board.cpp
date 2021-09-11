@@ -344,3 +344,123 @@ Coords Board::DMtoSA(DModCoords _dMod) const {
     _dMod.second -= m_displayCoordsZero.second;
     return std::make_pair(_dMod.first.m_value, _dMod.second.m_value);
 }
+
+std::vector<std::unique_ptr<Move>> Board::getMovesFromMO(DModCoords& _pieceCoords, const MoveOption& _mo) {
+    switch (_mo.m_type) {
+    case LEAP_MO_TYPE:
+        return getMovesFromMO(_pieceCoords, dynamic_cast<const LeapMoveOption&>(_mo));
+    case SLIDE_MO_TYPE:
+        return getMovesFromMO(_pieceCoords, dynamic_cast<const SlideMoveOption&>(_mo));
+    default:
+        dlog("Unknown MoveOption Type [" , _mo.m_type , "]\n" , WHERE);
+        return std::vector<std::unique_ptr<Move>>();
+    }
+}
+
+std::vector<std::unique_ptr<Move>> Board::getMovesFromMO(DModCoords& _pieceCoords, const LeapMoveOption& _mo) {
+    // dlog("getMovesFrom Leaping MO called", std::endl;
+    DModCoords startCoords = _pieceCoords;
+    std::vector<std::unique_ptr<Move>> moves;
+
+
+    if (_mo.m_properties.m_forwardOnly) {
+        dlog("UNIMPLEMENTED FEATURE: forwardOnly" , WHERE);
+    }
+    if (!_mo.m_properties.m_flyOverGaps || !_mo.m_properties.m_flyOverPieces) {
+        dlog("UNIMPLEMENTED FEATURE: flyOverX=false" , WHERE);
+    }
+
+    for (DirectionEnum direction : ORTHO_DIRECTIONS) { // iterate over 4 directions
+        // dlog("checking in direction ", getCharFromDirection(direction), std::endl;
+        DirectionEnum bwdLoopStartCond;
+        DirectionEnum bwdLoopEndCond;
+        // Get perpendicular directions
+        if (direction == LEFT || direction == RIGHT) {
+            bwdLoopStartCond = UP;
+            bwdLoopEndCond = DOWN;
+        } else {
+            bwdLoopStartCond = LEFT;
+            bwdLoopEndCond = RIGHT;
+        }
+        // KLUDGE: weird way of iterating the two `perDirections` perpendicular to `direction`.
+        for (DirectionEnum perpDirection = bwdLoopStartCond; perpDirection <= bwdLoopEndCond; ++perpDirection) {
+            SignedCoords leapAmount = (DIRECTION_SIGNS[direction] * _mo.m_forwardDist) + (DIRECTION_SIGNS[perpDirection] * _mo.m_sideDist);
+            DModCoords endCoords = startCoords + leapAmount;
+
+            // check if void
+            if (getPiece(endCoords) == VOID) {
+                // Do nothing
+
+            // check if empty
+            } else if (getPiece(endCoords) == EMPTY) {
+                if (_mo.m_properties.m_captureMode != CAPTURE_ONLY) {
+                    // dlog("found valid moved", std::endl;
+                    std::unique_ptr<PieceMove> newMove (new PieceMove(startCoords, endCoords));
+                    moves.push_back(std::move(newMove));
+                } // TODO: this smells like repeated code...
+
+            // check if capture
+            } else if (isPiece(getPiece(endCoords))) { // Are we moving onto another piece
+                if (isWhite(getPiece(startCoords)) != isWhite(getPiece(endCoords))) { // Is this an enemy piece
+                    if (_mo.m_properties.m_captureMode != MOVE_ONLY) {
+                        // dlog("found valid capture", std::endl;
+                        std::unique_ptr<PieceMove> newMove (new PieceMove(startCoords, endCoords));
+                        newMove->m_capture = getPiece(endCoords);
+                        moves.push_back(std::move(newMove));
+                    }
+                }
+            }
+        }
+    }
+    return std::move(moves);
+}
+
+// Returns list of moves that the piece at _pieceCoords can make using this MoveOption on the current _board.
+std::vector<std::unique_ptr<Move>> Board::getMovesFromMO(DModCoords& _pieceCoords, const SlideMoveOption& _mo) {
+    // dlog("getMovesFrom Sliding MO called", std::endl;
+    DModCoords startCoords = _pieceCoords;
+    std::vector<std::unique_ptr<Move>> moves;
+    auto& loopDirections = (_mo.m_isDiagonal ? DIAG_DIRECTIONS : ORTHO_DIRECTIONS);
+
+    if (_mo.m_properties.m_forwardOnly) {
+        dlog("UNIMPLEMENTED FEATURE: forwardOnly" , WHERE);
+    }
+
+    for (DirectionEnum direction : loopDirections) { // iterate over 4 directions
+        // dlog("checking in direction ", getCharFromDirection(direction), std::endl;
+        DModCoords endCoords = startCoords;
+        for (int slideRemaining = _mo.m_maxDist; slideRemaining != 0; --slideRemaining) { // Loop until we can't slide any further. Note != is used instead of > to ensure -1 loops forever
+            endCoords += DIRECTION_SIGNS[direction];
+
+            // check if void
+            if (getPiece(endCoords) == VOID) {
+                if (!_mo.m_properties.m_flyOverGaps) {
+                    break; // stop searching in this direction
+                }
+            // check if empty
+            } else if (getPiece(endCoords) == EMPTY) {
+                if (_mo.m_properties.m_captureMode != CAPTURE_ONLY) {
+                    // dlog("found valid moved", std::endl;
+                    std::unique_ptr<PieceMove> newMove (new PieceMove(startCoords, endCoords));
+                    moves.push_back(std::move(newMove));
+                }
+
+            // check if capture
+            } else if (isPiece(getPiece(endCoords))) { // Are we moving onto another piece
+                if (isWhite(getPiece(startCoords)) != isWhite(getPiece(endCoords))) { // Is this an enemy piece
+                    if (_mo.m_properties.m_captureMode != MOVE_ONLY) {
+                        // dlog("found valid capture", std::endl;
+                        std::unique_ptr<PieceMove> newMove (new PieceMove(startCoords, endCoords));
+                        newMove->m_capture = getPiece(endCoords);
+                        moves.push_back(std::move(newMove));
+                    }
+                }
+                if (!_mo.m_properties.m_flyOverPieces) {
+                    break; // stop searching this direction
+                }
+            }
+        }
+    }
+    return std::move(moves);
+}
+

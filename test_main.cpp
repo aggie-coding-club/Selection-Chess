@@ -336,18 +336,6 @@ int main() {
         ));
     });
 
-    // TEST("PieceMove generation", {
-    //     // TODO: implement tests, using different rulesets, etc.
-    //     game.reset("P2R(2)p/1p3NB/BQp1/(3)1p w 0 1"); // simple case to play with
-    //     std::cout << game.print() << std::endl;
-
-    //     std::cout << "Possible moves: [" << std::flush;
-    //     auto moves = game.m_board->getMoves(game.m_turn);
-    //     for (auto &move : moves) {
-    //         std::cout << move->algebraic() << ", ";
-    //     }
-    //     std::cout << "\b\b] \b" << std::endl;
-    // });
     TEST("Continuity Checker", {
         // CAUTION: overshadowing of game variable!
         // Game game = Game("2 w 0 1", "testing/tileMove1.rules");
@@ -471,6 +459,19 @@ int main() {
     // result = negamaxAB(&game, 8);
     // std::cout << "At depth 8, negmaxAB found score is " << result.first << " and best move is " << result.second->algebraic() << std::endl;
     // negaHistory = "";
+
+
+    TEST("PieceMove generation", {
+        // TODO: implement tests, using different rulesets, etc.
+        Game game ("P2R(2)p/1p3NB/BQp1/(3)1p w 0 1", "testing/piecesOnly.rules"); // simple case to play with
+        std::cout << game.print() << std::endl;
+        std::cout << "Possible moves: [" << std::flush;
+        auto moves = game.m_board->getMoves(game.m_turn);
+        for (auto &move : moves) {
+            std::cout << move->algebraic() << ", ";
+        }
+        std::cout << "\b\b] \b" << std::endl;
+    });
 
     std::cout << game.print() << std::endl;
     std::cout << "Done testing," << std::endl;

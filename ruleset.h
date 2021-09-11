@@ -31,6 +31,8 @@ class Ruleset {
         Ruleset(std::string _ruleFile="default.rules"); // FIXME: weird hardcoding
         // How many tiles can be deleted using TileDeletion in a single move
         int m_numDeletionsPerTurn = 1;
+        // Disable tileMove
+        bool m_allowTileMoves = true;
         // Allow TileMoves to rotate the moved piece
         bool m_allowRotations = false;
         // Allow TileMoves to mirror the moved piece

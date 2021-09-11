@@ -125,6 +125,9 @@ bool Ruleset::init(std::string _ruleFile) {
         if (ruleName == "numDeletionsPerTurn") {
             match(tokenizer.next(), "=");
             m_numDeletionsPerTurn = tokenizer.nextInt();
+        } else if (ruleName == "allowTileMoves") {
+            match(tokenizer.next(), "=");
+            m_allowTileMoves = tokenizer.nextBool();
         } else if (ruleName == "allowRotations") {
             match(tokenizer.next(), "=");
             m_allowRotations = tokenizer.nextBool();

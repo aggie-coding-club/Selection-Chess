@@ -75,10 +75,6 @@ class ArrayBoard : public Board {
         SquareEnum getPiece(DModCoords _coords) const {
             return m_grid[toIndex(SAtoAB(DMtoSA(_coords)))];
         };
-        // // public function for setting the piece
-        // void setPiece(DModCoords _coords, SquareEnum _piece) {
-            
-        // }
 
         bool apply(std::shared_ptr<Move> _move);
         bool apply(std::shared_ptr<PieceMove> _move);
@@ -163,17 +159,10 @@ class ArrayBoard : public Board {
         void paste(const StandardArray& _sa, const ABModCoords& _bl);
 
         // TODO: Do these MO functions generalize well enough to be moved into board.h?
-
         // Checks if the move could have been generated from current MoveOption
         bool moveIsFromMO(std::shared_ptr<Move> _move, const MoveOption& _mo);
         bool moveIsFromMO(std::shared_ptr<Move> _move, const LeapMoveOption& _mo);
         bool moveIsFromMO(std::shared_ptr<Move> _move, const SlideMoveOption& _mo);
-        // Returns list of moves that the piece at _pieceCoords can make using this MoveOption on the current _board.
-        std::vector<std::unique_ptr<Move>> getMovesFromMO(ABModCoords& _pieceCoords, const MoveOption& _mo);
-        std::vector<std::unique_ptr<Move>> getMovesFromMO(ABModCoords& _pieceCoords, const LeapMoveOption& _mo);
-        std::vector<std::unique_ptr<Move>> getMovesFromMO(ABModCoords& _pieceCoords, const SlideMoveOption& _mo);
-
-
 };
 
 inline ABModCoords& operator+=(ABModCoords& _mc1, const SignedCoords& _diff) {
