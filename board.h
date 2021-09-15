@@ -117,9 +117,9 @@ class Board {
         virtual std::vector<std::unique_ptr<Move>> getMoves(PieceColor _color) = 0;
 
         // Returns list of moves that the piece at _pieceCoords can make using this MoveOption on the current _board.
-        virtual std::vector<std::unique_ptr<Move>> getMovesFromMO(DModCoords& _pieceCoords, const MoveOption& _mo);
-        virtual std::vector<std::unique_ptr<Move>> getMovesFromMO(DModCoords& _pieceCoords, const LeapMoveOption& _mo);
-        virtual std::vector<std::unique_ptr<Move>> getMovesFromMO(DModCoords& _pieceCoords, const SlideMoveOption& _mo);
+        virtual std::vector<std::unique_ptr<Move>> getMovesFromMO(DModCoords _pieceCoords, const MoveOption& _mo);
+        virtual std::vector<std::unique_ptr<Move>> getMovesFromMO(DModCoords _pieceCoords, const LeapMoveOption& _mo);
+        virtual std::vector<std::unique_ptr<Move>> getMovesFromMO(DModCoords _pieceCoords, const SlideMoveOption& _mo);
 
         // Gets the standard array of this board. This is the smallest sized array (namely, size getDimensions())
         // that contains all pieces. Indexed by (file + rank*getDimensions().first). Used for printing, hashing, etc.

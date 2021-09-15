@@ -50,7 +50,7 @@ class EngineRunner : public PlayerRunner {
         // fills m_cmdQueue as input comes in
         void run();
 
-        bool setBoard(std::string _fen);
+        bool setBoard(std::string _sfen);
 
 };
 

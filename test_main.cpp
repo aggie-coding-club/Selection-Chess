@@ -58,12 +58,12 @@ int main() {
         StandardArray sa ("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
         // std::cout << sa.dumpAsciiArray() << std::endl;
         // TODO: low priority: idk, i feel like something may be flipped?
-        REQ_CASE("fenn ctor dim", sa.m_dimensions == Coords(18, 8));
-        REQ_CASE("fenn ctor 0,0", sa.m_array[0] == W_ROOK);
-        REQ_CASE("fenn ctor r/f ~swap", sa.m_array[7] == W_ROOK); // make sure we haven't flipped rank/file
-        OPT_CASE("fenn ctor col order", sa.m_array[3] == W_QUEEN); // make sure we haven't reversed column order
-        OPT_CASE("fenn ctor invld fill", sa.m_array[9] == VOID); // check padding is there
-        REQ_CASE("fenn ctor 1Darr wrap", sa.m_array[18*7] == B_ROOK); // check wrap matches dimension given
+        REQ_CASE("sfen ctor dim", sa.m_dimensions == Coords(18, 8));
+        REQ_CASE("sfen ctor 0,0", sa.m_array[0] == W_ROOK);
+        REQ_CASE("sfen ctor r/f ~swap", sa.m_array[7] == W_ROOK); // make sure we haven't flipped rank/file
+        OPT_CASE("sfen ctor col order", sa.m_array[3] == W_QUEEN); // make sure we haven't reversed column order
+        OPT_CASE("sfen ctor invld fill", sa.m_array[9] == VOID); // check padding is there
+        REQ_CASE("sfen ctor 1Darr wrap", sa.m_array[18*7] == B_ROOK); // check wrap matches dimension given
     });
 
     TEST("CmdTokenizer", {
@@ -93,11 +93,25 @@ int main() {
 
     TEST("Overriding initialization of game state", {
         DModCoords sampleCoords = algebraicToCoords("b6");
-        REQ_CASE("sample orig", game.m_board->getPiece(sampleCoords) == B_PAWN);
-        game.m_board->init("rnbqkbnr/p6p/8/2(4)2/(2)4/18/P6P/RNBQKBNR w 0 1");
-        OPT_CASE("sample updated", game.m_board->getPiece(sampleCoords) == EMPTY);
-        // std::cout << game.m_board->toSfen() << std::endl;
-        OPT_CASE("fenn out", game.m_board->toSfen() == "rnbqkbnr/p6p/8/2(4)2/(2)4/18/P6P/RNBQKBNR"); // FIXME: game info got truncated, but we need to print that too
+        REQ_CASE("orig sample", game.m_board->getPiece(sampleCoords) == B_PAWN);
+        OPT_CASE("init full sfen", MULTI_CHECK(
+            game.reset("rnbqkbnr/p6p/8/2(4)2/(2)4/18/P6P/RNBQKBNR b 10 4");
+            // std::cout << game.m_board->toSfen() << std::endl;
+            CHECK("sampled piece", game.m_board->getPiece(sampleCoords) == EMPTY);
+            dlog(game.toSfen());
+            CHECK("sfen position out", game.m_board->toSfen() == "rnbqkbnr/p6p/8/2(4)2/(2)4/18/P6P/RNBQKBNR");
+            dlog(game.toSfen());
+            CHECK("sfen full out", game.toSfen() == "rnbqkbnr/p6p/8/2(4)2/(2)4/18/P6P/RNBQKBNR b 10 4");
+        ));
+        OPT_CASE("init part sfen", MULTI_CHECK(
+            game.reset("rkb/3/1(1)1/3/BKR");
+            // std::cout << game.m_board->toSfen() << std::endl;
+            sampleCoords = algebraicToCoords("b0");
+            dlog(game.toSfen());
+            CHECK("sampled piece", game.m_board->getPiece(sampleCoords) == W_KING);
+            CHECK("sfen position out", game.m_board->toSfen() == "rkb/3/1(1)1/3/BKR");
+            CHECK("sfen full out", game.toSfen() == "rkb/3/1(1)1/3/BKR w 0 1");
+        ));
     });
     TEST("Int wrapping comparison", {
         OPT_CASE("rel0 is 0", coordLessThan(1, 5, 0) == true);
@@ -181,8 +195,8 @@ int main() {
     // std::cout << game.print() << std::endl;
 
     TEST("apply/undo PieceMoves", {
-        // TODO: the additional fenn info, e.g. "w 0 1", should not be truncated. Would be nice in the future to have a separate function for just truncated fenn, and call that here
-        REQ_CASE("init fenn", game.m_board->toSfen() == "rnbqkbnr/pp1ppppp/8/8(4)4/2p5(6)2/18/PPPPPPPP/RNBQKBNR");
+        // TODO: the additional fen info, e.g. "w 0 1", should not be truncated. Would be nice in the future to have a separate function for just truncated sfen, and call that here
+        REQ_CASE("init sfen", game.m_board->toSfen() == "rnbqkbnr/pp1ppppp/8/8(4)4/2p5(6)2/18/PPPPPPPP/RNBQKBNR");
         game.applyMove(std::move(readAlgebraic("b0a2")));
         REQ_CASE("apply", game.m_board->toSfen() == "rnbqkbnr/pp1ppppp/8/8(4)4/2p5(6)2/N17/PPPPPPPP/R1BQKBNR");
         // std::cout << game.print() << std::endl;

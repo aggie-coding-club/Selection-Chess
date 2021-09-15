@@ -26,7 +26,6 @@ class ArrayBoard : public Board {
 
         // minimum x and y of this board. Because of wrap-around, the literal min integer value is not 
         // guaranteed to be the furtherest "left" or "down".
-        // Also note that these overshadow variables of Board, which are of type Coords. //FIXME: this is bad design and should be addressed
         ABModCoords m_minCoords;
         ABModCoords m_maxCoords;
         

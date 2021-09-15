@@ -209,8 +209,8 @@ void EngineRunner::run() {
 
 }
 
-bool EngineRunner::setBoard(std::string _fen) {
+bool EngineRunner::setBoard(std::string _sfen) {
 
-    m_toEngineStream << "setboard " << _fen << std::endl;
+    m_toEngineStream << "setboard " << _sfen << std::endl;
     return true;
 }

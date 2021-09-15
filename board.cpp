@@ -345,7 +345,7 @@ Coords Board::DMtoSA(DModCoords _dMod) const {
     return std::make_pair(_dMod.first.m_value, _dMod.second.m_value);
 }
 
-std::vector<std::unique_ptr<Move>> Board::getMovesFromMO(DModCoords& _pieceCoords, const MoveOption& _mo) {
+std::vector<std::unique_ptr<Move>> Board::getMovesFromMO(DModCoords _pieceCoords, const MoveOption& _mo) {
     switch (_mo.m_type) {
     case LEAP_MO_TYPE:
         return getMovesFromMO(_pieceCoords, dynamic_cast<const LeapMoveOption&>(_mo));
@@ -357,7 +357,7 @@ std::vector<std::unique_ptr<Move>> Board::getMovesFromMO(DModCoords& _pieceCoord
     }
 }
 
-std::vector<std::unique_ptr<Move>> Board::getMovesFromMO(DModCoords& _pieceCoords, const LeapMoveOption& _mo) {
+std::vector<std::unique_ptr<Move>> Board::getMovesFromMO(DModCoords _pieceCoords, const LeapMoveOption& _mo) {
     // dlog("getMovesFrom Leaping MO called", std::endl;
     DModCoords startCoords = _pieceCoords;
     std::vector<std::unique_ptr<Move>> moves;
@@ -416,7 +416,7 @@ std::vector<std::unique_ptr<Move>> Board::getMovesFromMO(DModCoords& _pieceCoord
 }
 
 // Returns list of moves that the piece at _pieceCoords can make using this MoveOption on the current _board.
-std::vector<std::unique_ptr<Move>> Board::getMovesFromMO(DModCoords& _pieceCoords, const SlideMoveOption& _mo) {
+std::vector<std::unique_ptr<Move>> Board::getMovesFromMO(DModCoords _pieceCoords, const SlideMoveOption& _mo) {
     // dlog("getMovesFrom Sliding MO called", std::endl;
     DModCoords startCoords = _pieceCoords;
     std::vector<std::unique_ptr<Move>> moves;

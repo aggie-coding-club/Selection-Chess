@@ -11,6 +11,8 @@
 #include <vector>
 #include <regex>
 
+// TODO: might be good to wrap some of these functions in a namespace like "SCUtils::" or smth
+
 /* ---------------------------- Debugging Macros ---------------------------- */
 // Control where dlog is sent to
 #ifdef DEBUG

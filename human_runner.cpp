@@ -36,7 +36,7 @@ void HumanRunner::run() {
 
 }
 
-bool HumanRunner::setBoard(std::string _fen) {
-    edout << "setboard(" << _fen << ")" << std::endl;
+bool HumanRunner::setBoard(std::string _sfen) {
+    edout << "setboard(" << _sfen << ")" << std::endl;
     return true; // TODO
 }

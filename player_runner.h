@@ -19,7 +19,7 @@ class PlayerRunner {
 
         virtual bool setMove(std::shared_ptr<Move>& _move) = 0;
 
-        virtual bool setBoard(std::string _fen) = 0;
+        virtual bool setBoard(std::string _sfen) = 0;
 
         virtual void run() = 0;
 };

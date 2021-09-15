@@ -10,9 +10,9 @@ class CmdTokenizer : public StringTokenizer {
         CmdTokenizer (std::string _string) : StringTokenizer(_string) {};
         // Returns the next token and increments
         std::string next();
-        // Assuming next token should be a FEN string, return that.
-        // This is because xboard does not quote FEN strings, and a lot of gross stuff might happen with all the spaces in it.
-        std::string nextFen();
+        // Assuming next token should be a SFEN string, return that.
+        // This is because xboard does not quote SFEN strings, and a lot of gross stuff might happen with all the spaces in it.
+        std::string nextSfen();
 
     private:
         inline bool isWhitespaceSansNewline(char _c);

@@ -61,10 +61,10 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    std::string fen = "rkr3/6/6/6/6/3RKR w 0 1";
-    Game game(fen, "default.rules");
-    whiteEngine->setBoard(fen);
-    blackEngine->setBoard(fen);
+    std::string sfen = "rkr3/6/6/6/6/3RKR w 0 1";
+    Game game(sfen, "default.rules");
+    whiteEngine->setBoard(sfen);
+    blackEngine->setBoard(sfen);
     std::cout << "boards init'd, going into game loop" << std::endl;
     for(;;) { // TODO: remove redundant code for both black and white
         std::shared_ptr<Move> whiteMove = std::move(whiteEngine->getMove());

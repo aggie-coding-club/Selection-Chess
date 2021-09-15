@@ -9,7 +9,6 @@
 #include "cmd_tokenizer.h"
 
 // TODO: how should board be initialized if no setboard is given?
-// TODO: standardize whether it is called 'fen' or 'sfen'
 // TODO: how to specify rules file?
 int xboardLoop() {
     Game game("2 w 0 1", "testing/test1.rules"); // TODO: not sure what default board config should be, or if there should even be one.
@@ -32,10 +31,10 @@ int xboardLoop() {
                 std::cout << "feature debug=1 analyze=0 colors=0 myname=\"Hippocrene Engine 0.0.0\"" << std::endl;
                 std::cout << "feature done=1" << std::endl;
             } else if (cmd == "setboard") {
-                std::string fen = tokenizer.nextFen();
-                game.reset(fen);
-                std::cout << "# Set board with fen '" << fen << "'" << std::endl;
-                dlog("Double-checking, board has a fen of ", game.m_board->toSfen());
+                std::string sfen = tokenizer.nextSfen();
+                game.reset(sfen);
+                std::cout << "# Set board with sfen '" << sfen << "'" << std::endl;
+                dlog("Double-checking, board has a sfen of ", game.m_board->toSfen());
             } else if (cmd == "go") {
                 const int MAX_GT_DEPTH = 3; // Max depth to explore gametree. //TODO: this should be the variable of an anytime algorithm.
                 dlog("running minmax at depth ", MAX_GT_DEPTH);
