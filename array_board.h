@@ -5,6 +5,7 @@
 #include "board.h"
 #include "move.h"
 #include "modular_int.hpp"
+#include "coords.hpp"
 
 #include <cstdint>
 #include <stack>
@@ -13,7 +14,7 @@
 
 extern unsigned int ABModulus;
 typedef ModularInt<&ABModulus> ABModInt;
-typedef std::pair<ABModInt, ABModInt> ABModCoords;
+typedef Coords<ABModInt, ABModInt> ABModCoords; //FIXME
 
 class ArrayBoard : public Board {
     public:
@@ -90,9 +91,9 @@ class ArrayBoard : public Board {
         bool isLegal(std::shared_ptr<TileMove> _move);
         bool isLegal(std::shared_ptr<TileDeletion> _move);
 
-        Coords getDimensions() const {
+        UnsignedCoords getDimensions() const {
             // Just taking the m_value here is OK because this distance is not affected by modulus, so it is guaranteed result to be a normal positive number.
-            return std::make_pair((m_maxCoords.first - m_minCoords.first + 1).m_value, (m_maxCoords.second - m_minCoords.second + 1).m_value);
+            return UnsignedCoords((m_maxCoords.file - m_minCoords.file + 1).m_value, (m_maxCoords.rank - m_minCoords.rank + 1).m_value);
         };
 
         // For debugging purposes. Prints all pieces in the m_pieceLocations list
@@ -119,13 +120,13 @@ class ArrayBoard : public Board {
         // For debugging purposes only.
         std::string dumpAsciiArray() const;
 
-        // Gets the index of m_grid corresponding to _coords. Takes internal Coords as input.
+        // Gets the index of m_grid corresponding to _coords. Takes internal UnsignedCoords as input.
         size_t toIndex(ABModCoords _coords) const;
 
         // Convert external coords to internal, e.g. (0,0) will be converted to m_minCoords
-        ABModCoords SAtoAB(Coords _extern) const;
+        ABModCoords SAtoAB(UnsignedCoords _extern) const;
         // Convert internal coords to external, e.g. m_minCoords will be converted to (0,0)
-        Coords ABtoSA(ABModCoords _intern) const;
+        UnsignedCoords ABtoSA(ABModCoords _intern) const;
 
         bool isContiguous() const;
 
@@ -140,11 +141,11 @@ class ArrayBoard : public Board {
 
         inline bool compareFileCoords(const ABModCoords& _a, const ABModCoords& _b) const {
             // effectively a < b
-            return _a.first.isBetween(m_minCoords.first, _b.first, true);
+            return _a.file.isBetween(m_minCoords.file, _b.file, true);
         }
         inline bool compareRankCoords(const ABModCoords& _a, const ABModCoords& _b) const {
             // effectively a < b
-            return _a.second.isBetween(m_minCoords.second, _b.second, true);
+            return _a.rank.isBetween(m_minCoords.rank, _b.rank, true);
         }
 
         // Copy the tiles from bottom left _bl to top right _tr into a standardarray. If _cut=true, remove the original copied section.
@@ -165,13 +166,13 @@ class ArrayBoard : public Board {
 };
 
 inline ABModCoords& operator+=(ABModCoords& _mc1, const SignedCoords& _diff) {
-    _mc1.first += _diff.first;
-    _mc1.second += _diff.second;
+    _mc1.file += _diff.file;
+    _mc1.rank += _diff.rank;
     return _mc1;
 }
 inline ABModCoords& operator-=(ABModCoords& _mc1, const SignedCoords& _diff) {
-    _mc1.first -= _diff.first;
-    _mc1.second -= _diff.second;
+    _mc1.file -= _diff.file;
+    _mc1.rank -= _diff.rank;
     return _mc1;
 }
 inline ABModCoords operator+(ABModCoords _mc1, const SignedCoords& _diff) {

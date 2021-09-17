@@ -1,5 +1,5 @@
 #include "array_board.h"
-#include "utils.h"
+#include "chess_utils.h"
 #include "constants.h"
 #include "move.h"
 #include "game.h"

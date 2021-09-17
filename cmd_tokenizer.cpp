@@ -1,6 +1,6 @@
 #include "cmd_tokenizer.h"
 #include "constants.h"
-#include "utils.h"
+#include "chess_utils.h"
 
 // Note: since CmdTokenizer is only being called on strings created from std::getline(), 
 // then anything here relating to '\n' is unecessary complexity.

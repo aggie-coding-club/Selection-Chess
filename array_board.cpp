@@ -1,7 +1,7 @@
 #include "array_board.h"
 
 #include "constants.h"
-#include "utils.h"
+#include "chess_utils.h"
 #include "move.h"
 
 #include <cstdint>
@@ -24,20 +24,20 @@ unsigned int ABModulus;
 // This function is only meant to be used in init right now, unless it is cleaned up into something more general.
 void ArrayBoard::updateExtrema(const ABModCoords& _new) {
     // FIXME: ugly hack to get min to update. Maybe this is clue to how to actually get min to update later on
-    if (_new.first == m_minCoords.first-1) {
-        m_minCoords.first = _new.first;
+    if (_new.file == m_minCoords.file-1) {
+        m_minCoords.file = _new.file;
     }
-    if (_new.second == m_minCoords.second-1) {
-        m_minCoords.second = _new.second;
+    if (_new.rank == m_minCoords.rank-1) {
+        m_minCoords.rank = _new.rank;
     }
 
-    m_maxCoords.first = std::max(m_maxCoords.first, _new.first, 
+    m_maxCoords.file = std::max(m_maxCoords.file, _new.file, 
     [&](const ABModInt& _a, const ABModInt& _b) {
-        return _a.lessThan(_b, m_minCoords.first);
+        return _a.lessThan(_b, m_minCoords.file);
     });
-    m_maxCoords.second = std::max(m_maxCoords.second, _new.second, 
+    m_maxCoords.rank = std::max(m_maxCoords.rank, _new.rank, 
     [&](const ABModInt& _a, const ABModInt& _b) {
-        return _a.lessThan(_b, m_minCoords.second);
+        return _a.lessThan(_b, m_minCoords.rank);
     });
 }
 
@@ -108,15 +108,15 @@ void ArrayBoard::init(const std::string _sfen) {
 /* ---------------- loop through again to initialize the grid --------------- */
 
     // some arbitrary starting point
-    const ABModCoords STARTING_CORNER = std::make_pair(0, 0);
+    const ABModCoords STARTING_CORNER (0, 0);
     m_minCoords = m_maxCoords = STARTING_CORNER; // TODO: remove STARTING CORNER, and just use m_minCoords?
 
     ABModCoords currentFR = STARTING_CORNER;
     for (i = 0; i < _sfen.length() && _sfen[i] != ' '; i++) {
         const char c = _sfen[i];
         if (c == '/') { // Next row
-            currentFR.first = STARTING_CORNER.first;
-            --currentFR.second;
+            currentFR.file = STARTING_CORNER.file;
+            --currentFR.rank;
             continue;
         }
         if (c == '(') { // Void square(s)
@@ -127,7 +127,7 @@ void ArrayBoard::init(const std::string _sfen) {
             if (j != i+1) {
                 // Get the next characters as integer
                 int num_no_tiles = std::stoi(_sfen.substr(i+1, j-(i+1))); //i+1 to ignore '('
-                currentFR.first += num_no_tiles;
+                currentFR.file += num_no_tiles;
             }
             // update i to to account for the number of additional characters we read in
             i = j;
@@ -145,7 +145,7 @@ void ArrayBoard::init(const std::string _sfen) {
             for (int k = 0; k < numEmptyTiles; k++) {
                 m_grid[toIndex(currentFR)] = EMPTY;
                 updateExtrema(currentFR);
-                ++currentFR.first;
+                ++currentFR.file;
             }
             continue;
         }
@@ -154,11 +154,11 @@ void ArrayBoard::init(const std::string _sfen) {
         m_grid[toIndex(currentFR)] = thisTile;
         addPieceToPL(thisTile, currentFR);
         updateExtrema(currentFR);
-        ++currentFR.first;
+        ++currentFR.file;
     }
     // Parse remaining fields
     // TODO: implement
-    // dlog("min coords are ", m_minCoords.first, ", ", m_minCoords.second, " and max are ", m_maxCoords.first, ", ", m_maxCoords.second);
+    // dlog("min coords are ", m_minCoords.file, ", ", m_minCoords.rank, " and max are ", m_maxCoords.file, ", ", m_maxCoords.rank);
 }
 
 bool ArrayBoard::updatePieceInPL(SquareEnum _piece, ABModCoords _oldLocation, ABModCoords _newLocation) {
@@ -260,7 +260,7 @@ bool ArrayBoard::apply(std::shared_ptr<TileMove> _move) {
     StandardArray cut = getSelection(abSelFirst, abSelSecond, true);
     // dlog("Cut out ", cut.dumpAsciiArray(), std::endl;
     // dlog("Now board is \n", getAsciiBoard(), std::endl;
-    // dlog("min coords are ", m_minCoords.first, ", ", m_minCoords.second, " and max are ", m_maxCoords.first, ", ", m_maxCoords.second, std::endl;
+    // dlog("min coords are ", m_minCoords.file, ", ", m_minCoords.rank, " and max are ", m_maxCoords.file, ", ", m_maxCoords.rank, std::endl;
     // dlog("and minDisplayCoords are ", m_displayCoordsZero, std::endl;
 
     // ----------- Paste in the selection ----------- //
@@ -279,38 +279,38 @@ bool ArrayBoard::apply(std::shared_ptr<TileMove> _move) {
     // "\ndisplayCoordsMax: ", displayCoordsMax,
     // std::endl;
 
-    // dlog(((_move->m_destFirst.first.heurLessThan(_move->m_selFirst.first))?"moving left":"not moving left"), std::endl;
-    // dlog(((! _move->m_destFirst.first.isBetween(m_displayCoordsZero.first, displayCoordsMax.first))?"not in hor bounds":"in hor bounds"), std::endl;
-    if ( //.first
+    // dlog(((_move->m_destFirst.file.heurLessThan(_move->m_selFirst.file))?"moving left":"not moving left"), std::endl;
+    // dlog(((! _move->m_destFirst.file.isBetween(m_displayCoordsZero.file, displayCoordsMax.file))?"not in hor bounds":"in hor bounds"), std::endl;
+    if ( //.file
         ( 
-            (oldMin.first != m_minCoords.first && _move->m_destFirst.first.heurLessThanOrEqual(_move->m_selFirst.first)) || // THE minimum tile is being moved, and not to the right; or
-            (_move->m_destFirst.first.heurLessThan(_move->m_selFirst.first)) // selection is moving left/down
+            (oldMin.file != m_minCoords.file && _move->m_destFirst.file.heurLessThanOrEqual(_move->m_selFirst.file)) || // THE minimum tile is being moved, and not to the right; or
+            (_move->m_destFirst.file.heurLessThan(_move->m_selFirst.file)) // selection is moving left/down
         )
         &&
-        (! _move->m_destFirst.first.isBetween(m_displayCoordsZero.first, displayCoordsMax.first)) // selection will be outside current bounds
+        (! _move->m_destFirst.file.isBetween(m_displayCoordsZero.file, displayCoordsMax.file)) // selection will be outside current bounds
        ) {
-            // int difference = (m_displayCoordsZero.first - _move->m_destFirst.first).m_value;
-            int difference = m_displayCoordsZero.first.getDistTo(_move->m_destFirst.first);
-            m_minCoords.first += difference;
-            m_displayCoordsZero.first += difference;
-            // dlog("updated mins.first by ", difference, std::endl;
+            // int difference = (m_displayCoordsZero.file - _move->m_destFirst.file).m_value;
+            int difference = m_displayCoordsZero.file.getDistTo(_move->m_destFirst.file);
+            m_minCoords.file += difference;
+            m_displayCoordsZero.file += difference;
+            // dlog("updated mins.file by ", difference, std::endl;
             assert(difference < 0);
     }
-    // dlog(((_move->m_destFirst.second.heurLessThan(_move->m_selFirst.second))?"moving left":"not moving left"), std::endl;
-    // dlog(((! _move->m_destFirst.second.isBetween(m_displayCoordsZero.second, displayCoordsMax.second))?"not in vert bounds":"in vert bounds"), std::endl;
-    if ( //.second //TODO: combine these into one function somehow for readability
+    // dlog(((_move->m_destFirst.rank.heurLessThan(_move->m_selFirst.rank))?"moving left":"not moving left"), std::endl;
+    // dlog(((! _move->m_destFirst.rank.isBetween(m_displayCoordsZero.rank, displayCoordsMax.rank))?"not in vert bounds":"in vert bounds"), std::endl;
+    if ( //.rank //TODO: combine these into one function somehow for readability. //TODO: this could be solved by pair class.
         ( 
-            (oldMin.second != m_minCoords.second && _move->m_destFirst.second.heurLessThanOrEqual(_move->m_selFirst.second)) || // THE minimum tile is being moved, and not to the right; or
-            (_move->m_destFirst.second.heurLessThan(_move->m_selFirst.second)) // selection is moving left/down
+            (oldMin.rank != m_minCoords.rank && _move->m_destFirst.rank.heurLessThanOrEqual(_move->m_selFirst.rank)) || // THE minimum tile is being moved, and not to the right; or
+            (_move->m_destFirst.rank.heurLessThan(_move->m_selFirst.rank)) // selection is moving left/down
         )
         &&
-        (! _move->m_destFirst.second.isBetween(m_displayCoordsZero.second, displayCoordsMax.second)) // selection will be outside current bounds
+        (! _move->m_destFirst.rank.isBetween(m_displayCoordsZero.rank, displayCoordsMax.rank)) // selection will be outside current bounds
        ) {
-            // int difference = (m_displayCoordsZero.second - _move->m_destFirst.second).m_value;
-            int difference = m_displayCoordsZero.second.getDistTo(_move->m_destFirst.second);
-            m_minCoords.second += difference;
-            m_displayCoordsZero.second += difference;
-            // dlog("updated mins.second by ", difference, std::endl;
+            // int difference = (m_displayCoordsZero.rank - _move->m_destFirst.rank).m_value;
+            int difference = m_displayCoordsZero.rank.getDistTo(_move->m_destFirst.rank);
+            m_minCoords.rank += difference;
+            m_displayCoordsZero.rank += difference;
+            // dlog("updated mins.rank by ", difference, std::endl;
             assert(difference < 0);
     }
 
@@ -320,22 +320,22 @@ bool ArrayBoard::apply(std::shared_ptr<TileMove> _move) {
 
     // Update m_maxCoords now. Same idea as updating the m_minCoords, but we can do this in ABCoord space now.
     // TODO: make max use same method as min, instead of the old continuity-dependent method.
-    if ( //.first
-        (m_maxCoords.first + 1)
-        .isBetween(abDestFirst.first, abDestSecond.first)) {
-            int difference = (abDestSecond.first - m_maxCoords.first).m_value;
-            m_maxCoords.first += difference;
+    if ( //.file
+        (m_maxCoords.file + 1)
+        .isBetween(abDestFirst.file, abDestSecond.file)) {
+            int difference = (abDestSecond.file - m_maxCoords.file).m_value;
+            m_maxCoords.file += difference;
     }
-    if ( //.second
-        (m_maxCoords.second + 1)
-        .isBetween(abDestFirst.second, abDestSecond.second)) {
-            int difference = (abDestSecond.second - m_maxCoords.second).m_value;
-            m_maxCoords.second += difference;
+    if ( //.rank
+        (m_maxCoords.rank + 1)
+        .isBetween(abDestFirst.rank, abDestSecond.rank)) {
+            int difference = (abDestSecond.rank - m_maxCoords.rank).m_value;
+            m_maxCoords.rank += difference;
     }
 
     // Check destination rectangle is empty
-    for (ABModCoords i = abDestFirst; i.second != abDestSecond.second + 1; ++i.second) { // iterate rows
-        for (i.first = abDestFirst.first; i.first != abDestSecond.first + 1; ++i.first) { // iterate columns
+    for (ABModCoords i = abDestFirst; i.rank != abDestSecond.rank + 1; ++i.rank) { // iterate rows
+        for (i.file = abDestFirst.file; i.file != abDestSecond.file + 1; ++i.file) { // iterate columns
             if (m_grid[toIndex(i)] != VOID) {
                 dlog(WHERE , "FOUND TILE [" , getCharFromSquare(m_grid[toIndex(i)]) , "] in DESTINATION, at " , coordsToAlgebraic(SAtoDM(ABtoSA(i))));
                 paste(cut, abSelFirst); // paste back in original position
@@ -395,16 +395,16 @@ bool ArrayBoard::apply(std::shared_ptr<TileDeletion> _move) {
 
     // it is possible we cut off the min/max, so we need to update it accordingly
     // dlog("minCoords=", m_minCoords, " maxCoords=", m_maxCoords, "before cut,", std::endl;
-    ABModCoords updatedMin = std::make_pair( //TODO: this is repeated code from getSelection -- consider making this into a function, as well as its counterpart in apply, too
-        nextTileByColOrder(std::make_pair(m_minCoords.first, 0), false).first, 
-        nextTileByRowOrder(std::make_pair(0, m_minCoords.second), false).second
+    ABModCoords updatedMin ( //TODO: this is repeated code from getSelection -- consider making this into a function, as well as its counterpart in apply, too
+        nextTileByColOrder(ABModCoords(m_minCoords.file, 0), false).file, 
+        nextTileByRowOrder(ABModCoords(0, m_minCoords.rank), false).rank
     ); // FIXME: something fishy going on with the literal zero's automatic type here
-    ABModCoords updatedMax = std::make_pair(
-        nextTileByColOrder(std::make_pair(m_maxCoords.first, 0), true, true).first,
-        nextTileByRowOrder(std::make_pair(0, m_maxCoords.second), true, true).second
+    ABModCoords updatedMax (
+        nextTileByColOrder(ABModCoords(m_maxCoords.file, 0), true, true).file,
+        nextTileByRowOrder(ABModCoords(0, m_maxCoords.rank), true, true).rank
     );
     ABModCoords minUpdate = updatedMin - m_minCoords; // since we are cutting tiles, updatedMin >= m_minCoords aka change in min is positive.
-    m_displayCoordsZero += std::make_pair(minUpdate.first.m_value, minUpdate.second.m_value);
+    m_displayCoordsZero += DModCoords(minUpdate.file.m_value, minUpdate.rank.m_value);
     m_minCoords = updatedMin;
     m_maxCoords = updatedMax;
     // dlog("now minCoords=", m_minCoords, " maxCoords=", m_maxCoords, "before after the cut", std::endl;
@@ -436,26 +436,26 @@ bool ArrayBoard::undo(std::shared_ptr<TileDeletion> _move) {
         // check if this addition would change m_minCoords
         DModCoords dModMin = SAtoDM(ABtoSA(m_minCoords)); //TODO: clean up this function's code
         DModCoords dModMax = SAtoDM(ABtoSA(m_maxCoords));
-        // .first
-        if (!dModAddition.first.isBetween(dModMin.first, dModMax.first)) { // check if this is outside of our current bounds
-            unsigned int distToMin = (dModMin.first - dModAddition.first).m_value;
-            unsigned int distToMax = (dModAddition.first - dModMax.first).m_value;
+        // .file
+        if (!dModAddition.file.isBetween(dModMin.file, dModMax.file)) { // check if this is outside of our current bounds
+            unsigned int distToMin = (dModMin.file - dModAddition.file).m_value;
+            unsigned int distToMax = (dModAddition.file - dModMax.file).m_value;
             if (distToMin < distToMax) {
-                m_minCoords.first -= distToMin;
-                m_displayCoordsZero.first -= distToMin;
+                m_minCoords.file -= distToMin;
+                m_displayCoordsZero.file -= distToMin;
             } else {
-                m_maxCoords.first += distToMax;
+                m_maxCoords.file += distToMax;
             }
         }
-        // .second
-        if (!dModAddition.second.isBetween(dModMin.second, dModMax.second)) { // check if this is outside of our current bounds
-            unsigned int distToMin = (dModMin.second - dModAddition.second).m_value;
-            unsigned int distToMax = (dModAddition.second - dModMax.second).m_value;
+        // .rank
+        if (!dModAddition.rank.isBetween(dModMin.rank, dModMax.rank)) { // check if this is outside of our current bounds
+            unsigned int distToMin = (dModMin.rank - dModAddition.rank).m_value;
+            unsigned int distToMax = (dModAddition.rank - dModMax.rank).m_value;
             if (distToMin < distToMax) {
-                m_minCoords.second -= distToMin;
-                m_displayCoordsZero.second -= distToMin;
+                m_minCoords.rank -= distToMin;
+                m_displayCoordsZero.rank -= distToMin;
             } else {
-                m_maxCoords.second += distToMax;
+                m_maxCoords.rank += distToMax;
             }
         }
 
@@ -509,36 +509,36 @@ bool ArrayBoard::isLegal(std::shared_ptr<TileDeletion> _move) {
 }
 
 // Convert external coords to internal, e.g. (0,0) will be converted to m_minCoords
-ABModCoords ArrayBoard::SAtoAB(Coords _extern) const {
-    ABModCoords intern(_extern);
-    intern.first += m_minCoords.first;
-    intern.second += m_minCoords.second;
+ABModCoords ArrayBoard::SAtoAB(UnsignedCoords _extern) const {
+    ABModCoords intern(_extern.file, _extern.rank); //KLUDGE: weird conversion
+    intern.file += m_minCoords.file;
+    intern.rank += m_minCoords.rank;
     return intern;
 }
 // Convert internal coords to external, e.g. m_minCoords will be converted to (0,0)
-Coords ArrayBoard::ABtoSA(ABModCoords _intern) const {
-    _intern.first -= m_minCoords.first;
-    _intern.second -= m_minCoords.second;
-    Coords external(_intern.first.m_value, _intern.second.m_value);
+UnsignedCoords ArrayBoard::ABtoSA(ABModCoords _intern) const {
+    _intern.file -= m_minCoords.file;
+    _intern.rank -= m_minCoords.rank;
+    UnsignedCoords external(_intern.file.m_value, _intern.rank.m_value);
     return external;
 }
 
 size_t ArrayBoard::toIndex(ABModCoords _coords) const {
-    return _coords.first.m_value + m_grid_size * _coords.second.m_value;
+    return _coords.file.m_value + m_grid_size * _coords.rank.m_value;
 }
 
 StandardArray ArrayBoard::standardArray() {
-    Coords dimensions = getDimensions();
+    UnsignedCoords dimensions = getDimensions();
     // standard array we will return
     StandardArray sa(dimensions);
 
     size_t i = 0; // current index of sa
-    ABModCoords coords = std::make_pair(m_minCoords.first, m_maxCoords.second);
+    ABModCoords coords (m_minCoords.file, m_maxCoords.rank);
     // iterate over rows
-    for (; coords.second != m_minCoords.second-1; --coords.second) {
-        coords.first = m_minCoords.first; // reset each loop to start at beginning of the row
+    for (; coords.rank != m_minCoords.rank-1; --coords.rank) {
+        coords.file = m_minCoords.file; // reset each loop to start at beginning of the row
         // iterate over columns
-        for (; coords.first != m_maxCoords.first+1; ++coords.first) {
+        for (; coords.file != m_maxCoords.file+1; ++coords.file) {
             sa.m_array[i++] = m_grid[toIndex(coords)];
         }
     }
@@ -550,7 +550,7 @@ std::string ArrayBoard::dumpAsciiArray() const {
     for (int row = 0; row < m_grid_size; ++row) {
         result += "\n";
         for (int col = 0; col < m_grid_size; ++col) {
-            result += getCharFromSquare(m_grid[toIndex(std::make_pair(col, row))], '=', '.');
+            result += getCharFromSquare(m_grid[toIndex(ABModCoords(col, row))], '=', '.');
         }
     }
     result += "\n]";
@@ -564,7 +564,7 @@ int ArrayBoard::staticEvaluation() {
         staticValue += PIECE_VALUES[i] * m_pieceLocations[i].size();
         for (ABModCoords t : m_pieceLocations[i]) {
             // add 20 centipawns for being on 'even' coordinates
-            if ((t.first + t.second).m_value % 2 == 0) {
+            if ((t.file + t.rank).m_value % 2 == 0) {
                 staticValue += 20 * (isWhite(i) ? 1 : -1); // negate if black
             }
         }
@@ -616,12 +616,12 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMoves(PieceColor _color) {
     // ----------- TileDeletions ----------- //
         // TODO: gross iteration over the entire space, would be nice if I only iterated over tiles.
     if (m_rules.m_numDeletionsPerTurn > 0) { // TODO: assumes only one tile can be deleted, implement for more tiles?
-        ABModCoords coords = std::make_pair(m_minCoords.first, m_maxCoords.second);
+        ABModCoords coords (m_minCoords.file, m_maxCoords.rank);
         // iterate over rows
-        for (; coords.second != m_minCoords.second-1; --coords.second) {
-            coords.first = m_minCoords.first; // reset each loop to start at beginning of the row
+        for (; coords.rank != m_minCoords.rank-1; --coords.rank) {
+            coords.file = m_minCoords.file; // reset each loop to start at beginning of the row
             // iterate over columns
-            for (; coords.first != m_maxCoords.first+1; ++coords.first) {
+            for (; coords.file != m_maxCoords.file+1; ++coords.file) {
                 if (m_grid[toIndex(coords)] == EMPTY) {
                     std::unique_ptr<TileDeletion> newMove (new TileDeletion(SAtoDM(ABtoSA(coords))));
                     legalMoves.push_back(std::move(newMove));
@@ -637,10 +637,10 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMoves(PieceColor _color) {
     if (m_rules.m_allowTileMoves) {
         ABModCoords startCoords = m_minCoords;
         // iterate over rows
-        for (; startCoords.second != m_maxCoords.second+1; ++startCoords.second) {
-            startCoords.first = m_minCoords.first; // reset each loop to start at beginning of the row
+        for (; startCoords.rank != m_maxCoords.rank+1; ++startCoords.rank) {
+            startCoords.file = m_minCoords.file; // reset each loop to start at beginning of the row
             // iterate over columns
-            for (; startCoords.first != m_maxCoords.first+1; ++startCoords.first) {
+            for (; startCoords.file != m_maxCoords.file+1; ++startCoords.file) {
                 if (m_grid[toIndex(startCoords)] != VOID) { // ignore non-tile squares
 
                     DModCoords dmStartCoords = SAtoDM(ABtoSA(startCoords));
@@ -648,18 +648,18 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMoves(PieceColor _color) {
                     // We do this in DModCoords because it can go smaller than m_minCoords.
                     DModCoords dmMinCoords = SAtoDM(ABtoSA(m_minCoords));
                     DModCoords dmMaxCoords = SAtoDM(ABtoSA(m_maxCoords));
-                    DModCoords endCoordsMin = dmMinCoords - std::make_pair(1,1);
-                    DModCoords endCoordsMax = dmMaxCoords + std::make_pair(1,1);
+                    DModCoords endCoordsMin = dmMinCoords - DModCoords(1,1);
+                    DModCoords endCoordsMax = dmMaxCoords + DModCoords(1,1);
                     DModCoords endCoords = endCoordsMin;
-                    for (; endCoords.second != endCoordsMax.second+1; ++endCoords.second) {
-                        endCoords.first = endCoordsMin.first; // reset each loop to start at beginning of the row
+                    for (; endCoords.rank != endCoordsMax.rank+1; ++endCoords.rank) {
+                        endCoords.file = endCoordsMin.file; // reset each loop to start at beginning of the row
                         // iterate over columns
-                        for (; endCoords.first != endCoordsMax.first+1; ++endCoords.first) {
+                        for (; endCoords.file != endCoordsMax.file+1; ++endCoords.file) {
                             if (
                                 // If endCoords is out of bounds, this is a valid move, but it is not safe to do conversions since m_minCoords affects conversion.
                                 (
-                                    !endCoords.first.isBetween(dmMinCoords.first, dmMaxCoords.first) ||
-                                    !endCoords.second.isBetween(dmMinCoords.second, dmMaxCoords.second)
+                                    !endCoords.file.isBetween(dmMinCoords.file, dmMaxCoords.file) ||
+                                    !endCoords.rank.isBetween(dmMinCoords.rank, dmMaxCoords.rank)
                                 )
                                 || // else endCoords is within bounds. This means we can safely convert it to ABCoords, but that we also have to check the array to see if there is a tile there blocking it.
                                 (
@@ -682,18 +682,18 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMoves(PieceColor _color) {
 
 StandardArray ArrayBoard::getSelection(const ABModCoords& _bl, const ABModCoords& _tr, bool _cut) { // TODO: consider merging with standardArray() ?
     // dout, "getting selection ", std::endl;
-    Coords dimensions = std::make_pair((_tr - _bl).first.m_value+1, (_tr - _bl).second.m_value+1);
+    UnsignedCoords dimensions ((_tr - _bl).file.m_value+1, (_tr - _bl).rank.m_value+1);
     // standard array we will return
     StandardArray sa(dimensions);
 
     // dout, "filling stdArray", std::endl;
     size_t i = 0; // current index of sa
-    ABModCoords coords = std::make_pair(_bl.first, _tr.second);
+    ABModCoords coords (_bl.file, _tr.rank);
     // iterate over rows
-    for (; coords.second != _bl.second-1; --coords.second) {
-        coords.first = _bl.first; // reset each loop to start at beginning of the row
+    for (; coords.rank != _bl.rank-1; --coords.rank) {
+        coords.file = _bl.file; // reset each loop to start at beginning of the row
         // iterate over columns
-        for (; coords.first != _tr.first+1; ++coords.first) {
+        for (; coords.file != _tr.file+1; ++coords.file) {
             sa.m_array[i++] = m_grid[toIndex(coords)];
             if (_cut) {
                 m_grid[toIndex(coords)] = VOID;
@@ -703,16 +703,16 @@ StandardArray ArrayBoard::getSelection(const ABModCoords& _bl, const ABModCoords
     if (_cut) {
         // dlog("minCoords=", m_minCoords, " maxCoords=", m_maxCoords, "before cut,", std::endl;
         // it is possible we cut off the min/max, so we need to update it accordingly
-        ABModCoords updatedMin = std::make_pair(
-            nextTileByColOrder(std::make_pair(m_minCoords.first, 0), false).first, 
-            nextTileByRowOrder(std::make_pair(0, m_minCoords.second), false).second
+        ABModCoords updatedMin (
+            nextTileByColOrder(ABModCoords(m_minCoords.file, 0), false).file, 
+            nextTileByRowOrder(ABModCoords(0, m_minCoords.rank), false).rank
         );
-        ABModCoords updatedMax = std::make_pair(
-            nextTileByColOrder(std::make_pair(m_maxCoords.first, 0), true, true).first,
-            nextTileByRowOrder(std::make_pair(0, m_maxCoords.second), true, true).second
+        ABModCoords updatedMax (
+            nextTileByColOrder(ABModCoords(m_maxCoords.file, 0), true, true).file,
+            nextTileByRowOrder(ABModCoords(0, m_maxCoords.rank), true, true).rank
         );
         ABModCoords minUpdate = updatedMin - m_minCoords; // since we are cutting tiles, updatedMin >= m_minCoords aka change in min is positive.
-        m_displayCoordsZero += std::make_pair(minUpdate.first.m_value, minUpdate.second.m_value);
+        m_displayCoordsZero += DModCoords(minUpdate.file.m_value, minUpdate.rank.m_value);
         m_minCoords = updatedMin;
         m_maxCoords = updatedMax;
         // dlog("now minCoords=", m_minCoords, " maxCoords=", m_maxCoords, "before after the cut", std::endl;
@@ -723,16 +723,16 @@ StandardArray ArrayBoard::getSelection(const ABModCoords& _bl, const ABModCoords
 }
 
 void ArrayBoard::paste(const StandardArray& _sa, const ABModCoords& _bl) {
-    ABModCoords tr = _bl + _sa.m_dimensions - std::make_pair(1,1);
+    ABModCoords tr = _bl + _sa.m_dimensions - SignedCoords(1,1);
     size_t i = 0; // current index of sa
 
-    ABModCoords coords = std::make_pair(_bl.first, tr.second);
+    ABModCoords coords (_bl.file, tr.rank);
     // iterate over rows
     // dlog("pasted: ";
-    for (; coords.second != _bl.second-1; --coords.second) {
-        coords.first = _bl.first; // reset each loop to start at beginning of the row
+    for (; coords.rank != _bl.rank-1; --coords.rank) {
+        coords.file = _bl.file; // reset each loop to start at beginning of the row
         // iterate over columns
-        for (; coords.first != tr.first+1; ++coords.first) {
+        for (; coords.file != tr.file+1; ++coords.file) {
             m_grid[toIndex(coords)] = _sa.m_array[i++];
             // dlog(coordsToAlgebraic(SAtoDM(ABtoSA(coords))), ", ";
         }
@@ -741,11 +741,11 @@ void ArrayBoard::paste(const StandardArray& _sa, const ABModCoords& _bl) {
 }
 
 void ArrayBoard::clearSelection(const ABModCoords& _bl, const ABModCoords& _tr) {
-    ABModCoords coords = std::make_pair(_bl.first, _tr.second);
-    for (; coords.second != _bl.second-1; --coords.second) {
-        coords.first = _bl.first; // reset each loop to start at beginning of the row
+    ABModCoords coords (_bl.file, _tr.rank);
+    for (; coords.rank != _bl.rank-1; --coords.rank) {
+        coords.file = _bl.file; // reset each loop to start at beginning of the row
         // iterate over columns
-        for (; coords.first != _tr.first+1; ++coords.first) {
+        for (; coords.file != _tr.file+1; ++coords.file) {
             m_grid[toIndex(coords)] = VOID;
         }
     }
@@ -758,10 +758,10 @@ ABModCoords ArrayBoard::nextTileByRowOrder(const ABModCoords& _start, bool _reve
     int fileIncr = (_reverse? -1:1) * (_colReversed? -1:1);
     while (m_grid[toIndex(current)] == VOID) {
         // check if reached end of row. If positive fileIncr, end of row is m_grid_size-1, otherwise end of row is 0
-        if (current.first.m_value == (fileIncr==1 ? m_grid_size-1 : 0)) { 
-            current.second += rankIncr;
+        if (current.file.m_value == (fileIncr==1 ? m_grid_size-1 : 0)) { 
+            current.rank += rankIncr;
         }
-        current.first += fileIncr;
+        current.file += fileIncr;
         // dlog(current;
     }
     return current;
@@ -774,10 +774,10 @@ ABModCoords ArrayBoard::nextTileByColOrder(const ABModCoords& _start, bool _reve
     int rankIncr = (_reverse? -1:1) * (_rowReversed? -1:1);
     while (m_grid[toIndex(current)] == VOID) {
         // check if reached end of column. If positive rankIncr, end of column is m_grid_size-1, otherwise end of column is 0
-        if (current.second.m_value == (rankIncr==1 ? m_grid_size-1 : 0)) { 
-            current.first += fileIncr;
+        if (current.rank.m_value == (rankIncr==1 ? m_grid_size-1 : 0)) { 
+            current.file += fileIncr;
         }
-        current.second += rankIncr;
+        current.rank += rankIncr;
         // dlog(current;
     }
     return current;
@@ -795,7 +795,7 @@ bool ArrayBoard::isContiguous() const {
     bfsStart = nextTileByRowOrder(bfsStart);
     // dlog("starting on tile ", coordsToAlgebraic(SAtoDM(ABtoSA(bfsStart))), std::endl;
 
-    std::map<ABModCoords, SearchState, compareModPairColOrder<ABModInt, ABModInt>> bfsMarkedTiles;
+    std::map<ABModCoords, SearchState, compareModCoordsColOrder<ABModInt, ABModInt>> bfsMarkedTiles;
     std::queue<ABModCoords> bfsQueue;
 
     bfsQueue.push(bfsStart);
@@ -808,10 +808,10 @@ bool ArrayBoard::isContiguous() const {
         for (DirectionEnum dir : ORTHO_DIRECTIONS) {
             // make sure we don't consider ABCoord space wrap-arounds as adjacencies
             if (
-                ((dir == UP) && (exploring.second == m_minCoords.second-1)) ||
-                ((dir == DOWN) && (exploring.second == m_minCoords.second)) ||
-                ((dir == RIGHT) && (exploring.first == m_minCoords.first-1)) ||
-                ((dir == LEFT) && (exploring.first == m_minCoords.first))
+                ((dir == UP) && (exploring.rank == m_minCoords.rank-1)) ||
+                ((dir == DOWN) && (exploring.rank == m_minCoords.rank)) ||
+                ((dir == RIGHT) && (exploring.file == m_minCoords.file-1)) ||
+                ((dir == LEFT) && (exploring.file == m_minCoords.file))
             ) {
                 // dlog("skipped direction ", getCharFromDirection(dir), std::endl;
                 continue;

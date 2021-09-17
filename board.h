@@ -2,7 +2,7 @@
 #define BOARD_H
 
 #include "constants.h"
-#include "utils.h"
+#include "chess_utils.h"
 #include "move.h"
 #include "ruleset.h"
 
@@ -23,12 +23,12 @@ class BoardPrintSettings {
 // TODO: implement functionality around this object
 class StandardArray {
     public:
-    Coords m_dimensions;
+    UnsignedCoords m_dimensions;
     std::vector<SquareEnum> m_array;
 
     StandardArray();
     // Creates a new empty array of size
-    StandardArray(Coords _size);
+    StandardArray(UnsignedCoords _size);
     // Creates new array from sfen
     StandardArray(std::string _sfen);
 
@@ -41,7 +41,7 @@ class Board {
     public:
         BoardPrintSettings m_printSettings;
 
-        Board(Ruleset& _ruleset) : m_displayCoordsZero(std::make_pair(0,0)), m_rules(_ruleset) { }
+        Board(Ruleset& _ruleset) : m_displayCoordsZero(DModCoords(0,0)), m_rules(_ruleset) { }
 
         // Resets board from SFEN.
         virtual void init(const std::string _sfen) = 0;
@@ -64,8 +64,8 @@ class Board {
          */
         virtual bool operator==(const Board& _other) const;
 
-        DModCoords SAtoDM(Coords _standard) const;
-        Coords DMtoSA(DModCoords _dMod) const;
+        DModCoords SAtoDM(UnsignedCoords _standard) const;
+        UnsignedCoords DMtoSA(DModCoords _dMod) const;
 
         /** 
          * Print the current tiles and pieces in a nice ASCII format.
@@ -75,7 +75,7 @@ class Board {
         /**
          * Gets the size of the minimum rectangle needed to surround this board in its current configuration.
          */
-        virtual Coords getDimensions() const = 0;
+        virtual UnsignedCoords getDimensions() const = 0;
 
         /**
          * Returns the type of piece/tile at these _coords.
@@ -87,13 +87,13 @@ class Board {
         //  *                                        lower left corner           upper right corner                         lower left corner
         //  * Returns false if the move is illegal.
         //  */
-        // virtual bool moveSelection(Coords _select1, Coords _select2, Coords _goal1) = 0;
+        // virtual bool moveSelection(UnsignedCoords _select1, UnsignedCoords _select2, UnsignedCoords _goal1) = 0;
 
         // /**
-        //  * Attempt to move piece at (_startR, _startF) to the new Coords (_goalR, _goalF).
+        //  * Attempt to move piece at (_startR, _startF) to the new UnsignedCoords (_goalR, _goalF).
         //  * Returns false if the move is illegal.
         //  */
-        // virtual bool movePiece(Coords _start, Coords _goal) = 0;
+        // virtual bool movePiece(UnsignedCoords _start, UnsignedCoords _goal) = 0;
 
         virtual bool apply(std::shared_ptr<Move> _move) = 0;
 
@@ -122,7 +122,7 @@ class Board {
         virtual std::vector<std::unique_ptr<Move>> getMovesFromMO(DModCoords _pieceCoords, const SlideMoveOption& _mo);
 
         // Gets the standard array of this board. This is the smallest sized array (namely, size getDimensions())
-        // that contains all pieces. Indexed by (file + rank*getDimensions().first). Used for printing, hashing, etc.
+        // that contains all pieces. Indexed by (file + rank*getDimensions().file). Used for printing, hashing, etc.
         // TODO: once the standardArrays are better working, then require this as a function
         virtual StandardArray standardArray() = 0;
 

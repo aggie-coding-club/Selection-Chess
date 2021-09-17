@@ -29,7 +29,7 @@ std::string Board::toSfen() {
     };
 
     // iterate over rows
-    for (int row = 0; row < sa.m_dimensions.second; row++) { // for each row
+    for (int row = 0; row < sa.m_dimensions.rank; row++) { // for each row
         // start of new line
         if (row != 0) { // check if this is not first iteration of loop, i.e. this is a line break
             endEmptySequence();
@@ -38,8 +38,8 @@ std::string Board::toSfen() {
         }
 
         // iterate over columns
-        for (int col = 0; col < sa.m_dimensions.first; col++) { // for each element
-            SquareEnum thisSquare = sa.m_array[col + sa.m_dimensions.first*row];
+        for (int col = 0; col < sa.m_dimensions.file; col++) { // for each element
+            SquareEnum thisSquare = sa.m_array[col + sa.m_dimensions.file*row];
             if (thisSquare == VOID) {
                 endEmptySequence();
                 numOfVoid++;
@@ -108,7 +108,7 @@ std::string Board::getAsciiBoard() {
     }
     size_t activeLineNum = 0; // First line of output we are currently modifying
     bool trailingEdge = false; // Whether the last tile of this row already has printed the edge we share with it
-    for (int row = 0; row < sa.m_dimensions.second; row++) { // for each row
+    for (int row = 0; row < sa.m_dimensions.rank; row++) { // for each row
         if (row != 0) { // start the next line
             trailingEdge = false;
             for (int i = 0; i < 1 + m_printSettings.m_height; i++) { // +1 for V_SEP
@@ -116,8 +116,8 @@ std::string Board::getAsciiBoard() {
                 lines.push_back("");
             }
         }
-        for (int col = 0; col < sa.m_dimensions.first; col++) { // for each element
-            SquareEnum thisSquare = sa.m_array[col + sa.m_dimensions.first*row];
+        for (int col = 0; col < sa.m_dimensions.file; col++) { // for each element
+            SquareEnum thisSquare = sa.m_array[col + sa.m_dimensions.file*row];
             size_t lowerLine = activeLineNum + m_printSettings.m_height + 1;
 
             if (thisSquare == VOID) { // print empty space where there is no tiles
@@ -169,8 +169,8 @@ std::string Board::getAsciiBoard() {
 
         // labels
         result += MARGIN_H_LABEL_DIV;
-        for (auto xLabel = 0; xLabel != sa.m_dimensions.first; xLabel++) {
-            std::string labelString = intToLetters(m_displayCoordsZero.first + xLabel);
+        for (auto xLabel = 0; xLabel != sa.m_dimensions.file; xLabel++) {
+            std::string labelString = intToLetters(m_displayCoordsZero.file + xLabel);
             while (labelString.size() < m_printSettings.m_width) {
                 labelString += " "; // label filler
             }
@@ -182,12 +182,12 @@ std::string Board::getAsciiBoard() {
         result = dividerLine + "\n" + result + "\n" + dividerLine + "\n";
     }
     // Add stuff to left side of output
-    int currentY = sa.m_dimensions.second - 1;
+    int currentY = sa.m_dimensions.rank - 1;
     for (int i = 0; i < lines.size(); i++) {
         if (m_printSettings.m_showCoords) {
             std::string leftMargin = std::string(1, MARGIN_V_SEP) + " ";
             if (i % (m_printSettings.m_height+1) == m_printSettings.m_height / 2 + 1) {
-                leftMargin += std::to_string((m_displayCoordsZero.second + currentY--).m_value);
+                leftMargin += std::to_string((m_displayCoordsZero.rank + currentY--).m_value);
             }
             while (leftMargin.size() < LEFT_MARGIN_SIZE) {
                 leftMargin += " ";
@@ -211,13 +211,13 @@ uint64_t Board::getHash() const {
 };
 
 StandardArray::StandardArray() {
-    m_dimensions = std::make_pair(0,0);
+    m_dimensions = UnsignedCoords(0,0);
     m_array.clear();
 }
 
-StandardArray::StandardArray(Coords _size) {
+StandardArray::StandardArray(UnsignedCoords _size) {
     m_dimensions = _size;
-    m_array.resize(m_dimensions.first * m_dimensions.second, VOID);
+    m_array.resize(m_dimensions.file * m_dimensions.rank, VOID);
 }
 
 StandardArray::StandardArray(std::string _sfen) {
@@ -227,10 +227,10 @@ StandardArray::StandardArray(std::string _sfen) {
     // tdout << "created SA from Sfen" << std::endl;
     _sfen = _sfen.substr(0, _sfen.find(" ")); // remove game info, which we do not need
     auto sfenLines = split(_sfen, "/"); // split into lines
-    m_dimensions.second = sfenLines.size();
+    m_dimensions.rank = sfenLines.size();
 
     // get other dimension by counting max length
-    m_dimensions.first = 0;
+    m_dimensions.file = 0;
     for (std::string& line : sfenLines) { // for each line
         unsigned int squareCount = 0; // how many squares this line has //FIXME: make a parseFen function that takes all this crap as lambda, reducing code repeated.
         for (size_t i = 0; i < line.length() && line[i] != ' '; i++) {
@@ -263,17 +263,17 @@ StandardArray::StandardArray(std::string _sfen) {
                 squareCount++;
             }
         }
-        m_dimensions.first = std::max(m_dimensions.first, squareCount);
+        m_dimensions.file = std::max(m_dimensions.file, squareCount);
     }
-    dlog("Found dimension of " , m_dimensions.first , ", " , m_dimensions.second);
+    dlog("Found dimension of " , m_dimensions.file , ", " , m_dimensions.rank);
     // allocate the array
-    m_array.resize(m_dimensions.first * m_dimensions.second, VOID);
+    m_array.resize(m_dimensions.file * m_dimensions.rank, VOID);
 
     // iterate thru lines in reverse to initialize array
     unsigned int lineNumber = 0;
     for (auto lineIt = sfenLines.rbegin(); lineIt != sfenLines.rend(); ++lineIt) {
         // which index of standardArray we are on.
-        unsigned int currentIndex = lineNumber * m_dimensions.first;
+        unsigned int currentIndex = lineNumber * m_dimensions.file;
 
         for (size_t i = 0; i < lineIt->length() && (*lineIt)[i] != ' '; i++) {
             const char c = (*lineIt)[i];
@@ -314,7 +314,7 @@ StandardArray::StandardArray(std::string _sfen) {
             }
         }
         // fill trailing non-tile squares with void
-        for (; currentIndex % m_dimensions.first != 0; currentIndex++) {
+        for (; currentIndex % m_dimensions.file != 0; currentIndex++) {
             m_array[currentIndex++] = VOID;
         }
         lineNumber++;
@@ -323,26 +323,26 @@ StandardArray::StandardArray(std::string _sfen) {
 
 std::string StandardArray::dumpAsciiArray() {
     std::string result = "[";
-    for (int row = 0; row < m_dimensions.second; row++) {
+    for (int row = 0; row < m_dimensions.rank; row++) {
         result += "\n";
-        for (int col = 0; col < m_dimensions.first; col++) {
-            result += getCharFromSquare(m_array[col + m_dimensions.first*row], '=', '.');
+        for (int col = 0; col < m_dimensions.file; col++) {
+            result += getCharFromSquare(m_array[col + m_dimensions.file*row], '=', '.');
         }
     }
     result += "\n]";
     return result;
 }
 
-DModCoords Board::SAtoDM(Coords _standard) const { // TODO: surely we can simplify these 4 conversion functions by just inlining with the += op?
-    DModCoords dMod (_standard);
-    dMod.first += m_displayCoordsZero.first;
-    dMod.second += m_displayCoordsZero.second;
+DModCoords Board::SAtoDM(UnsignedCoords _standard) const { // TODO: surely we can simplify these 4 conversion functions by just inlining with the += op?
+    DModCoords dMod (_standard.file, _standard.rank); // TODO: conversions between coords?
+    dMod.file += m_displayCoordsZero.file;
+    dMod.rank += m_displayCoordsZero.rank;
     return dMod;
 }
-Coords Board::DMtoSA(DModCoords _dMod) const {
-    _dMod.first -= m_displayCoordsZero.first;
-    _dMod.second -= m_displayCoordsZero.second;
-    return std::make_pair(_dMod.first.m_value, _dMod.second.m_value);
+UnsignedCoords Board::DMtoSA(DModCoords _dMod) const {
+    _dMod.file -= m_displayCoordsZero.file;
+    _dMod.rank -= m_displayCoordsZero.rank;
+    return UnsignedCoords(_dMod.file.m_value, _dMod.rank.m_value);
 }
 
 std::vector<std::unique_ptr<Move>> Board::getMovesFromMO(DModCoords _pieceCoords, const MoveOption& _mo) {

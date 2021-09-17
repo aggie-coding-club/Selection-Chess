@@ -1,4 +1,5 @@
 #include "ruleset.h"
+#include "chess_utils.h"
 
 #include <sstream>
 #include <string>

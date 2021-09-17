@@ -1,6 +1,6 @@
 #include "move.h"
 #include "constants.h"
-#include "utils.h"
+#include "chess_utils.h"
 
 #include <math.h>
 #include <regex>
@@ -118,12 +118,12 @@ std::unique_ptr<Move> readAlgebraic(std::string _algebra) {
 
 std::string coordsToAlgebraic(DModCoords _coords, DModCoords _offset) {
     //TODO: implement _offset if its needed
-    return intToLetters(_coords.first) + std::to_string(_coords.second.m_value);
+    return intToLetters(_coords.file) + std::to_string(_coords.rank.m_value);
 }
 std::string signedCoordsToAlgebraic(SignedCoords _coords) {
     //TODO: implement _offset if its needed
-    return (_coords.first  >= 0? "+" : "") + std::to_string(_coords.first) + 
-           (_coords.second >= 0? "+" : "") + std::to_string(_coords.second);
+    return (_coords.file  >= 0? "+" : "") + std::to_string(_coords.file) + 
+           (_coords.rank >= 0? "+" : "") + std::to_string(_coords.rank);
 }
 
 DModCoords algebraicToCoords(std::string _algebra, DModCoords _offset) {
@@ -132,7 +132,7 @@ DModCoords algebraicToCoords(std::string _algebra, DModCoords _offset) {
     AlgebraicTokenizer tokenizer(_algebra);
     std::string letterPart = tokenizer.next();
     std::string numberPart = tokenizer.next();
-    return std::make_pair(
+    return DModCoords(
         lettersToInt(letterPart),
         std::stoi(numberPart)
     );
@@ -181,7 +181,7 @@ DModCoords AlgebraicTokenizer::nextCoords() {
     //TODO: handle errors
     std::string letters = next();
     std::string numbers = next();
-    return std::make_pair(lettersToInt(letters), (unsigned int) std::stoi(numbers));
+    return DModCoords(lettersToInt(letters), (unsigned int) std::stoi(numbers));
 }
 SignedCoords AlgebraicTokenizer::nextSignedCoords() {
     //TODO: handle errors
@@ -191,6 +191,6 @@ SignedCoords AlgebraicTokenizer::nextSignedCoords() {
     coordStr = next();
     coordStr += next();
     int secondCoords = std::stoi(coordStr);
-    return std::make_pair(firstCoords, secondCoords);
+    return SignedCoords(firstCoords, secondCoords);
 }
 

@@ -53,7 +53,7 @@ env.Append(LIBPATH = libPath)
 
 # make sure these strings have trailing space so multiline string doesn't merge last item of this line with first item of next line
 guiCpps = '' \
-'gui_main.cpp utils.cpp ' \
+'gui_main.cpp utils.cpp chess_utils.cpp ' \
 'array_board.cpp board.cpp ' \
 'game.cpp move.cpp pieces.cpp ruleset.cpp ' \
 'human_runner.cpp cmd_tokenizer.cpp '
@@ -63,7 +63,7 @@ if (not noBoost):
 gui = env.Program(compiled_path + 'SelChessGui', Split(guiCpps))
 
 engine = env.Program(compiled_path + 'engines/Hippocrene', Split(
-    'hippo_main.cpp utils.cpp '
+    'hippo_main.cpp utils.cpp chess_utils.cpp '
     'array_board.cpp board.cpp '
     'game.cpp move.cpp pieces.cpp ruleset.cpp '
     'min_max.cpp '
@@ -72,7 +72,7 @@ engine = env.Program(compiled_path + 'engines/Hippocrene', Split(
 
 unittest = env.Program(compiled_path + 'UnitTest', Split(
     'test_macros.cpp '
-    'unit_main.cpp utils.cpp '
+    'unit_main.cpp utils.cpp chess_utils.cpp '
     'array_board.cpp board.cpp '
     'game.cpp move.cpp pieces.cpp ruleset.cpp '
     'min_max.cpp '

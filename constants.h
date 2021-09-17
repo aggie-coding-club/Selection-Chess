@@ -3,9 +3,13 @@
 
 #include <string>
 #include <vector>
+#include "coords.hpp"
 
-typedef std::pair<unsigned int, unsigned int> Coords;
-typedef std::pair<int, int> SignedCoords;
+// TODO: the contents of this file feel very misc-y, should probably restructure a little.
+
+// typedef std::pair<unsigned int, unsigned int> UnsignedCoords;
+typedef Coords<unsigned int, unsigned int> UnsignedCoords;
+typedef Coords<int, int> SignedCoords;
 
 enum class CustomException {ENGINE_DIED=101};
 
@@ -51,10 +55,10 @@ const std::vector<DirectionEnum> DIAG_DIRECTIONS {DOWN_LEFT, UP_RIGHT, DOWN_RIGH
 const std::vector<DirectionEnum> ALL_8_DIRECTIONS {LEFT, RIGHT, UP, DOWN, DOWN_LEFT, UP_RIGHT, DOWN_RIGHT, UP_LEFT};
 
 static const SignedCoords DIRECTION_SIGNS[] = {
-    std::make_pair(-1,0), std::make_pair(1,0),
-    std::make_pair(0,1), std::make_pair(0,-1),
-    std::make_pair(-1,-1), std::make_pair(1,1),
-    std::make_pair(1,-1), std::make_pair(-1,1)
+    SignedCoords(-1,0), SignedCoords(1,0),
+    SignedCoords(0,1), SignedCoords(0,-1),
+    SignedCoords(-1,-1), SignedCoords(1,1),
+    SignedCoords(1,-1), SignedCoords(-1,1)
 };
 
 static const char* ASCII_LOGO =

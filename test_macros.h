@@ -4,7 +4,7 @@
 #include <iostream>
 #include <iomanip>
 
-
+// FIXME: can't use commas anywhere inside macro, because preprocessor is dumb as shit.
 namespace TestMacros {
     // global variable that gets set after a call to TEST macro. Returns true iff all TEST macro cases succeed.
     extern bool testState;

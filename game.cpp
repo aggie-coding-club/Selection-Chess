@@ -1,6 +1,6 @@
 #include "game.h"
 #include "constants.h"
-#include "utils.h"
+#include "chess_utils.h"
 #include "array_board.h"
 
 Game::Game(const std::string _sfen, std::string _rulesFile) : m_rules(_rulesFile) {

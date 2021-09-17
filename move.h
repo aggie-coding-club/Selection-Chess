@@ -23,7 +23,7 @@ typedef ModularInt<&DAModulus> DAModInt;
 extern unsigned int DDModulus;
 // Modular Int used by displayed numberic coord, i.e. 0,...,999
 typedef ModularInt<&DDModulus> DDModInt;
-typedef std::pair<DAModInt, DDModInt> DModCoords;
+typedef Coords<DAModInt, DDModInt> DModCoords;
 
 typedef int MoveType;
 enum : MoveType {INVALID_MOVE, PIECE_MOVE, TILE_MOVE, TILE_DELETION};
@@ -118,8 +118,8 @@ bool isAlgebraic(std::string _algrebra);
 // Construct and return the move from the string
 std::unique_ptr<Move> readAlgebraic(std::string _algebra);
 
-std::string coordsToAlgebraic(DModCoords _coords, DModCoords _offset=std::make_pair(0,0));
-DModCoords algebraicToCoords(std::string _algebra, DModCoords _offset=std::make_pair(0,0));
+std::string coordsToAlgebraic(DModCoords _coords, DModCoords _offset=DModCoords(0,0));
+DModCoords algebraicToCoords(std::string _algebra, DModCoords _offset=DModCoords(0,0));
 
 std::string signedCoordsToAlgebraic(SignedCoords _coords);
 

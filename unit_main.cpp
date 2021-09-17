@@ -1,12 +1,15 @@
 #include "test_macros.h"
 
 #include "array_board.h"
-#include "utils.h"
+#include "chess_utils.h"
 #include "constants.h"
 #include "move.h"
 #include "game.h"
 #include "min_max.h"
 #include "cmd_tokenizer.h" 
+#include "coords.hpp"
+
+#include <sstream>
 
 int main() {
     std::cout << "Conducting tests..." << std::endl;
@@ -58,7 +61,7 @@ int main() {
         StandardArray sa ("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
         // std::cout << sa.dumpAsciiArray() << std::endl;
         // TODO: low priority: idk, i feel like something may be flipped?
-        REQ_CASE("sfen ctor dim", sa.m_dimensions == Coords(18, 8));
+        REQ_CASE("sfen ctor dim", sa.m_dimensions == UnsignedCoords(18, 8));
         REQ_CASE("sfen ctor 0,0", sa.m_array[0] == W_ROOK);
         REQ_CASE("sfen ctor r/f ~swap", sa.m_array[7] == W_ROOK); // make sure we haven't flipped rank/file
         OPT_CASE("sfen ctor col order", sa.m_array[3] == W_QUEEN); // make sure we haven't reversed column order
@@ -155,8 +158,8 @@ int main() {
     });
 
     TEST("DModCoord algebraic converions", {
-        DModCoords c1 = std::make_pair(3,5);
-        DModCoords c2 = std::make_pair(129,50);
+        DModCoords c1 = DModCoords(3,5);
+        DModCoords c2 = DModCoords(129,50);
         REQ_CASE("DMCToAlg 1", coordsToAlgebraic(c1) == "d5"); // single digits
         REQ_CASE("DMCToAlg 2", coordsToAlgebraic(c2) == "dz50"); // multiple digits
 
@@ -486,6 +489,48 @@ int main() {
         }
         std::cout << "\b\b] \b" << std::endl;
     });
+
+    // KLUDGE: typedef these outside of macro to avoid problems with commas
+    typedef Coords<int, unsigned int> HeteroInt;
+    // typedef HomoCoords<int> HomoInt;
+    TEST("Coords/HomoCoords class", {
+        HeteroInt hetero1 (-3, 1);
+        std::stringstream stream("");
+        stream << hetero1;
+        OPT_CASE("hetero op<<", stream.str() == "(-3, 1)");
+        // HomoInt homo1 (3, -1);
+        // stream = std::stringstream("");
+        // stream << homo1;
+        // OPT_CASE("homo op<<", stream.str() == "(3, -1)");
+        HeteroInt hetero2 (5, -3);
+        OPT_CASE("het-het", hetero1-hetero2 == HeteroInt(-8, 4));
+        HeteroInt homo2 (5, -3);
+        // OPT_CASE("homo-homo", homo1-homo2 == HomoInt(-2, 2));
+        // OPT_CASE("hetero-homo", hetero1-homo1 == HeteroInt(-6, 2));
+        // OPT_CASE("homo-hetero", homo1-hetero1 == HomoInt(6, -2));
+
+        // OPT_CASE("homo -op", -homo1 == HomoInt(-3, 1));
+        OPT_CASE("hetero -op", -hetero1 == HeteroInt(3, -1));
+
+        OPT_CASE("hetero *op", hetero1*3 == HeteroInt(-9, 3));
+        // OPT_CASE("homo *op", homo1*5 == HomoInt(15, -5));
+        OPT_CASE("hetero op*", 3*hetero1 == HeteroInt(-9, 3));
+        // OPT_CASE("homo op*", 5*homo1 == HomoInt(15, -5));
+
+        // homo1.applyEach([](int& coord){
+        //     coord *= 10;
+        // });
+        // OPT_CASE("applyEach void", homo1 == HomoInt(30, -10));
+
+    });
+
+    // DModCoords aCoord(4, 5);
+    // DModCoords bCoord(98, 99);
+    // dlog("aCoord then:", aCoord);
+    // dlog("bCoord then:", bCoord);
+    // f<DAModInt, DModCoords>(GetFile<DAModInt, DDModInt>);
+    // dlog("aCoord now:", aCoord);
+    // dlog("bCoord now:", bCoord);
 
     std::cout << game.print() << std::endl;
     std::cout << "Done testing," << std::endl;

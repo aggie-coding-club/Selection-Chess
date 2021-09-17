@@ -17,11 +17,13 @@ class ModularInt {
         int m_value; // Even though this only contains nonnegative values, we keep it signed so it doesn't overflow on negative numbers.
 
         ModularInt(int _x);
-        ModularInt() : m_value(0) { }
+        ModularInt() : m_value(0) { } // TODO: consider renaming to value instead of m_value?
 
         ModularInt& operator+=(int _x) {
             m_value += _x;
-            m_value = positiveModulo(m_value, *modulus);
+            // gcc complains if I don't put this-> in front of these for some obscure reason 
+            //https://stackoverflow.com/questions/9941987/there-are-no-arguments-that-depend-on-a-template-parameter
+            m_value = positiveModulo(m_value, *modulus); 
             return *this;
         }
         ModularInt& operator-=(int _x) {
