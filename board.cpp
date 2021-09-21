@@ -221,104 +221,59 @@ StandardArray::StandardArray(UnsignedCoords _size) {
 }
 
 StandardArray::StandardArray(std::string _sfen) {
-    //TODO: I feel like the two loops through the string can be simplified into some sort 
-    // of function call instead. This could then be used if other board wanted to implement 
-    // their own init from sfen function.
     // tdout << "created SA from Sfen" << std::endl;
     _sfen = _sfen.substr(0, _sfen.find(" ")); // remove game info, which we do not need
-    auto sfenLines = split(_sfen, "/"); // split into lines
-    m_dimensions.rank = sfenLines.size();
 
-    // get other dimension by counting max length
+    // get dimensions by counting max length
     m_dimensions.file = 0;
-    for (std::string& line : sfenLines) { // for each line
-        unsigned int squareCount = 0; // how many squares this line has //FIXME: make a parseFen function that takes all this crap as lambda, reducing code repeated.
-        for (size_t i = 0; i < line.length() && line[i] != ' '; i++) {
-            const char c = line[i];
-            if (c == '(') { // Void square(s)
-                int j;
-                // set j to be the next non-numeric character
-                for (j = i+1; isdigit(line[j]); j++);
-                // Get the next characters as integer
-                squareCount += std::stoi(line.substr(i+1, j)); //i+1 to ignore '('
-                // make sure that it has this closing paren
-                if (line[j] != ')') {
-                    std::cerr << "Expected ')' after non tile sequence in SFen!" << std::endl;
-                    throw "Expected ')' after non tile sequence in SFen!";
-                }
-                // update i to to account for the number of additional characters we read in
-                i = j;
-
-            } else if (isdigit(c)) { // empty tiles
-                int j;
-                // set j to be the next non-numeric character
-                for (j = i+1; isdigit(line[j]); j++);
-                // Get the next characters as integer
-                squareCount += std::stoi(line.substr(i, j));
-                // update i to to account for the number of additional characters we read in
-                i = j-1;
-
-            } else {
-                // this is a tile with a piece on it
-                squareCount++;
-            }
+    m_dimensions.rank = 1; // start at 1, add 1 every newline.
+    unsigned int squareCount = 0; // how many squares this line has
+    parseSfenPos(
+        _sfen,
+        [&](SquareEnum _piece) {
+            squareCount++;
+        },
+        [&](int _numVoid) {
+            squareCount += _numVoid;
+        },
+        [&](int _numEmpty) {
+            squareCount += _numEmpty;
+        },
+        [&]() {
+            m_dimensions.rank++;
+            m_dimensions.file = std::max(m_dimensions.file, squareCount);
+            squareCount = 0; // reset
         }
-        m_dimensions.file = std::max(m_dimensions.file, squareCount);
-    }
+    );
+    // Since we don't end with '/' but need to update after row read
+    m_dimensions.file = std::max(m_dimensions.file, squareCount);
+
     dlog("Found dimension of " , m_dimensions.file , ", " , m_dimensions.rank);
     // allocate the array
     m_array.resize(m_dimensions.file * m_dimensions.rank, VOID);
 
-    // iterate thru lines in reverse to initialize array
-    unsigned int lineNumber = 0;
-    for (auto lineIt = sfenLines.rbegin(); lineIt != sfenLines.rend(); ++lineIt) {
-        // which index of standardArray we are on.
-        unsigned int currentIndex = lineNumber * m_dimensions.file;
-
-        for (size_t i = 0; i < lineIt->length() && (*lineIt)[i] != ' '; i++) {
-            const char c = (*lineIt)[i];
-            if (c == '(') { // void
-                int j;
-                // set j to be the next non-numeric character
-                for (j = i+1; isdigit((*lineIt)[j]); j++);
-                // Get the next characters as integer
-                unsigned int voidCount = std::stoi((*lineIt).substr(i+1, j)); //i+1 to ignore '('
-                currentIndex += voidCount;
-                // for (int ntci = 0; ntci < voidCount; ntci++) {
-                //     m_array[currentIndex++] = VOID;
-                // }
-                // update i to to account for the number of additional characters we read in
-                i = j;
-
-            } else if (isdigit(c)) { // empty tiles
-                int j;
-                // set j to be the next non-numeric character
-                for (j = i+1; isdigit((*lineIt)[j]); j++);
-                // Get the next characters as integer
-                unsigned int emptyTileCount = std::stoi((*lineIt).substr(i, j));
-                for (int etci = 0; etci < emptyTileCount; etci++) {
-                    m_array[currentIndex++] = EMPTY;
-                }
-
-                // update i to to account for the number of additional characters we read in
-                i = j-1;
-
-            } else {
-                SquareEnum thisTile = getSquareFromChar(c, ' '); // We look for empty as ' ' to ensure we never find empty this way, just in case.
-                if (thisTile != VOID) {
-                    m_array[currentIndex++] = thisTile;
-                } else {
-                    std::cerr << "Invalid piece symbol '" << c << "' in SFen!" << std::endl;
-                    throw "Invalid piece symbol in SFen!";
-                }
+    int currentRow = m_dimensions.rank - 1;
+    int currentColumn = 0;
+    parseSfenPos(
+        _sfen,
+        [&](SquareEnum _piece) {
+            m_array[currentColumn + currentRow*m_dimensions.file] = _piece;
+            currentColumn++;
+        },
+        [&](int _numVoid) {
+            currentColumn += _numVoid;
+        },
+        [&](int _numEmpty) {
+            for (int etci = 0; etci < _numEmpty; etci++) {
+                m_array[currentColumn + currentRow*m_dimensions.file] = EMPTY;
+                currentColumn++;
             }
+        },
+        [&]() {
+            currentRow--;
+            currentColumn = 0;
         }
-        // fill trailing non-tile squares with void
-        for (; currentIndex % m_dimensions.file != 0; currentIndex++) {
-            m_array[currentIndex++] = VOID;
-        }
-        lineNumber++;
-    }
+    );
 }
 
 std::string StandardArray::dumpAsciiArray() {

@@ -532,6 +532,28 @@ int main() {
     // dlog("aCoord now:", aCoord);
     // dlog("bCoord now:", bCoord);
 
+    TEST("parseSfenPos", {
+        std::string testSfen = "(1)1rkr1(1)/2(3)2/(1)1RKR1(1)";
+        // Test parseSfen by having it read and echo a sfen.
+        std::string outputSfen = "";
+        parseSfenPos(
+            testSfen,
+            [&](SquareEnum _piece) {
+                outputSfen += getCharFromSquare(_piece);
+            },
+            [&](int _numVoid) {
+                outputSfen += "(" + std::to_string(_numVoid) + ")";
+            },
+            [&](int _numEmpty) {
+                outputSfen += std::to_string(_numEmpty);
+            },
+            [&]() {
+                outputSfen += "/";
+            }
+        );
+        REQ_CASE("echo sfen", outputSfen == testSfen);
+    });
+
     std::cout << game.print() << std::endl;
     std::cout << "Done testing," << std::endl;
     if (TestMacros::numTestsFailed == 0) {

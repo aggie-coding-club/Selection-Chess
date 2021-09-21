@@ -80,4 +80,61 @@ inline unsigned int coordDistance(unsigned int _1, unsigned int _2, unsigned int
     }
 }
 
+// Reads the _sfen, executing the lambda functions _forX whenever X is encountered.
+// Those lambdas expect the following parameters:
+//      _forPiece(SquareEnum _piece)
+//      _forVoid(int _numVoid)
+//      _forEmpty(int _numEmpty)
+//      _forNewline()
+template<typename T1, typename T2, typename T3, typename T4>
+void parseSfenPos(
+    std::string _sfen,
+    T1 _forPiece,
+    T2 _forVoid,
+    T3 _forEmpty,
+    T4 _forNewline
+) {
+    for (int i = 0; i < _sfen.length() && _sfen[i] != ' '; i++) {
+        char c = _sfen[i];
+        if (c == '/') { // Next row
+            _forNewline();
+            continue;
+        }
+        if (c == '(') { // Void square(s)
+            int j;
+            // set j to be the next non-numeric character
+            for (j = i+1; isdigit(_sfen[j]); j++);
+            // If it is the edge case where there is no numbers, i.e. "()", we can skip this part
+            if (j != i+1) {
+                // Get the next characters as integer
+                int numVoidTiles = std::stoi(_sfen.substr(i+1, j-(i+1))); //i+1 to ignore '('
+                _forVoid(numVoidTiles);
+            }
+            // update i to to account for the number of additional characters we read in
+            i = j;
+            continue;
+        }
+        if (isdigit(c)) { // Empty tile(s)
+            int j;
+            // set j to be the next non-numeric character
+            for (j = i+1; isdigit(_sfen[j]); j++);
+            // Get the next characters as integer
+            int numEmptyTiles = std::stoi(_sfen.substr(i, j-i));
+            // update i to to account for the number of additional characters we read in
+            i = j-1;
+            _forEmpty(numEmptyTiles);
+            continue;
+        }
+
+        SquareEnum thisTile = getSquareFromChar(c, ' '); // We look for empty as ' ' to ensure we never find empty this way, just in case.
+        if (thisTile == VOID) {
+            //FIXME: error handling
+            dlog("Error parsing sfen position: unknown character '", c, "'");
+            continue;
+        }
+        _forPiece(thisTile);
+    }
+}
+
+
 #endif

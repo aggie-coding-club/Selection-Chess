@@ -47,45 +47,21 @@ void ArrayBoard::init(const std::string _sfen) {
 
 /* ----------------- loop through and count number of tiles ----------------- */
     m_numTiles = 0;
-    for (i = 0; i < _sfen.length() && _sfen[i] != ' '; i++) {
-        const char c = _sfen[i];
-        if (c == '/') { // Next row
-            continue;
-        }
-        if (c == '(') { // Void square(s)
-            int j;
-            // set j to be the next non-numeric character
-            for (j = i+1; isdigit(_sfen[j]); j++);
-            // make sure that it has this closing paren
-            if (_sfen[j] != ')') {
-                std::cerr << "Expected ')' after void sequence in SFen!" << std::endl;
-                throw "Expected ')' after void sequence in SFen!";
-            }
-            // update i to to account for the number of additional characters we read in
-            i = j;
-            continue;
-        }
-        if (isdigit(c)) { // Empty tile(s)
-            int j;
-            // set j to be the next non-numeric character
-            for (j = i+1; isdigit(_sfen[j]); j++);
-            // Get the next characters as integer
-            int numEmptyTiles = std::stoi(_sfen.substr(i, j-i));
-            // update i to to account for the number of additional characters we read in
-            i = j-1;
-            m_numTiles += numEmptyTiles;
-            continue;
-        }
-
-        SquareEnum thisTile = getSquareFromChar(c, ' '); // We look for empty as ' ' to ensure we never find empty this way, just in case.
-        if (thisTile != VOID) {
+    parseSfenPos(
+        _sfen,
+        [&](SquareEnum _piece) {
             m_numTiles++;
-            continue;
-        } else {
-            std::cerr << "Invalid piece symbol '" << c << "' in SFen!" << std::endl;
-            throw "Invalid piece symbol in SFen!";
+        },
+        [&](int _numVoid) {
+            // no op
+        },
+        [&](int _numEmpty) {
+            m_numTiles += _numEmpty;
+        },
+        [&]() {
+            // no op
         }
-    }
+    );
     m_grid_size = m_numTiles + 1; // grid size = init number of tiles + 1. See documentation on wrap-around for explanation of why
     // check for multiplication overflow
     if (m_grid_size > SIZE_MAX / m_grid_size) {
@@ -112,52 +88,32 @@ void ArrayBoard::init(const std::string _sfen) {
     m_minCoords = m_maxCoords = STARTING_CORNER; // TODO: remove STARTING CORNER, and just use m_minCoords?
 
     ABModCoords currentFR = STARTING_CORNER;
-    for (i = 0; i < _sfen.length() && _sfen[i] != ' '; i++) {
-        const char c = _sfen[i];
-        if (c == '/') { // Next row
-            currentFR.file = STARTING_CORNER.file;
-            --currentFR.rank;
-            continue;
-        }
-        if (c == '(') { // Void square(s)
-            int j;
-            // set j to be the next non-numeric character
-            for (j = i+1; isdigit(_sfen[j]); j++);
-            // If it is the edge case where there is no numbers, i.e. "()", we can skip this part
-            if (j != i+1) {
-                // Get the next characters as integer
-                int num_no_tiles = std::stoi(_sfen.substr(i+1, j-(i+1))); //i+1 to ignore '('
-                currentFR.file += num_no_tiles;
-            }
-            // update i to to account for the number of additional characters we read in
-            i = j;
-            continue;
-        }
-        if (isdigit(c)) { // Empty tile(s)
-            int j;
-            // set j to be the next non-numeric character
-            for (j = i+1; isdigit(_sfen[j]); j++);
-            // Get the next characters as integer
-            int numEmptyTiles = std::stoi(_sfen.substr(i, j-i));
-            // update i to to account for the number of additional characters we read in
-            i = j-1;
-
-            for (int k = 0; k < numEmptyTiles; k++) {
+    parseSfenPos(
+        _sfen,
+        [&](SquareEnum _piece) {
+            m_grid[toIndex(currentFR)] = _piece;
+            addPieceToPL(_piece, currentFR);
+            updateExtrema(currentFR);
+            ++currentFR.file;
+        },
+        [&](int _numVoid) {
+            currentFR.file += _numVoid;
+        },
+        [&](int _numEmpty) {
+            for (int k = 0; k < _numEmpty; k++) {
                 m_grid[toIndex(currentFR)] = EMPTY;
                 updateExtrema(currentFR);
                 ++currentFR.file;
             }
-            continue;
+        },
+        [&]() {
+            currentFR.file = STARTING_CORNER.file;
+            --currentFR.rank;
         }
-
-        SquareEnum thisTile = getSquareFromChar(c, ' '); // We look for empty as ' ' to ensure we never find empty this way, just in case.
-        m_grid[toIndex(currentFR)] = thisTile;
-        addPieceToPL(thisTile, currentFR);
-        updateExtrema(currentFR);
-        ++currentFR.file;
-    }
+    );
     // Parse remaining fields
     // TODO: implement
+    // FIXME: add dModZero to sfen format
     // dlog("min coords are ", m_minCoords.file, ", ", m_minCoords.rank, " and max are ", m_maxCoords.file, ", ", m_maxCoords.rank);
 }
 
