@@ -1,7 +1,7 @@
 #ifndef BOARD_H
 #define BOARD_H
 
-#include "constants.h"
+#include "constants.hpp"
 #include "chess_utils.h"
 #include "move.h"
 #include "ruleset.h"

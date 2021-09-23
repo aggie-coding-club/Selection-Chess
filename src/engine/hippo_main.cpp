@@ -1,17 +1,17 @@
-#include "array_board.h"
-#include "chess_utils.h"
-#include "constants.h"
-#include "move.h"
-#include "game.h"
+#include "../chess/array_board.h"
+#include "../chess/chess_utils.h"
+#include "../chess/constants.hpp"
+#include "../chess/move.h"
+#include "../chess/game.h"
 #include "min_max.h"
+#include "../chess/cmd_tokenizer.h"
 
 #include <iostream>
-#include "cmd_tokenizer.h"
 
 // TODO: how should board be initialized if no setboard is given?
 // TODO: how to specify rules file?
 int xboardLoop() {
-    Game game("2 w 0 1", "testing/test1.rules"); // TODO: not sure what default board config should be, or if there should even be one.
+    Game game("2 w 0 1", "rules/test1.rules"); // TODO: not sure what default board config should be, or if there should even be one.
 
     std::string line;
 

@@ -53,29 +53,29 @@ env.Append(LIBPATH = libPath)
 
 # make sure these strings have trailing space so multiline string doesn't merge last item of this line with first item of next line
 guiCpps = '' \
-'gui_main.cpp utils.cpp chess_utils.cpp ' \
-'array_board.cpp board.cpp ' \
-'game.cpp move.cpp pieces.cpp ruleset.cpp ' \
-'human_runner.cpp cmd_tokenizer.cpp '
+'src/gui/gui_main.cpp src/utils/utils.cpp src/chess/chess_utils.cpp ' \
+'src/chess/array_board.cpp src/chess/board.cpp ' \
+'src/chess/game.cpp src/chess/move.cpp src/chess/pieces.cpp src/chess/ruleset.cpp ' \
+'src/gui/human_runner.cpp src/chess/cmd_tokenizer.cpp '
 if (not noBoost):
-    guiCpps += 'engine_runner.cpp ' # compile with engine_runner only if we can use Boost
+    guiCpps += 'src/gui/engine_runner.cpp ' # compile with engine_runner only if we can use Boost
 
 gui = env.Program(compiled_path + 'SelChessGui', Split(guiCpps))
 
 engine = env.Program(compiled_path + 'engines/Hippocrene', Split(
-    'hippo_main.cpp utils.cpp chess_utils.cpp '
-    'array_board.cpp board.cpp '
-    'game.cpp move.cpp pieces.cpp ruleset.cpp '
-    'min_max.cpp '
-    'cmd_tokenizer.cpp'
+    'src/engine/hippo_main.cpp src/utils/utils.cpp src/chess/chess_utils.cpp '
+    'src/chess/array_board.cpp src/chess/board.cpp '
+    'src/chess/game.cpp src/chess/move.cpp src/chess/pieces.cpp src/chess/ruleset.cpp '
+    'src/engine/min_max.cpp '
+    'src/chess/cmd_tokenizer.cpp'
 ))
 
 unittest = env.Program(compiled_path + 'UnitTest', Split(
-    'test_macros.cpp '
-    'unit_main.cpp utils.cpp chess_utils.cpp '
-    'array_board.cpp board.cpp '
-    'game.cpp move.cpp pieces.cpp ruleset.cpp '
-    'min_max.cpp '
-    'human_runner.cpp '
-    'cmd_tokenizer.cpp'
+    'src/testing/test_macros.cpp '
+    'src/testing/unit_main.cpp src/utils/utils.cpp src/chess/chess_utils.cpp '
+    'src/chess/array_board.cpp src/chess/board.cpp '
+    'src/chess/game.cpp src/chess/move.cpp src/chess/pieces.cpp src/chess/ruleset.cpp '
+    'src/engine/min_max.cpp '
+    'src/gui/human_runner.cpp '
+    'src/chess/cmd_tokenizer.cpp'
 ))

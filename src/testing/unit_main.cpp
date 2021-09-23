@@ -1,13 +1,13 @@
 #include "test_macros.h"
 
-#include "array_board.h"
-#include "chess_utils.h"
-#include "constants.h"
-#include "move.h"
-#include "game.h"
-#include "min_max.h"
-#include "cmd_tokenizer.h" 
-#include "coords.hpp"
+#include "../chess/array_board.h"
+#include "../chess/chess_utils.h"
+#include "../chess/constants.hpp"
+#include "../chess/move.h"
+#include "../chess/game.h"
+#include "../engine/min_max.h"
+#include "../chess/cmd_tokenizer.h" 
+#include "../utils/coords.hpp"
 
 #include <sstream>
 
@@ -84,7 +84,7 @@ int main() {
         OPT_CASE("completed/EOF", t.next().front() == EOF);
     });
 
-    Game game = Game("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1", "testing/test1.rules");
+    Game game = Game("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1", "rules/test1.rules");
 
     // Change display settings like this:
     game.m_board->m_printSettings.m_tileFillChar = '-';
@@ -355,8 +355,8 @@ int main() {
 
     TEST("Continuity Checker", {
         // CAUTION: overshadowing of game variable!
-        // Game game = Game("2 w 0 1", "testing/tileMove1.rules");
-        Ruleset rules ("testing/tileMove1.rules");
+        // Game game = Game("2 w 0 1", "rules/tileMove1.rules");
+        Ruleset rules ("rules/tileMove1.rules");
         OPT_CASE("2 cont", MULTI_CHECK(
             ArrayBoard ab(rules, "2 w 0 1");
             std::cout << ab.getAsciiBoard();
@@ -400,7 +400,7 @@ int main() {
 
     TEST("TileMove generation", { // TODO: remove or improve
         // CAUTION: overshadowing of game variable!
-        Game game = Game("1P w 0 1", "testing/tileMove1.rules");
+        Game game = Game("1P w 0 1", "rules/tileMove1.rules");
         OPT_CASE("simplest", MULTI_CHECK(
             game.reset("1P w 0 1");
             std::cout << game.print() << std::endl;
@@ -480,7 +480,7 @@ int main() {
 
     TEST("PieceMove generation", {
         // TODO: implement tests, using different rulesets, etc.
-        Game game ("P2R(2)p/1p3NB/BQp1/(3)1p w 0 1", "testing/piecesOnly.rules"); // simple case to play with
+        Game game ("P2R(2)p/1p3NB/BQp1/(3)1p w 0 1", "rules/piecesOnly.rules"); // simple case to play with
         std::cout << game.print() << std::endl;
         std::cout << "Possible moves: [" << std::flush;
         auto moves = game.m_board->getMoves(game.m_turn);

@@ -1,8 +1,8 @@
 #ifndef RULESET_H
 #define RULESET_H
 
-#include "constants.h"
-#include "tokenizer.h"
+#include "constants.hpp"
+#include "../utils/tokenizer.h"
 #include "pieces.h"
 
 #include <vector>
@@ -28,7 +28,7 @@ class Ruleset {
     public:
         // initialize rules based on file
         bool init(std::string _ruleFile);
-        Ruleset(std::string _ruleFile="default.rules"); // FIXME: weird hardcoding
+        Ruleset(std::string _ruleFile="rules/default.rules"); // FIXME: weird hardcoding
         // How many tiles can be deleted using TileDeletion in a single move
         int m_numDeletionsPerTurn = 1;
         // Disable tileMove

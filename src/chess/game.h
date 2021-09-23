@@ -1,7 +1,7 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include "constants.h"
+#include "constants.hpp"
 #include "board.h"
 #include "ruleset.h"
 
@@ -29,7 +29,8 @@ class Game {
         Ruleset m_rules;
 
         // TODO: probably should be able to take in PGNs too.
-        Game(std::string _sfen, std::string _rulesFile="default.rules"); // TODO: weird hardcode
+        Game(std::string _sfen, std::string _rulesFile="rules/default.rules"); // TODO: weird hardcode
+        // FIXME: test if rules file is actually being read in.
         void reset(const std::string _sfen);
 
         bool applyMove(std::shared_ptr<Move> _move);

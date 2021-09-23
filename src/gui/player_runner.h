@@ -1,9 +1,9 @@
 #ifndef PLAYER_RUNNER_H
 #define PLAYER_RUNNER_H
 
-#include "constants.h"
-#include "board.h"
-#include "move.h"
+#include "../chess/constants.hpp"
+#include "../chess/board.h"
+#include "../chess/move.h"
 
 class PlayerRunner {
     protected:

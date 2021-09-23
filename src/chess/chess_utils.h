@@ -1,8 +1,8 @@
 #ifndef CHESS_UTILITYMETHODS_H
 #define CHESS_UTILITYMETHODS_H
 
-#include "constants.h"
-#include "utils.h"
+#include "constants.hpp"
+#include "../utils/utils.h"
 
 #include <string>
 #include <iostream>

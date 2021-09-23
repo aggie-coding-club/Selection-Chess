@@ -1,9 +1,9 @@
-#ifndef CONSTANTS_H
-#define CONSTANTS_H
+#ifndef CONSTANTS_HPP
+#define CONSTANTS_HPP
 
 #include <string>
 #include <vector>
-#include "coords.hpp"
+#include "../utils/coords.hpp"
 
 // TODO: the contents of this file feel very misc-y, should probably restructure a little.
 

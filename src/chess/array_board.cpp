@@ -1,6 +1,6 @@
 #include "array_board.h"
 
-#include "constants.h"
+#include "constants.hpp"
 #include "chess_utils.h"
 #include "move.h"
 
@@ -254,7 +254,7 @@ bool ArrayBoard::apply(std::shared_ptr<TileMove> _move) {
     }
     // dlog(((_move->m_destFirst.rank.heurLessThan(_move->m_selFirst.rank))?"moving left":"not moving left"), std::endl;
     // dlog(((! _move->m_destFirst.rank.isBetween(m_displayCoordsZero.rank, displayCoordsMax.rank))?"not in vert bounds":"in vert bounds"), std::endl;
-    if ( //.rank //TODO: combine these into one function somehow for readability. //TODO: this could be solved by pair class.
+    if ( //.rank //TODO: combine these into one function somehow for readability.
         ( 
             (oldMin.rank != m_minCoords.rank && _move->m_destFirst.rank.heurLessThanOrEqual(_move->m_selFirst.rank)) || // THE minimum tile is being moved, and not to the right; or
             (_move->m_destFirst.rank.heurLessThan(_move->m_selFirst.rank)) // selection is moving left/down

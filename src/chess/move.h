@@ -1,9 +1,9 @@
 #ifndef MOVE_H
 #define MOVE_H
 
-#include "constants.h"
-#include "tokenizer.h"
-#include "modular_int.hpp"
+#include "constants.hpp"
+#include "../utils/tokenizer.h"
+#include "../utils/modular_int.hpp"
 
 #include <sstream>
 #include <vector>

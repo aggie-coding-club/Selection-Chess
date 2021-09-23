@@ -2,8 +2,8 @@
 #define HUMAN_RUNNER_H
 
 #include "player_runner.h"
-#include "cmd_tokenizer.h"
-#include "constants.h"
+#include "../chess/cmd_tokenizer.h"
+#include "../chess/constants.hpp"
 
 #include <cstdint>
 #include <queue>

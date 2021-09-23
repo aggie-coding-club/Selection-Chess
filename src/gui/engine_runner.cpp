@@ -1,5 +1,5 @@
 #include "engine_runner.h"
-#include "chess_utils.h"
+#include "../chess/chess_utils.h"
 
 #include <iostream>
 

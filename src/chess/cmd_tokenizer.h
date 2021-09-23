@@ -1,8 +1,8 @@
 #ifndef CMD_TOKENIZER_H
 #define CMD_TOKENIZER_H
 
-#include "tokenizer.h"
-#include "constants.h"
+#include "../utils/tokenizer.h"
+#include "constants.hpp"
 
 // Tokenizer for parsing commands sent to GUI from engine
 class CmdTokenizer : public StringTokenizer {

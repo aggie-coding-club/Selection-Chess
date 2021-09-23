@@ -3,7 +3,7 @@
 
 //TODO: consider renaming? Idk if pieces.h is sufficently descriptive. 
 
-#include "constants.h"
+#include "constants.hpp"
 #include "move.h"
 
 #include <vector>

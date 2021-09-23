@@ -1,8 +1,8 @@
 #ifndef MIN_MAX_H
 #define MIN_MAX_H
 
-#include "constants.h"
-#include "game.h"
+#include "../chess/constants.hpp"
+#include "../chess/game.h"
 
 #include <limits>
 

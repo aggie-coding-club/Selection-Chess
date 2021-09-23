@@ -1,11 +1,11 @@
 #ifndef ARRAY_BOARD_H
 #define ARRAY_BOARD_H
 
-#include "constants.h"
+#include "constants.hpp"
 #include "board.h"
 #include "move.h"
-#include "modular_int.hpp"
-#include "coords.hpp"
+#include "../utils/modular_int.hpp"
+#include "../utils/coords.hpp"
 
 #include <cstdint>
 #include <stack>

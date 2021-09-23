@@ -1,7 +1,7 @@
-#include "constants.h"
-#include "chess_utils.h"
-#include "game.h"
-#include "board.h"
+#include "../chess/constants.hpp"
+#include "../chess/chess_utils.h"
+#include "../chess/game.h"
+#include "../chess/board.h"
 #include "human_runner.h"
 #ifndef NO_BOOST
     #include "engine_runner.h"
@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
     }
 
     std::string sfen = "rkr3/6/6/6/6/3RKR w 0 1";
-    Game game(sfen, "default.rules");
+    Game game(sfen, "rules/default.rules");
     whiteEngine->setBoard(sfen);
     blackEngine->setBoard(sfen);
     std::cout << "boards init'd, going into game loop" << std::endl;

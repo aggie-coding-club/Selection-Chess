@@ -1,5 +1,5 @@
 #include "chess_utils.h"
-#include "constants.h"
+#include "constants.hpp"
 
 #include <string>
 #include <map>
@@ -34,7 +34,7 @@ SquareEnum getSquareFromChar(char _char, char _empty) {
 }
 
 std::string getUnicodeCharFromSquare(SquareEnum _enumValue, std::string _empty) {
-    // This could be put into constants.h?
+    // This could be put into constants.hpp?
     std::map<SquareEnum, std::string> unicodePieceChars = {
         {EMPTY, _empty},
         {W_PAWN, "♙"},
