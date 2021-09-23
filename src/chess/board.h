@@ -102,6 +102,8 @@ class Board {
          */
         virtual bool undo(std::shared_ptr<Move> _move) = 0;
 
+        virtual bool isLegal(std::shared_ptr<Move> _move) = 0;
+
         /**
          * Gets the hash of this configuration.
          */

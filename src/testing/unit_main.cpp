@@ -480,15 +480,74 @@ int main() {
 
     TEST("PieceMove generation", {
         // TODO: implement tests, using different rulesets, etc.
-        Game game ("P2R(2)p/1p3NB/BQp1/(3)1p w 0 1", "rules/piecesOnly.rules"); // simple case to play with
-        std::cout << game.print() << std::endl;
-        std::cout << "Possible moves: [" << std::flush;
+        Game game ("P2R(2)p/1p3NR/BQp1/(3)1p w 0 1", "rules/piecesOnly.rules"); // simple case to play with
+        // game.reset("k1K2/n(2)p1/1(1)1(1)1/RQ1B1");
+        dlog(game.print());
+        dlogStart("Possible moves: [");
         auto moves = game.m_board->getMoves(game.m_turn);
         for (auto &move : moves) {
-            std::cout << move->algebraic() << ", ";
+            dlogMid(move->algebraic(),", ");
         }
-        std::cout << "\b\b] \b" << std::endl;
+        dlogEnd("\b\b] \b");
+        REQ_CASE("board 1", MULTI_CHECK(
+            CHECK("correct number of moves", moves.size() == 15);
+        ));
     });
+
+    TEST("IsLegal(PieceMove)", {
+        // TODO: implement tests, using different rulesets, etc.
+        Game game ("P2R(2)p/1p3NR/BQp1/(3)1p w 0 1", "rules/piecesOnly.rules");
+        dlog(game.print());
+        // Assuming move generation is working properly, this will test all legal moves.
+        OPT_CASE("vs generated", MULTI_CHECK(
+            auto moves = game.m_board->getMoves(game.m_turn);
+            for (auto &move : moves) {
+                std::string moveName = move->algebraic();
+                CHECK(moveName, game.m_board->isLegal(std::move(move)));
+            }
+        ));
+        
+        OPT_CASE("slide to void b1", game.m_board->isLegal(readAlgebraic("g2f3")) == false);
+        OPT_CASE("slide to void b2", game.m_board->isLegal(readAlgebraic("g2e4")) == false);
+        OPT_CASE("slide to void b3", game.m_board->isLegal(readAlgebraic("g2d5")) == false);
+        OPT_CASE("slide to void b4", game.m_board->isLegal(readAlgebraic("g2c6")) == false);
+        OPT_CASE("slide to void b5", game.m_board->isLegal(readAlgebraic("g2b7")) == false);
+        OPT_CASE("slide to void b6", game.m_board->isLegal(readAlgebraic("g2a8")) == false);
+        OPT_CASE("slide to void b7", game.m_board->isLegal(readAlgebraic("g2zz9")) == false);
+        OPT_CASE("slide to void b8", game.m_board->isLegal(readAlgebraic("g2zy10")) == false);
+
+        OPT_CASE("slide to void p1", game.m_board->isLegal(readAlgebraic("a3zz3")) == false);
+        OPT_CASE("slide to void p2", game.m_board->isLegal(readAlgebraic("a3a4")) == false);
+        OPT_CASE("slide to void p3", game.m_board->isLegal(readAlgebraic("a3zy3")) == false);
+        OPT_CASE("slide to void p4", game.m_board->isLegal(readAlgebraic("a3g3")) == false);
+        OPT_CASE("slide to void p5", game.m_board->isLegal(readAlgebraic("a3a0")) == false);
+
+        OPT_CASE("jump to void 1", game.m_board->isLegal(readAlgebraic("f2g0")) == false);
+        OPT_CASE("jump to void 2", game.m_board->isLegal(readAlgebraic("f2h3")) == false);
+        OPT_CASE("jump to void 3", game.m_board->isLegal(readAlgebraic("f2g4")) == false);
+
+        OPT_CASE("capture own 1", game.m_board->isLegal(readAlgebraic("d3a3")) == false);
+        OPT_CASE("capture own 2", game.m_board->isLegal(readAlgebraic("b2c1")) == false);
+        OPT_CASE("capture own 3", game.m_board->isLegal(readAlgebraic("f2d3")) == false);
+
+        OPT_CASE("misshaped jump", game.m_board->isLegal(readAlgebraic("f2d0")) == false);
+        OPT_CASE("slide thru enemy", game.m_board->isLegal(readAlgebraic("a1c3")) == false);
+        OPT_CASE("slide thru own", game.m_board->isLegal(readAlgebraic("g2e2")) == false);
+
+        OPT_CASE("pawn atk vert", game.m_board->isLegal(readAlgebraic("b2b1")) == false);
+        OPT_CASE("pawn atk hori", game.m_board->isLegal(readAlgebraic("c1b1")) == false);
+        OPT_CASE("pawn move diag", game.m_board->isLegal(readAlgebraic("c1d2")) == false);
+
+        OPT_CASE("empty to piece", game.m_board->isLegal(readAlgebraic("b3a3")) == false);
+        OPT_CASE("empty to void 1", game.m_board->isLegal(readAlgebraic("e2e3")) == false);
+        OPT_CASE("void to piece 1", game.m_board->isLegal(readAlgebraic("a0a1")) == false);
+        OPT_CASE("void to empty 1", game.m_board->isLegal(readAlgebraic("c0d0")) == false);
+        OPT_CASE("empty to void 2", game.m_board->isLegal(readAlgebraic("e2zz999")) == false);
+        OPT_CASE("void to piece 2", game.m_board->isLegal(readAlgebraic("zz999a1")) == false);
+        OPT_CASE("void to empty 2", game.m_board->isLegal(readAlgebraic("zz999d0")) == false);
+
+    });
+
 
     // KLUDGE: typedef these outside of macro to avoid problems with commas
     typedef Coords<int, unsigned int> HeteroInt;
