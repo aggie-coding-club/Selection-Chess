@@ -41,13 +41,13 @@ class Ruleset {
         // Vectors of MoveOptions for each piece type. This is of size NUM_PIECE_TYPES_BY_COLOR + 1,
         // and is indexed by SquareEnum (the +1 reserves m_pieceMoveOptionLists[EMPTY] as placeholder so indices are not off by 1.)
         // E.g. m_pieceMoveOptionLists[B_ROOK] returns vector of all PMOs for black rooks.
-        std::vector<std::vector<std::unique_ptr<MoveOption>>> m_pieceMoveOptionLists;
+        std::vector<std::vector<std::shared_ptr<MoveOption>>> m_pieceMoveOptionLists;
         // TODO: maybe timing info can be put here too?
 
     private:
         void match(std::string _given, std::string _expected);
         void updateMoveOptionProperties(RulesetTokenizer& _tokenizer, MoveOptionProperties& _mop);
-        void addPieceMoveOptions(RulesetTokenizer& _tokenizer, std::vector<std::vector<std::unique_ptr<MoveOption>>>& _allPmoLists);
+        void addPieceMoveOptions(RulesetTokenizer& _tokenizer, std::vector<std::vector<std::shared_ptr<MoveOption>>>& _allPmoLists);
 
 };
 

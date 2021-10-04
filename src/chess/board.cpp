@@ -300,7 +300,7 @@ UnsignedCoords Board::DMtoSA(DModCoords _dMod) const {
     return UnsignedCoords(_dMod.file.m_value, _dMod.rank.m_value);
 }
 
-std::vector<std::unique_ptr<Move>> Board::getMovesFromMO(DModCoords _pieceCoords, const MoveOption& _mo) {
+std::vector<std::unique_ptr<PieceMove>> Board::getMovesFromMO(DModCoords _pieceCoords, const MoveOption& _mo) {
     switch (_mo.m_type) {
     case LEAP_MO_TYPE:
         return getMovesFromMO(_pieceCoords, dynamic_cast<const LeapMoveOption&>(_mo));
@@ -308,14 +308,14 @@ std::vector<std::unique_ptr<Move>> Board::getMovesFromMO(DModCoords _pieceCoords
         return getMovesFromMO(_pieceCoords, dynamic_cast<const SlideMoveOption&>(_mo));
     default:
         dlog("Unknown MoveOption Type [" , _mo.m_type , "]\n" , WHERE);
-        return std::vector<std::unique_ptr<Move>>();
+        return std::vector<std::unique_ptr<PieceMove>>();
     }
 }
 
-std::vector<std::unique_ptr<Move>> Board::getMovesFromMO(DModCoords _pieceCoords, const LeapMoveOption& _mo) {
+std::vector<std::unique_ptr<PieceMove>> Board::getMovesFromMO(DModCoords _pieceCoords, const LeapMoveOption& _mo) {
     // dlog("getMovesFrom Leaping MO called", std::endl;
     DModCoords startCoords = _pieceCoords;
-    std::vector<std::unique_ptr<Move>> moves;
+    std::vector<std::unique_ptr<PieceMove>> moves;
 
 
     if (_mo.m_properties.m_forwardOnly) {
@@ -371,10 +371,10 @@ std::vector<std::unique_ptr<Move>> Board::getMovesFromMO(DModCoords _pieceCoords
 }
 
 // Returns list of moves that the piece at _pieceCoords can make using this MoveOption on the current _board.
-std::vector<std::unique_ptr<Move>> Board::getMovesFromMO(DModCoords _pieceCoords, const SlideMoveOption& _mo) {
+std::vector<std::unique_ptr<PieceMove>> Board::getMovesFromMO(DModCoords _pieceCoords, const SlideMoveOption& _mo) {
     // dlog("getMovesFrom Sliding MO called", std::endl;
     DModCoords startCoords = _pieceCoords;
-    std::vector<std::unique_ptr<Move>> moves;
+    std::vector<std::unique_ptr<PieceMove>> moves;
     auto& loopDirections = (_mo.m_isDiagonal ? DIAG_DIRECTIONS : ORTHO_DIRECTIONS);
 
     if (_mo.m_properties.m_forwardOnly) {
@@ -419,3 +419,13 @@ std::vector<std::unique_ptr<Move>> Board::getMovesFromMO(DModCoords _pieceCoords
     return std::move(moves);
 }
 
+bool Board::isLegal(std::shared_ptr<Move> _move, PieceColor _turn) {
+    auto possibleMoves = getMoves(_turn);
+    for (std::unique_ptr<Move>& possibleMove : possibleMoves) {
+        // std::shared_ptr<Move> possibleMove = std::move(m);
+        if (*_move == *possibleMove) {
+            return true;
+        }
+    }
+    return false;
+}

@@ -102,7 +102,10 @@ class Board {
          */
         virtual bool undo(std::shared_ptr<Move> _move) = 0;
 
-        virtual bool isLegal(std::shared_ptr<Move> _move) = 0;
+        // Checks legality by generating all moves on this position and checking if this
+        // is one of them.
+        // FIXME: requires color
+        virtual bool isLegal(std::shared_ptr<Move> _move, PieceColor _turn);
 
         /**
          * Gets the hash of this configuration.
@@ -116,12 +119,19 @@ class Board {
             return "[Lol I'm just the parent class, I can't do this]";
         }
 
+        // List of all legal moves that _color can play on this position.\
+        // WARNING: is slow and should probably not be used when efficiency is 
+        // needed, especially not in the game tree.
         virtual std::vector<std::unique_ptr<Move>> getMoves(PieceColor _color) = 0;
+        // List of all legal moves plus some illegal moves that _color can play 
+        // on this position. Designed for use in the game tree, or in similar
+        // situations where we are applying the move anyway.
+        virtual std::vector<std::unique_ptr<Move>> getMaybeMoves(PieceColor _color) = 0;
 
         // Returns list of moves that the piece at _pieceCoords can make using this MoveOption on the current _board.
-        virtual std::vector<std::unique_ptr<Move>> getMovesFromMO(DModCoords _pieceCoords, const MoveOption& _mo);
-        virtual std::vector<std::unique_ptr<Move>> getMovesFromMO(DModCoords _pieceCoords, const LeapMoveOption& _mo);
-        virtual std::vector<std::unique_ptr<Move>> getMovesFromMO(DModCoords _pieceCoords, const SlideMoveOption& _mo);
+        virtual std::vector<std::unique_ptr<PieceMove>> getMovesFromMO(DModCoords _pieceCoords, const MoveOption& _mo);
+        virtual std::vector<std::unique_ptr<PieceMove>> getMovesFromMO(DModCoords _pieceCoords, const LeapMoveOption& _mo);
+        virtual std::vector<std::unique_ptr<PieceMove>> getMovesFromMO(DModCoords _pieceCoords, const SlideMoveOption& _mo);
 
         // Gets the standard array of this board. This is the smallest sized array (namely, size getDimensions())
         // that contains all pieces. Indexed by (file + rank*getDimensions().file). Used for printing, hashing, etc.

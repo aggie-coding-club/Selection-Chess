@@ -39,10 +39,10 @@ std::string intToLetters(DAModInt _int) {
     return letters;
 }
 
-std::string PieceMove::algebraic() {
+std::string PieceMove::algebraic() const {
     return coordsToAlgebraic(m_startPos) + coordsToAlgebraic(m_endPos);
 }
-std::string TileMove::algebraic() {
+std::string TileMove::algebraic() const {
     std::string result = "S" + coordsToAlgebraic(m_selFirst) + coordsToAlgebraic(m_selSecond) + coordsToAlgebraic(m_destFirst);
     if (abs(m_symmetry) < 4) {
         result += "R" + std::to_string(abs(m_symmetry));
@@ -52,7 +52,7 @@ std::string TileMove::algebraic() {
     }
     return result;
 }
-std::string TileDeletion::algebraic() {
+std::string TileDeletion::algebraic() const {
     std::string result = "D";
     for (DModCoords c : m_deleteCoords) {
         result += coordsToAlgebraic(c);

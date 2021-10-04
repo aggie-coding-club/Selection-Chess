@@ -9,7 +9,7 @@ std::pair<int,std::shared_ptr<Move>> minmax(Game* _game, int _depth, std::string
         return std::make_pair(value, std::make_shared<Move>(Move()));
     }
 
-    std::vector<std::unique_ptr<Move>> maybeMoves = _game->m_board->getMoves(_game->m_turn);
+    std::vector<std::unique_ptr<Move>> maybeMoves = _game->m_board->getMaybeMoves(_game->m_turn);
     std::string depthPadding = std::string(_depth-1, '\t');
     if (_game->m_turn == WHITE) {
         if (maybeMoves.size() == 0) { // FIXME: temporary hack to handle stalemates
@@ -69,7 +69,7 @@ std::pair<int,std::shared_ptr<Move>> negamax(Game* _game, int _depth) {
         return std::make_pair(value, std::make_shared<Move>(Move()));
     }
 
-    std::vector<std::unique_ptr<Move>> legalMoves = _game->m_board->getMoves(_game->m_turn);
+    std::vector<std::unique_ptr<Move>> legalMoves = _game->m_board->getMaybeMoves(_game->m_turn);
 
     if (legalMoves.size() == 0) { // FIXME: temporary hack to handle stalemates
         return std::make_pair(-PIECE_VALUES[W_KING], std::make_shared<Move>(Move()));
@@ -104,7 +104,7 @@ std::pair<int,std::shared_ptr<Move>> negamaxAB(Game* _game, int _depth, int _alp
         return std::make_pair(value, std::make_shared<Move>(Move()));
     }
 
-    std::vector<std::unique_ptr<Move>> legalMoves = _game->m_board->getMoves(_game->m_turn);
+    std::vector<std::unique_ptr<Move>> legalMoves = _game->m_board->getMaybeMoves(_game->m_turn);
 
     if (legalMoves.size() == 0) { // FIXME: temporary hack to handle stalemates
         return std::make_pair(-PIECE_VALUES[W_KING], std::make_shared<Move>(Move()));

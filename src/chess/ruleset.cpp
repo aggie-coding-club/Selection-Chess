@@ -44,7 +44,7 @@ void Ruleset::updateMoveOptionProperties(RulesetTokenizer& _tokenizer, MoveOptio
 }
 
 // Parses the pieceMoveOptions, from '{' to '}'.
-void Ruleset::addPieceMoveOptions(RulesetTokenizer& _tokenizer, std::vector<std::vector<std::unique_ptr<MoveOption>>>& _allPmoLists) {
+void Ruleset::addPieceMoveOptions(RulesetTokenizer& _tokenizer, std::vector<std::vector<std::shared_ptr<MoveOption>>>& _allPmoLists) {
     // tdout << "parsing PMOs..." << std::endl;
     match(_tokenizer.next(), "{");
     MoveOptionProperties defaultMop;

@@ -71,7 +71,7 @@ class ArrayBoard : public Board {
             m_pieceLocations[_piece].push_back(_location);
         }
 
-        // public function for getting the piece
+        // public function for getting the piece // TODO: rename to getSquare
         SquareEnum getPiece(DModCoords _coords) const {
             return m_grid[toIndex(SAtoAB(DMtoSA(_coords)))];
         };
@@ -86,10 +86,10 @@ class ArrayBoard : public Board {
         bool undo(std::shared_ptr<TileMove> _move);
         bool undo(std::shared_ptr<TileDeletion> _move);
 
-        bool isLegal(std::shared_ptr<Move> _move);
-        bool isLegal(std::shared_ptr<PieceMove> _move);
-        bool isLegal(std::shared_ptr<TileMove> _move);
-        bool isLegal(std::shared_ptr<TileDeletion> _move);
+        // bool isLegal(std::shared_ptr<Move> _move);
+        // bool isLegal(std::shared_ptr<PieceMove> _move);
+        // bool isLegal(std::shared_ptr<TileMove> _move);
+        // bool isLegal(std::shared_ptr<TileDeletion> _move);
 
         UnsignedCoords getDimensions() const {
             // Just taking the m_value here is OK because this distance is not affected by modulus, so it is guaranteed result to be a normal positive number.
@@ -112,7 +112,12 @@ class ArrayBoard : public Board {
             return result;
         }
 
+        std::vector<std::unique_ptr<PieceMove>> getPieceMoves(PieceColor _color);
+        std::vector<std::unique_ptr<TileMove>> getMaybeTileMoves(PieceColor _color);
+        std::vector<std::unique_ptr<TileDeletion>> getMaybeTileDeletions(PieceColor _color);
+
         std::vector<std::unique_ptr<Move>> getMoves(PieceColor _color);
+        std::vector<std::unique_ptr<Move>> getMaybeMoves(PieceColor _color);
 
         int staticEvaluation();
 

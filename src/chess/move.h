@@ -31,10 +31,16 @@ enum : MoveType {INVALID_MOVE, PIECE_MOVE, TILE_MOVE, TILE_DELETION};
 // Abstract class for moves
 class Move {
     public:
-        virtual std::string algebraic() {
+        virtual std::string algebraic() const {
             return "[VOID MOVE]";
         };
         MoveType m_type = INVALID_MOVE;
+
+        // Make sure over extend this method, or your all your subclass objects 
+        // will be equivalent. Should be called by the function overriding it.
+        virtual bool operator==(const Move& _move) {
+            return m_type == _move.m_type;
+        }
 };
 
 // When a piece is moved. This is the normal type of move.
@@ -52,8 +58,18 @@ class PieceMove : public Move {
         PieceMove () {
             m_type = PIECE_MOVE;
         }
+        virtual bool operator==(const Move& _move) {
+            if (!Move::operator==(_move)) return false;
+            // Now we know that the type is the same, so we can safely cast
+            auto other = static_cast<const PieceMove&>(_move);
+            return (
+                m_startPos == other.m_startPos && 
+                m_endPos == other.m_endPos && 
+                m_capture == other.m_capture 
+            );
+        }
 
-        std::string algebraic();
+        std::string algebraic() const;
 };
 
 // When a rectangular selection of tiles is moved.
@@ -89,8 +105,19 @@ class TileMove : public Move {
         TileMove() {
             m_type = TILE_MOVE;
         }
+        virtual bool operator==(const Move& _move) {
+            if (!Move::operator==(_move)) return false;
+            // Now we know that the type is the same, so we can safely cast
+            auto other = static_cast<const TileMove&>(_move);
+            return (
+                m_selFirst == other.m_selFirst &&
+                m_selSecond == other.m_selSecond &&
+                m_destFirst == other.m_destFirst &&
+                m_symmetry == other.m_symmetry
+            );
+        }
 
-        std::string algebraic();
+        std::string algebraic() const;
 };
 
 // For cherry-picking tiles to delete, e.g. 'Delete a2, b6, and e10'.
@@ -100,6 +127,7 @@ class TileDeletion : public Move {
 
         // Constructor for multiple coords
         TileDeletion (std::vector<DModCoords> _deleteCoords) : TileDeletion() {
+            // TODO: check for duplicates, as this might break stuff
             m_deleteCoords = _deleteCoords;
         }
         // Constructor for one coord
@@ -109,8 +137,23 @@ class TileDeletion : public Move {
         TileDeletion() {
             m_type = TILE_DELETION;
         }
+        virtual bool operator==(const Move& _move) {
+            if (!Move::operator==(_move)) return false;
+            // Now we know that the type is the same, so we can safely cast
+            auto other = static_cast<const TileDeletion&>(_move);
+            // check that the deletions have the same elements. Assuming 
+            // no dups, we just have to check size is same and injectivity.
+            if (other.m_deleteCoords.size() != m_deleteCoords.size()) return false;
+            for (const auto del : m_deleteCoords) {
+                if (std::find(other.m_deleteCoords.begin(), other.m_deleteCoords.end(), del) == 
+                other.m_deleteCoords.end()) {
+                    return false;
+                }
+            }
+            return true;
+        }
 
-        std::string algebraic();
+        std::string algebraic() const;
 };
 
 // Checks if the string is a move

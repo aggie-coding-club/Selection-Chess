@@ -424,45 +424,50 @@ bool ArrayBoard::undo(std::shared_ptr<TileDeletion> _move) {
     return true;
 }
 
-bool ArrayBoard::isLegal(std::shared_ptr<Move> _move) {
-    switch (_move->m_type) {
-    case PIECE_MOVE:
-        return isLegal(std::static_pointer_cast<PieceMove>(_move));
-    case TILE_MOVE:
-        return isLegal(std::static_pointer_cast<TileMove>(_move));
-    case TILE_DELETION:
-        return isLegal(std::static_pointer_cast<TileDeletion>(_move));
-    default:
-        dlog("Unknown Move Type [" , _move->m_type , "]\n" , WHERE);
-        return false;
-    }
-}
-bool ArrayBoard::isLegal(std::shared_ptr<PieceMove> _move) {
-    //TODO: implement
-    return true;
-}
-bool ArrayBoard::isLegal(std::shared_ptr<TileMove> _move) {
-    // check selection rectangle is not oversized //TODO:
-    // check squares we are copying to is actually void. Handle the coords conversions. //TODO:
-    // check that connectedness is maintained //TODO: I think "Maintenance of a minimum spanning forest in a dynamic plane graph" by Eppstein et al. may give optimal results, although its probably easier to just run A* or smth
-    return true;
-}
-bool ArrayBoard::isLegal(std::shared_ptr<TileDeletion> _move) {
-    // check number of deletions OK
-    if (_move->m_deleteCoords.empty()) {
-        return false;
-    }
-    if (_move->m_deleteCoords.size() > m_rules.m_numDeletionsPerTurn) {
-        return false;
-    }
-    // check there are actually EMPTY tiles to delete at given coords //TODO
-    // for (DModCoords& delCoords : _move->m_deleteCoords) {
-    //     if ()
-    // }
-    // check deletions do not break connectedness //TODO
+// bool ArrayBoard::isLegal(std::shared_ptr<Move> _move) {
+//     switch (_move->m_type) {
+//     case PIECE_MOVE:
+//         return isLegal(std::static_pointer_cast<PieceMove>(_move));
+//     case TILE_MOVE:
+//         return isLegal(std::static_pointer_cast<TileMove>(_move));
+//     case TILE_DELETION:
+//         return isLegal(std::static_pointer_cast<TileDeletion>(_move));
+//     default:
+//         dlog("Unknown Move Type [" , _move->m_type , "]\n" , WHERE);
+//         return false;
+//     }
+// }
+// bool ArrayBoard::isLegal(std::shared_ptr<PieceMove> _move) {
+//     SquareEnum pieceType = getPiece(_move->m_startPos);
+//     if (!isPiece(pieceType)) return false;
+//     for (auto moveOption : m_rules.m_pieceMoveOptionLists[pieceType]) {
+//         if ()
+//     }
+//     //TODO: implement
+//     return true;
+// }
+// bool ArrayBoard::isLegal(std::shared_ptr<TileMove> _move) {
+//     // check selection rectangle is not oversized //TODO:
+//     // check squares we are copying to is actually void. Handle the coords conversions. //TODO:
+//     // check that connectedness is maintained //TODO: I think "Maintenance of a minimum spanning forest in a dynamic plane graph" by Eppstein et al. may give optimal results, although its probably easier to just run A* or smth
+//     return true;
+// }
+// bool ArrayBoard::isLegal(std::shared_ptr<TileDeletion> _move) {
+//     // check number of deletions OK
+//     if (_move->m_deleteCoords.empty()) {
+//         return false;
+//     }
+//     if (_move->m_deleteCoords.size() > m_rules.m_numDeletionsPerTurn) {
+//         return false;
+//     }
+//     // check there are actually EMPTY tiles to delete at given coords //TODO
+//     // for (DModCoords& delCoords : _move->m_deleteCoords) {
+//     //     if ()
+//     // }
+//     // check deletions do not break connectedness //TODO
 
-    return true;
-}
+//     return true;
+// }
 
 // Convert external coords to internal, e.g. (0,0) will be converted to m_minCoords
 ABModCoords ArrayBoard::SAtoAB(UnsignedCoords _extern) const {
@@ -531,7 +536,7 @@ int ArrayBoard::staticEvaluation() {
 bool ArrayBoard::moveIsFromMO(std::shared_ptr<Move> _move, const MoveOption& _mo) {
     switch (_mo.m_type) {
     case LEAP_MO_TYPE:
-        return moveIsFromMO(_move, dynamic_cast<const LeapMoveOption&>(_mo));
+        return moveIsFromMO(_move, dynamic_cast<const LeapMoveOption&>(_mo)); // TODO: why is this dynamic_cast, but other is static pointer cast?
     case SLIDE_MO_TYPE:
         return moveIsFromMO(_move, dynamic_cast<const SlideMoveOption&>(_mo));
     default:
@@ -552,8 +557,31 @@ bool ArrayBoard::moveIsFromMO(std::shared_ptr<Move> _move, const SlideMoveOption
     return false;
 }
 
+void test (const Move& _move) {
+    dlog(_move.algebraic());
+}
+
 std::vector<std::unique_ptr<Move>> ArrayBoard::getMoves(PieceColor _color) {
-    std::vector<std::unique_ptr<Move>> legalMoves; // TODO: a lot of legality checks are missing rn. Especially ensuring connectedness of board.
+    std::vector<std::unique_ptr<Move>> legalMoves;
+    auto maybeMoves = getMaybeMoves(_color);
+    for (auto& umm : maybeMoves) { //FIXME: taking shared_ptr as parameter seems disgusting. Just take const ptr or something.
+        std::shared_ptr<Move> maybeMove = std::move(umm); // 'unique maybe move'
+        if(!apply(maybeMove)) {
+            // Turns out this move wasn't legal
+            // tdout << "skipping move " << move->algebraic() << " because it wasn't actually legal." << std::endl;
+            continue;
+        }
+        // else, this is legal
+        // legalMoves.push_back(std::make_unique<Move>(new )); //FIXME: can't do this without pointer redesign
+        if (!undo(maybeMove)) {
+            std::cerr << "Board is corrupted, exiting!" << WHERE << std::endl;
+            exit(EXIT_FAILURE);
+        }    }
+    return legalMoves;
+}
+
+std::vector<std::unique_ptr<PieceMove>> ArrayBoard::getPieceMoves(PieceColor _color) {
+    std::vector<std::unique_ptr<PieceMove>> legalMoves;
     // ----------- PieceMoves ----------- //
     // dlog("Getting PieceMoves", std::endl;
     for (int pieceType = (_color==WHITE ? W_PAWN : B_PAWN); pieceType < NUM_PIECE_TYPES*2+1; pieceType+=2) { // iterate over pieces of _color in piece list
@@ -563,28 +591,16 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMoves(PieceColor _color) {
             // dlog("    checking MoveOptions for piece on coords ", SAtoDM(ABtoSA(pieceCoords)), std::endl;
             for (auto& mo : moveOptions) {
                 // dlog("      checking a MoveOption for piece on coords ", SAtoDM(ABtoSA(pieceCoords)), std::endl;
-                auto newMoves = getMovesFromMO( SAtoDM(ABtoSA(pieceCoords)), *(mo.get()));
+                std::vector<std::unique_ptr<PieceMove>> newMoves = getMovesFromMO( SAtoDM(ABtoSA(pieceCoords)), *(mo.get()));
                 // Moves new moves into our vector
                 legalMoves.insert(legalMoves.end(), std::make_move_iterator(newMoves.begin()), std::make_move_iterator(newMoves.end()));
             }
         }
     }
-    // ----------- TileDeletions ----------- //
-        // TODO: gross iteration over the entire space, would be nice if I only iterated over tiles.
-    if (m_rules.m_numDeletionsPerTurn > 0) { // TODO: assumes only one tile can be deleted, implement for more tiles?
-        ABModCoords coords (m_minCoords.file, m_maxCoords.rank);
-        // iterate over rows
-        for (; coords.rank != m_minCoords.rank-1; --coords.rank) {
-            coords.file = m_minCoords.file; // reset each loop to start at beginning of the row
-            // iterate over columns
-            for (; coords.file != m_maxCoords.file+1; ++coords.file) {
-                if (m_grid[toIndex(coords)] == EMPTY) {
-                    std::unique_ptr<TileDeletion> newMove (new TileDeletion(SAtoDM(ABtoSA(coords))));
-                    legalMoves.push_back(std::move(newMove));
-                }
-            }
-        }
-    }
+    return legalMoves;
+}
+std::vector<std::unique_ptr<TileMove>> ArrayBoard::getMaybeTileMoves(PieceColor _color) {
+    std::vector<std::unique_ptr<TileMove>> maybeMoves;
     // ----------- TileMoves ----------- //
     // TODO: assumes only one tile can be moved, implement for more tiles?
     // dlog("Getting tileMoves", std::endl;
@@ -623,8 +639,8 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMoves(PieceColor _color) {
                                     dmStartCoords != endCoords // just in case
                                 )
                             ) {
-                                std::unique_ptr<Move> newMove (new TileMove(dmStartCoords, dmStartCoords, endCoords));
-                                legalMoves.push_back(std::move(newMove));
+                                std::unique_ptr<TileMove> newMove (new TileMove(dmStartCoords, dmStartCoords, endCoords));
+                                maybeMoves.push_back(std::move(newMove));
                             }
                         }
                     }
@@ -633,7 +649,41 @@ std::vector<std::unique_ptr<Move>> ArrayBoard::getMoves(PieceColor _color) {
         }
     }
 
-    return legalMoves;
+    return maybeMoves;
+
+}
+std::vector<std::unique_ptr<TileDeletion>> ArrayBoard::getMaybeTileDeletions(PieceColor _color) {
+    std::vector<std::unique_ptr<TileDeletion>> maybeMoves;
+    // ----------- TileDeletions ----------- //
+        // TODO: gross iteration over the entire space, would be nice if I only iterated over tiles.
+    if (m_rules.m_numDeletionsPerTurn > 0) { // TODO: assumes only one tile can be deleted, implement for more tiles?
+        ABModCoords coords (m_minCoords.file, m_maxCoords.rank);
+        // iterate over rows
+        for (; coords.rank != m_minCoords.rank-1; --coords.rank) {
+            coords.file = m_minCoords.file; // reset each loop to start at beginning of the row
+            // iterate over columns
+            for (; coords.file != m_maxCoords.file+1; ++coords.file) {
+                if (m_grid[toIndex(coords)] == EMPTY) {
+                    std::unique_ptr<TileDeletion> newMove (new TileDeletion(SAtoDM(ABtoSA(coords))));
+                    maybeMoves.push_back(std::move(newMove));
+                }
+            }
+        }
+    }
+    return maybeMoves;
+}
+
+std::vector<std::unique_ptr<Move>> ArrayBoard::getMaybeMoves(PieceColor _color) {
+    std::vector<std::unique_ptr<Move>> maybeMoves;
+    // just a combination of each of the functions' returns.
+    auto pieceMoves = getPieceMoves(_color);
+    for (auto& ptr : pieceMoves) maybeMoves.push_back(std::move(ptr));
+    auto tileMoves = getMaybeTileMoves(_color);
+    for (auto& ptr : tileMoves) maybeMoves.push_back(std::move(ptr));
+    auto tileDeletions = getMaybeTileDeletions(_color);
+    for (auto& ptr : tileDeletions) maybeMoves.push_back(std::move(ptr));
+
+    return maybeMoves;
 }
 
 StandardArray ArrayBoard::getSelection(const ABModCoords& _bl, const ABModCoords& _tr, bool _cut) { // TODO: consider merging with standardArray() ?
