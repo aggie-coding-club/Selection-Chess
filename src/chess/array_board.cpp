@@ -137,41 +137,41 @@ bool ArrayBoard::removePieceFromPL(SquareEnum _piece, ABModCoords _location) {
     return false;
 }
 
-bool ArrayBoard::apply(std::shared_ptr<Move> _move) {
-    // dlog("apply ", _move->algebraic(), " called");
-    switch (_move->m_type) {
+bool ArrayBoard::apply(const Move& _move) {
+    // dlog("apply ", _move.algebraic(), " called");
+    switch (_move.m_type) {
     case PIECE_MOVE:
-        return apply(std::static_pointer_cast<PieceMove>(_move));
+        return apply(static_cast<const PieceMove&>(_move));
     case TILE_MOVE:
-        return apply(std::static_pointer_cast<TileMove>(_move));
+        return apply(static_cast<const TileMove&>(_move));
     case TILE_DELETION:
-        return apply(std::static_pointer_cast<TileDeletion>(_move));
+        return apply(static_cast<const TileDeletion&>(_move));
     default:
-        dlog("Unknown Move Type [", _move->m_type, "]\n", WHERE);
+        dlog("Unknown Move Type [", _move.m_type, "]\n", WHERE);
         return false;
     }
 }
-bool ArrayBoard::undo(std::shared_ptr<Move> _move) {
+bool ArrayBoard::undo(const Move& _move) {
     // dlog(getAsciiBoard(), std::endl;
     // dlog("undo called", std::endl;
-    switch (_move->m_type) {
+    switch (_move.m_type) {
     case PIECE_MOVE:
-        return undo(std::static_pointer_cast<PieceMove>(_move));
+        return undo(static_cast<const PieceMove&>(_move));
     case TILE_MOVE:
-        return undo(std::static_pointer_cast<TileMove>(_move));
+        return undo(static_cast<const TileMove&>(_move));
     case TILE_DELETION:
-        return undo(std::static_pointer_cast<TileDeletion>(_move));
+        return undo(static_cast<const TileDeletion&>(_move));
     default:
-        dlog("Unknown Move Type [" , _move->m_type , "]\n" , WHERE);
+        dlog("Unknown Move Type [" , _move.m_type , "]\n" , WHERE);
         return false;
     }
 }
 
-bool ArrayBoard::apply(std::shared_ptr<PieceMove> _move) {
-    // dlog("applying PieceMove ", _move->algebraic(), std::endl;
+bool ArrayBoard::apply(const PieceMove& _move) {
+    // dlog("applying PieceMove ", _move.algebraic(), std::endl;
     // dlog(getAsciiBoard(), std::endl;;
-    ABModCoords startCoords = SAtoAB(DMtoSA(_move->m_startPos));
-    ABModCoords endCoords = SAtoAB(DMtoSA(_move->m_endPos));
+    ABModCoords startCoords = SAtoAB(DMtoSA(_move.m_startPos));
+    ABModCoords endCoords = SAtoAB(DMtoSA(_move.m_endPos));
 
     // Execute the move
     // Update PieceList
@@ -186,28 +186,28 @@ bool ArrayBoard::apply(std::shared_ptr<PieceMove> _move) {
     return true;
 };
 
-bool ArrayBoard::undo(std::shared_ptr<PieceMove> _move) {
-    // dlog("undoing move ", _move->algebraic(), std::endl;
-    ABModCoords startCoords = SAtoAB(DMtoSA(_move->m_startPos));
-    ABModCoords endCoords = SAtoAB(DMtoSA(_move->m_endPos));
+bool ArrayBoard::undo(const PieceMove& _move) {
+    // dlog("undoing move ", _move.algebraic(), std::endl;
+    ABModCoords startCoords = SAtoAB(DMtoSA(_move.m_startPos));
+    ABModCoords endCoords = SAtoAB(DMtoSA(_move.m_endPos));
 
     // Execute the undo
     // Update PieceList
     updatePieceInPL(m_grid[toIndex(endCoords)], endCoords, startCoords);
-    if (isPiece(_move->m_capture)) { // if a piece was captured, add it back
-        addPieceToPL(_move->m_capture, endCoords);
+    if (isPiece(_move.m_capture)) { // if a piece was captured, add it back
+        addPieceToPL(_move.m_capture, endCoords);
     }
     // Update array
     m_grid[toIndex(startCoords)] = m_grid[toIndex(endCoords)];
-    m_grid[toIndex(endCoords)] = _move->m_capture; // Note this works since m_capture=EMPTY when no capture occurred
+    m_grid[toIndex(endCoords)] = _move.m_capture; // Note this works since m_capture=EMPTY when no capture occurred
     return true;
 };
 
-bool ArrayBoard::apply(std::shared_ptr<TileMove> _move) {
-    // dlog("applying tileMove ", _move->algebraic(), std::endl;
+bool ArrayBoard::apply(const TileMove& _move) {
+    // dlog("applying tileMove ", _move.algebraic(), std::endl;
     // Store the absolute array position of our init selection
-    ABModCoords abSelFirst = SAtoAB(DMtoSA(_move->m_selFirst));
-    ABModCoords abSelSecond = SAtoAB(DMtoSA(_move->m_selSecond));
+    ABModCoords abSelFirst = SAtoAB(DMtoSA(_move.m_selFirst));
+    ABModCoords abSelSecond = SAtoAB(DMtoSA(_move.m_selSecond));
 
     // ----------- Cut out the selection ----------- //
     // Save old coords in case we have to undo the cut operation
@@ -223,47 +223,47 @@ bool ArrayBoard::apply(std::shared_ptr<TileMove> _move) {
     // Figure out if this move updates the minima
     // Assumes only 1-tiles moves in a large (#tiles < 1/2 DModuli)
     // FIXME: God is dead and this code has killed him. This probs should be redone from scratch to handle more than 1 tile moves.
-    DModCoords destSecond = _move->m_destFirst + (_move->m_selSecond - _move->m_selFirst);
+    DModCoords destSecond = _move.m_destFirst + (_move.m_selSecond - _move.m_selFirst);
     // What our extrema are in DMod space.
     DModCoords displayCoordsMax = SAtoDM(ABtoSA(m_maxCoords));
     // dlog(
-    // "_move->m_destFirst: ", _move->m_destFirst,
+    // "_move.m_destFirst: ", _move.m_destFirst,
     // "\ndestSecond: ", destSecond,
-    // "\n_move->m_selFirst: ", _move->m_selFirst,
-    // "\n_move->m_selSecond: ", _move->m_selSecond,
+    // "\n_move.m_selFirst: ", _move.m_selFirst,
+    // "\n_move.m_selSecond: ", _move.m_selSecond,
     // "\nm_displayCoordsZero: ", m_displayCoordsZero, 
     // "\ndisplayCoordsMax: ", displayCoordsMax,
     // std::endl;
 
-    // dlog(((_move->m_destFirst.file.heurLessThan(_move->m_selFirst.file))?"moving left":"not moving left"), std::endl;
-    // dlog(((! _move->m_destFirst.file.isBetween(m_displayCoordsZero.file, displayCoordsMax.file))?"not in hor bounds":"in hor bounds"), std::endl;
+    // dlog(((_move.m_destFirst.file.heurLessThan(_move.m_selFirst.file))?"moving left":"not moving left"), std::endl;
+    // dlog(((! _move.m_destFirst.file.isBetween(m_displayCoordsZero.file, displayCoordsMax.file))?"not in hor bounds":"in hor bounds"), std::endl;
     if ( //.file
         ( 
-            (oldMin.file != m_minCoords.file && _move->m_destFirst.file.heurLessThanOrEqual(_move->m_selFirst.file)) || // THE minimum tile is being moved, and not to the right; or
-            (_move->m_destFirst.file.heurLessThan(_move->m_selFirst.file)) // selection is moving left/down
+            (oldMin.file != m_minCoords.file && _move.m_destFirst.file.heurLessThanOrEqual(_move.m_selFirst.file)) || // THE minimum tile is being moved, and not to the right; or
+            (_move.m_destFirst.file.heurLessThan(_move.m_selFirst.file)) // selection is moving left/down
         )
         &&
-        (! _move->m_destFirst.file.isBetween(m_displayCoordsZero.file, displayCoordsMax.file)) // selection will be outside current bounds
+        (! _move.m_destFirst.file.isBetween(m_displayCoordsZero.file, displayCoordsMax.file)) // selection will be outside current bounds
        ) {
-            // int difference = (m_displayCoordsZero.file - _move->m_destFirst.file).m_value;
-            int difference = m_displayCoordsZero.file.getDistTo(_move->m_destFirst.file);
+            // int difference = (m_displayCoordsZero.file - _move.m_destFirst.file).m_value;
+            int difference = m_displayCoordsZero.file.getDistTo(_move.m_destFirst.file);
             m_minCoords.file += difference;
             m_displayCoordsZero.file += difference;
             // dlog("updated mins.file by ", difference, std::endl;
             assert(difference < 0);
     }
-    // dlog(((_move->m_destFirst.rank.heurLessThan(_move->m_selFirst.rank))?"moving left":"not moving left"), std::endl;
-    // dlog(((! _move->m_destFirst.rank.isBetween(m_displayCoordsZero.rank, displayCoordsMax.rank))?"not in vert bounds":"in vert bounds"), std::endl;
+    // dlog(((_move.m_destFirst.rank.heurLessThan(_move.m_selFirst.rank))?"moving left":"not moving left"), std::endl;
+    // dlog(((! _move.m_destFirst.rank.isBetween(m_displayCoordsZero.rank, displayCoordsMax.rank))?"not in vert bounds":"in vert bounds"), std::endl;
     if ( //.rank //TODO: combine these into one function somehow for readability.
         ( 
-            (oldMin.rank != m_minCoords.rank && _move->m_destFirst.rank.heurLessThanOrEqual(_move->m_selFirst.rank)) || // THE minimum tile is being moved, and not to the right; or
-            (_move->m_destFirst.rank.heurLessThan(_move->m_selFirst.rank)) // selection is moving left/down
+            (oldMin.rank != m_minCoords.rank && _move.m_destFirst.rank.heurLessThanOrEqual(_move.m_selFirst.rank)) || // THE minimum tile is being moved, and not to the right; or
+            (_move.m_destFirst.rank.heurLessThan(_move.m_selFirst.rank)) // selection is moving left/down
         )
         &&
-        (! _move->m_destFirst.rank.isBetween(m_displayCoordsZero.rank, displayCoordsMax.rank)) // selection will be outside current bounds
+        (! _move.m_destFirst.rank.isBetween(m_displayCoordsZero.rank, displayCoordsMax.rank)) // selection will be outside current bounds
        ) {
-            // int difference = (m_displayCoordsZero.rank - _move->m_destFirst.rank).m_value;
-            int difference = m_displayCoordsZero.rank.getDistTo(_move->m_destFirst.rank);
+            // int difference = (m_displayCoordsZero.rank - _move.m_destFirst.rank).m_value;
+            int difference = m_displayCoordsZero.rank.getDistTo(_move.m_destFirst.rank);
             m_minCoords.rank += difference;
             m_displayCoordsZero.rank += difference;
             // dlog("updated mins.rank by ", difference, std::endl;
@@ -271,7 +271,7 @@ bool ArrayBoard::apply(std::shared_ptr<TileMove> _move) {
     }
 
     // Now that our m_minCoords is updated, these operations are valid.
-    ABModCoords abDestFirst = SAtoAB(DMtoSA(_move->m_destFirst));
+    ABModCoords abDestFirst = SAtoAB(DMtoSA(_move.m_destFirst));
     ABModCoords abDestSecond = SAtoAB(DMtoSA(destSecond));
 
     // Update m_maxCoords now. Same idea as updating the m_minCoords, but we can do this in ABCoord space now.
@@ -318,8 +318,8 @@ bool ArrayBoard::apply(std::shared_ptr<TileMove> _move) {
 
     // If we moved pieces, we need to update the pieceList.
     // TODO: this implementation only works for single-tile moves.
-    if (isPiece(getPiece(_move->m_destFirst))) {
-        if (!updatePieceInPL(getPiece(_move->m_destFirst), abSelFirst, abDestFirst)) {
+    if (isPiece(getPiece(_move.m_destFirst))) {
+        if (!updatePieceInPL(getPiece(_move.m_destFirst), abSelFirst, abDestFirst)) {
             std::cerr << "Board pieceList is corrupted! " << WHERE << std::endl;
             exit(EXIT_FAILURE); // TODO: crash more gracefully
         }
@@ -327,22 +327,22 @@ bool ArrayBoard::apply(std::shared_ptr<TileMove> _move) {
     return true;
 };
 
-bool ArrayBoard::undo(std::shared_ptr<TileMove> _move) {
+bool ArrayBoard::undo(const TileMove& _move) {
     // Literally just move the selection back.
-    DModCoords translationDist = (_move->m_selSecond - _move->m_selFirst);
-    DModCoords destSecond = _move->m_destFirst + translationDist;
-    auto reverseMove = std::make_shared<TileMove>(_move->m_destFirst, destSecond, _move->m_selFirst);
-    return apply(reverseMove);
+    DModCoords translationDist = (_move.m_selSecond - _move.m_selFirst);
+    DModCoords destSecond = _move.m_destFirst + translationDist;
+    auto reverseMove = std::make_unique<TileMove>(_move.m_destFirst, destSecond, _move.m_selFirst);
+    return apply(*reverseMove);
 }
 
-bool ArrayBoard::apply(std::shared_ptr<TileDeletion> _move) {
-    // dlog("applying TileDeletion move ", _move->algebraic(), std::endl;
+bool ArrayBoard::apply(const TileDeletion& _move) {
+    // dlog("applying TileDeletion move ", _move.algebraic(), std::endl;
     // Save values in case we have to revert
     auto oldMinCoords = m_minCoords;
     auto oldMaxCoords = m_maxCoords;
     auto oldDCZero = m_displayCoordsZero;
 
-    for (DModCoords& dModDeletion : _move->m_deleteCoords) {
+    for (const DModCoords& dModDeletion : _move.m_deleteCoords) {
         ABModCoords deletionCoords = SAtoAB(DMtoSA(dModDeletion));
         // if (m_grid[toIndex(deletionCoords)] == EMPTY) { // TODO: check if empty. Want to make sure we can undo it if part way we find it is illegal move.
         m_grid[toIndex(deletionCoords)] = VOID;
@@ -371,7 +371,7 @@ bool ArrayBoard::apply(std::shared_ptr<TileDeletion> _move) {
         m_minCoords = oldMinCoords;
         m_maxCoords = oldMaxCoords;
         m_displayCoordsZero = oldDCZero;
-        for (DModCoords& dModDeletion : _move->m_deleteCoords) {
+        for (const DModCoords& dModDeletion : _move.m_deleteCoords) {
             ABModCoords deletionCoords = SAtoAB(DMtoSA(dModDeletion));
             m_grid[toIndex(deletionCoords)] = EMPTY;
             ++m_numTiles;
@@ -384,11 +384,11 @@ bool ArrayBoard::apply(std::shared_ptr<TileDeletion> _move) {
     return true;
 }
 
-bool ArrayBoard::undo(std::shared_ptr<TileDeletion> _move) {
-    // dlog("applying move ", _move->algebraic(), std::endl;
+bool ArrayBoard::undo(const TileDeletion& _move) {
+    // dlog("applying move ", _move.algebraic(), std::endl;
     // Note: this assumes that 2*[max number of tiles per deletion] + m_grid_size < 27*26 (the DModCoord space).
     // TODO: would be nice if there was a better way to figure out which side it corresponds to easier than checking which is closer so our assumption is not needed.
-    for (DModCoords& dModAddition : _move->m_deleteCoords) {
+    for (const DModCoords& dModAddition : _move.m_deleteCoords) {
         // check if this addition would change m_minCoords
         DModCoords dModMin = SAtoDM(ABtoSA(m_minCoords)); //TODO: clean up this function's code
         DModCoords dModMax = SAtoDM(ABtoSA(m_maxCoords));
@@ -424,8 +424,8 @@ bool ArrayBoard::undo(std::shared_ptr<TileDeletion> _move) {
     return true;
 }
 
-// bool ArrayBoard::isLegal(std::shared_ptr<Move> _move) {
-//     switch (_move->m_type) {
+// bool ArrayBoard::isLegal(const Move& _move) {
+//     switch (_move.m_type) {
 //     case PIECE_MOVE:
 //         return isLegal(std::static_pointer_cast<PieceMove>(_move));
 //     case TILE_MOVE:
@@ -433,12 +433,12 @@ bool ArrayBoard::undo(std::shared_ptr<TileDeletion> _move) {
 //     case TILE_DELETION:
 //         return isLegal(std::static_pointer_cast<TileDeletion>(_move));
 //     default:
-//         dlog("Unknown Move Type [" , _move->m_type , "]\n" , WHERE);
+//         dlog("Unknown Move Type [" , _move.m_type , "]\n" , WHERE);
 //         return false;
 //     }
 // }
-// bool ArrayBoard::isLegal(std::shared_ptr<PieceMove> _move) {
-//     SquareEnum pieceType = getPiece(_move->m_startPos);
+// bool ArrayBoard::isLegal(const PieceMove& _move) {
+//     SquareEnum pieceType = getPiece(_move.m_startPos);
 //     if (!isPiece(pieceType)) return false;
 //     for (auto moveOption : m_rules.m_pieceMoveOptionLists[pieceType]) {
 //         if ()
@@ -446,22 +446,22 @@ bool ArrayBoard::undo(std::shared_ptr<TileDeletion> _move) {
 //     //TODO: implement
 //     return true;
 // }
-// bool ArrayBoard::isLegal(std::shared_ptr<TileMove> _move) {
+// bool ArrayBoard::isLegal(const TileMove& _move) {
 //     // check selection rectangle is not oversized //TODO:
 //     // check squares we are copying to is actually void. Handle the coords conversions. //TODO:
 //     // check that connectedness is maintained //TODO: I think "Maintenance of a minimum spanning forest in a dynamic plane graph" by Eppstein et al. may give optimal results, although its probably easier to just run A* or smth
 //     return true;
 // }
-// bool ArrayBoard::isLegal(std::shared_ptr<TileDeletion> _move) {
+// bool ArrayBoard::isLegal(const TileDeletion& _move) {
 //     // check number of deletions OK
-//     if (_move->m_deleteCoords.empty()) {
+//     if (_move.m_deleteCoords.empty()) {
 //         return false;
 //     }
-//     if (_move->m_deleteCoords.size() > m_rules.m_numDeletionsPerTurn) {
+//     if (_move.m_deleteCoords.size() > m_rules.m_numDeletionsPerTurn) {
 //         return false;
 //     }
 //     // check there are actually EMPTY tiles to delete at given coords //TODO
-//     // for (DModCoords& delCoords : _move->m_deleteCoords) {
+//     // for (DModCoords& delCoords : _move.m_deleteCoords) {
 //     //     if ()
 //     // }
 //     // check deletions do not break connectedness //TODO
@@ -533,7 +533,7 @@ int ArrayBoard::staticEvaluation() {
     return staticValue;
 }
 
-bool ArrayBoard::moveIsFromMO(std::shared_ptr<Move> _move, const MoveOption& _mo) {
+bool ArrayBoard::moveIsFromMO(const Move& _move, const MoveOption& _mo) {
     switch (_mo.m_type) {
     case LEAP_MO_TYPE:
         return moveIsFromMO(_move, dynamic_cast<const LeapMoveOption&>(_mo)); // TODO: why is this dynamic_cast, but other is static pointer cast?
@@ -545,13 +545,13 @@ bool ArrayBoard::moveIsFromMO(std::shared_ptr<Move> _move, const MoveOption& _mo
     }
 }
 
-bool ArrayBoard::moveIsFromMO(std::shared_ptr<Move> _move, const LeapMoveOption& _mo) {
+bool ArrayBoard::moveIsFromMO(const Move& _move, const LeapMoveOption& _mo) {
     // TODO: implement
     return false;
 }
 
 // Checks if the move could have been generated from current MoveOption
-bool ArrayBoard::moveIsFromMO(std::shared_ptr<Move> _move, const SlideMoveOption& _mo) {
+bool ArrayBoard::moveIsFromMO(const Move& _move, const SlideMoveOption& _mo) {
     // TODO: implement
     // TODO: If we don't care about efficiency, this can just call the general getMovesFromMO and we don't even need this function then
     return false;
@@ -564,19 +564,19 @@ void test (const Move& _move) {
 std::vector<std::unique_ptr<Move>> ArrayBoard::getMoves(PieceColor _color) {
     std::vector<std::unique_ptr<Move>> legalMoves;
     auto maybeMoves = getMaybeMoves(_color);
-    for (auto& umm : maybeMoves) { //FIXME: taking shared_ptr as parameter seems disgusting. Just take const ptr or something.
-        std::shared_ptr<Move> maybeMove = std::move(umm); // 'unique maybe move'
-        if(!apply(maybeMove)) {
+    for (auto& maybeMove : maybeMoves) {
+        if(!apply(*maybeMove)) {
             // Turns out this move wasn't legal
-            // tdout << "skipping move " << move->algebraic() << " because it wasn't actually legal." << std::endl;
+            // dlog("skipping move", maybeMove->algebraic(), " because it wasn't actually legal.");
             continue;
         }
         // else, this is legal
-        // legalMoves.push_back(std::make_unique<Move>(new )); //FIXME: can't do this without pointer redesign
-        if (!undo(maybeMove)) {
+        if (!undo(*maybeMove)) {
             std::cerr << "Board is corrupted, exiting!" << WHERE << std::endl;
             exit(EXIT_FAILURE);
-        }    }
+        }
+        legalMoves.push_back(std::move(maybeMove)); // Do this last bcz std::move
+    }
     return legalMoves;
 }
 

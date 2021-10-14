@@ -95,17 +95,17 @@ class Board {
         //  */
         // virtual bool movePiece(UnsignedCoords _start, UnsignedCoords _goal) = 0;
 
-        virtual bool apply(std::shared_ptr<Move> _move) = 0;
+        virtual bool apply(const Move& _move) = 0;
 
         /**
          * Undoes the last move(s) made on this board.
          */
-        virtual bool undo(std::shared_ptr<Move> _move) = 0;
+        virtual bool undo(const Move& _move) = 0;
 
         // Checks legality by generating all moves on this position and checking if this
         // is one of them.
         // FIXME: requires color
-        virtual bool isLegal(std::shared_ptr<Move> _move, PieceColor _turn);
+        virtual bool isLegal(const Move& _move, PieceColor _turn);
 
         /**
          * Gets the hash of this configuration.

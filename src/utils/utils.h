@@ -73,6 +73,10 @@
     #define dlogEnd(...) (void*)0
 #endif
 
+// When you need a comma within a parameter of a preprocessor macro (that is not expanded again)
+// e.g. std::pair<int COMMA int>
+#define COMMA ,
+
 // USAGE: FORMAT(foo << bar << ... << baz) returns a std::string
 // This macro lets us make std::string analogous to
 // std::cout << foo << bar << baz

@@ -26,8 +26,8 @@ std::unique_ptr<Move> HumanRunner::getMove() {
     return readAlgebraic(humanMove);
 }
 
-bool HumanRunner::setMove(std::shared_ptr<Move>& _move) {
-    edout << "recieved move " << _move->algebraic() << std::endl;
+bool HumanRunner::setMove(const Move& _move) {
+    edout << "recieved move " << _move.algebraic() << std::endl;
     return true;
 }
 

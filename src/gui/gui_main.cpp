@@ -67,16 +67,20 @@ int main(int argc, char *argv[]) {
     blackEngine->setBoard(sfen);
     std::cout << "boards init'd, going into game loop" << std::endl;
     for(;;) { // TODO: remove redundant code for both black and white
-        std::shared_ptr<Move> whiteMove = std::move(whiteEngine->getMove());
+        std::unique_ptr<Move> whiteMove = std::move(whiteEngine->getMove());
         //TODO: check if legal
-        game.applyMove(whiteMove);
-        blackEngine->setMove(whiteMove);
+        if (!game.applyMove(std::move(whiteMove))) {
+            std::cerr << "illegal move!" << std::endl; //TODO: handle
+        }
+        blackEngine->setMove(*game.m_moveHistory.top());
         // TODO: handle if black rejects move as being legal
 
-        std::shared_ptr<Move> blackMove = std::move(blackEngine->getMove());
+        std::unique_ptr<Move> blackMove = std::move(blackEngine->getMove());
         //TODO: check if legal
-        game.applyMove(blackMove);
-        whiteEngine->setMove(blackMove);
+        if (!game.applyMove(std::move(blackMove))) {
+            std::cerr << "illegal move!" << std::endl; //TODO: handle
+        }
+        whiteEngine->setMove(*game.m_moveHistory.top());
         // TODO: handle if white rejects move as being legal
     }
     std::cout << "Exiting SelChess GUI" << std::endl;

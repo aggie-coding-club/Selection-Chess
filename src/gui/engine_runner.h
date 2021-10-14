@@ -45,7 +45,7 @@ class EngineRunner : public PlayerRunner {
 
         std::unique_ptr<Move> getMove();
 
-        bool setMove(std::shared_ptr<Move>& _move);
+        bool setMove(const Move& _move);
 
         // fills m_cmdQueue as input comes in
         void run();

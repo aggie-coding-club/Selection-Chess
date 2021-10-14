@@ -14,7 +14,7 @@ class Game {
     public:
         Board* m_board = nullptr;
         // list of moves applied to starting SFEN.
-        std::stack<std::shared_ptr<Move>> m_moveHistory; 
+        std::stack<std::unique_ptr<Move>> m_moveHistory; 
 
         // Number of full moves (increments after black plays).
         // WARNING: starts at 1.
@@ -33,9 +33,12 @@ class Game {
         // FIXME: test if rules file is actually being read in.
         void reset(const std::string _sfen);
 
-        bool applyMove(std::shared_ptr<Move> _move);
+        // Applies the move, and stores the unique_ptr in its history stack
+        bool applyMove(std::unique_ptr<Move> _move);
 
-        bool undoMove(size_t _numMoves=1);
+        // Undoes the move, then pops and returns the unique_ptr from its history stack.
+        // unique_ptr is to nullptr if it fails.
+        std::unique_ptr<Move> undoMove();
 
         uint64_t getHash() const {
             //TODO: implement

@@ -39,8 +39,8 @@ int xboardLoop() {
                 const int MAX_GT_DEPTH = 3; // Max depth to explore gametree. //TODO: this should be the variable of an anytime algorithm.
                 dlog("running minmax at depth ", MAX_GT_DEPTH);
                 auto minmaxResult = negamaxAB(&game, MAX_GT_DEPTH);
-                game.applyMove(minmaxResult.second);
                 std::cout << "move " << minmaxResult.second->algebraic() << std::endl;
+                game.applyMove(std::move(minmaxResult.second));
             } else if (cmd == "print") { // not defined in xboard, but useful for debugging
                 dlog(game.print());
             } else if (cmd == "accepted" || cmd == "rejected" || cmd == "new" || cmd == "variant") {

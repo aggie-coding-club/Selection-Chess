@@ -20,10 +20,10 @@ class Coords {
         // WARNING: default constructor does NOT guarantee zeroed values
         Coords() {};
 
-        inline bool operator==(const Coords<T,U>& _rhs) {
+        inline bool operator==(const Coords<T,U>& _rhs) const {
             return (file == _rhs.file && rank == _rhs.rank);
         }
-        inline bool operator!=(const Coords<T,U>& _rhs) {
+        inline bool operator!=(const Coords<T,U>& _rhs) const {
             return !(*this == _rhs);
         }
 

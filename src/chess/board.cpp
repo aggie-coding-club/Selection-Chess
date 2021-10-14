@@ -419,11 +419,11 @@ std::vector<std::unique_ptr<PieceMove>> Board::getMovesFromMO(DModCoords _pieceC
     return std::move(moves);
 }
 
-bool Board::isLegal(std::shared_ptr<Move> _move, PieceColor _turn) {
+bool Board::isLegal(const Move& _move, PieceColor _turn) {
     auto possibleMoves = getMoves(_turn);
     for (std::unique_ptr<Move>& possibleMove : possibleMoves) {
         // std::shared_ptr<Move> possibleMove = std::move(m);
-        if (*_move == *possibleMove) {
+        if (_move == *possibleMove) {
             return true;
         }
     }

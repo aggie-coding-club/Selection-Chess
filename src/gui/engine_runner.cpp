@@ -149,8 +149,8 @@ std::unique_ptr<Move> EngineRunner::getMove() {
     return readAlgebraic(moveString); // TODO: sanity checks
 }
 
-bool EngineRunner::setMove(std::shared_ptr<Move>& _move) {
-    m_toEngineStream << _move << std::endl;
+bool EngineRunner::setMove(const Move& _move) {
+    m_toEngineStream << _move.algebraic() << std::endl;
     return true;
 }
 

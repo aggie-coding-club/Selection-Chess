@@ -76,20 +76,20 @@ class ArrayBoard : public Board {
             return m_grid[toIndex(SAtoAB(DMtoSA(_coords)))];
         };
 
-        bool apply(std::shared_ptr<Move> _move);
-        bool apply(std::shared_ptr<PieceMove> _move);
-        bool apply(std::shared_ptr<TileMove> _move);
-        bool apply(std::shared_ptr<TileDeletion> _move);
+        bool apply(const Move& _move);
+        bool apply(const PieceMove& _move);
+        bool apply(const TileMove& _move);
+        bool apply(const TileDeletion& _move);
 
-        bool undo(std::shared_ptr<Move> _move);
-        bool undo(std::shared_ptr<PieceMove> _move);
-        bool undo(std::shared_ptr<TileMove> _move);
-        bool undo(std::shared_ptr<TileDeletion> _move);
+        bool undo(const Move& _move);
+        bool undo(const PieceMove& _move);
+        bool undo(const TileMove& _move);
+        bool undo(const TileDeletion& _move);
 
-        // bool isLegal(std::shared_ptr<Move> _move);
-        // bool isLegal(std::shared_ptr<PieceMove> _move);
-        // bool isLegal(std::shared_ptr<TileMove> _move);
-        // bool isLegal(std::shared_ptr<TileDeletion> _move);
+        // bool isLegal(const Move& _move);
+        // bool isLegal(const PieceMove& _move);
+        // bool isLegal(const TileMove& _move);
+        // bool isLegal(const TileDeletion& _move);
 
         UnsignedCoords getDimensions() const {
             // Just taking the m_value here is OK because this distance is not affected by modulus, so it is guaranteed result to be a normal positive number.
@@ -165,9 +165,9 @@ class ArrayBoard : public Board {
 
         // TODO: Do these MO functions generalize well enough to be moved into board.h?
         // Checks if the move could have been generated from current MoveOption
-        bool moveIsFromMO(std::shared_ptr<Move> _move, const MoveOption& _mo);
-        bool moveIsFromMO(std::shared_ptr<Move> _move, const LeapMoveOption& _mo);
-        bool moveIsFromMO(std::shared_ptr<Move> _move, const SlideMoveOption& _mo);
+        bool moveIsFromMO(const Move& _move, const MoveOption& _mo);
+        bool moveIsFromMO(const Move& _move, const LeapMoveOption& _mo);
+        bool moveIsFromMO(const Move& _move, const SlideMoveOption& _mo);
 };
 
 inline ABModCoords& operator+=(ABModCoords& _mc1, const SignedCoords& _diff) {

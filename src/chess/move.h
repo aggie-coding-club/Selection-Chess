@@ -38,7 +38,7 @@ class Move {
 
         // Make sure over extend this method, or your all your subclass objects 
         // will be equivalent. Should be called by the function overriding it.
-        virtual bool operator==(const Move& _move) {
+        virtual bool operator==(const Move& _move) const {
             return m_type == _move.m_type;
         }
 };
@@ -58,7 +58,7 @@ class PieceMove : public Move {
         PieceMove () {
             m_type = PIECE_MOVE;
         }
-        virtual bool operator==(const Move& _move) {
+        virtual bool operator==(const Move& _move) const {
             if (!Move::operator==(_move)) return false;
             // Now we know that the type is the same, so we can safely cast
             auto other = static_cast<const PieceMove&>(_move);
@@ -105,7 +105,7 @@ class TileMove : public Move {
         TileMove() {
             m_type = TILE_MOVE;
         }
-        virtual bool operator==(const Move& _move) {
+        virtual bool operator==(const Move& _move) const {
             if (!Move::operator==(_move)) return false;
             // Now we know that the type is the same, so we can safely cast
             auto other = static_cast<const TileMove&>(_move);
@@ -137,7 +137,7 @@ class TileDeletion : public Move {
         TileDeletion() {
             m_type = TILE_DELETION;
         }
-        virtual bool operator==(const Move& _move) {
+        virtual bool operator==(const Move& _move) const {
             if (!Move::operator==(_move)) return false;
             // Now we know that the type is the same, so we can safely cast
             auto other = static_cast<const TileDeletion&>(_move);

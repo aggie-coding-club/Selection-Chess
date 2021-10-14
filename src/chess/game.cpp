@@ -59,8 +59,8 @@ std::string Game::print() {
     return result;
 }
 
-bool Game::applyMove(std::shared_ptr<Move> _move){
-    if (!m_board->apply(_move)) {
+bool Game::applyMove(std::unique_ptr<Move> _move){
+    if (!m_board->apply(*_move)) {
         return false;
     }
     // increment full move count when black plays
@@ -68,28 +68,27 @@ bool Game::applyMove(std::shared_ptr<Move> _move){
         m_moveCount++;
     }
     m_turn = -m_turn;
-    m_moveHistory.push(_move);
-    if (_move->m_type == PIECE_MOVE && (std::static_pointer_cast<PieceMove>(_move))->m_capture != EMPTY) {
+    if ((_move->m_type == PIECE_MOVE) && (static_cast<PieceMove*>(_move.get())->m_capture != EMPTY)) {
         m_50Count = 0;
     } else {
         m_50Count++;
     }
+    m_moveHistory.push(std::move(_move)); // WARNING: _move is now nullptr
     return true;
 };
 
-bool Game::undoMove(size_t _numMoves) {
-    for (; _numMoves > 0; _numMoves--) {
-        std::shared_ptr<Move> undone = m_moveHistory.top();
-        if (!m_board->undo(undone)) {
-            return false;
-        }
-        m_moveHistory.pop();
-        m_turn = -m_turn;
-        // decrement full move count when undoing black's move
-        if (m_turn == BLACK) {
-            m_moveCount--;
-        }
-        // TODO: how do we restore moveSinceLastCapture?
+std::unique_ptr<Move> Game::undoMove() {
+    std::unique_ptr<Move> undone = std::move(m_moveHistory.top());
+    if (!m_board->undo(*undone)) {
+        // TODO: this is weird behavior for when undo fails, need better error handling
+        return std::unique_ptr<Move>(nullptr);
     }
-    return true;
+    m_moveHistory.pop();
+    m_turn = -m_turn;
+    // decrement full move count when undoing black's move
+    if (m_turn == BLACK) {
+        m_moveCount--;
+    }
+    // TODO: how do we restore moveSinceLastCapture?
+    return std::move(undone);
 };
