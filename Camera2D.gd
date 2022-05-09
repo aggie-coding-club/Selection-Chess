@@ -2,7 +2,7 @@ extends Camera2D
 
 
 # Declare member variables here. Examples:
-const MIN_ZOOM: float = 0.1
+const MIN_ZOOM: float = 0.3
 const MAX_ZOOM: float = 1.0
 const ZOOM_INCREMENT: float = 0.02
 const ZOOM_RATE: float = 8.0
