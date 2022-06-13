@@ -21,7 +21,9 @@ enum {PIECE_MODE, TILES_MODE, DELETE_MODE}
 # Which 'tool' is selected, defines what clicking does
 var cursorMode = PIECE_MODE
 
-# Are we currently moving either a piece or a set of tiles
+# Stores state of whether cursor is pressed or not.
+# In the case of piece_sel, means piece is actively following cursor.
+# In the case of tile_sel, means rectangle is being drawn.
 var dragging = false
 ################################################################################
 
@@ -45,8 +47,22 @@ func _ready():
 #func _process(delta):
 #	pass
 
+# drops the thing currently being dragged, RESETTING to original position
+func drop_dragged():
+	if not dragging:
+		return
+	if selectionState == PIECE_SEL:
+		#piece_tilemap.set_cellv(selectionStart, [PIECE])
+		# TODO: get piece back from whatever is carrying it
+		pass
+	if selectionState == TILES_SEL:
+		# TODO: 
+		pass
+
 # remove highlight and other stuff
 func deselect():
+	if dragging:
+		drop_dragged()
 	match selectionState:
 		PIECE_SEL:
 			# TODO
@@ -62,12 +78,12 @@ func _input(event):
 			# position of mouse as NodeBoard indices 
 			var mousePosNB = board_tilemap.world_to_map(board_tilemap.to_local(get_global_mouse_position()))
 			print("Mouse Click/Unclick at: ", get_global_mouse_position(), "\t which is: ", mousePosNB)
-			selectionStart = mousePosNB
 			if selectionState == NO_SEL and event.pressed:
+				selectionStart = mousePosNB
 				match cursorMode:
 					PIECE_MODE:
 						selectionState = PIECE_SEL
-						dragging = true
+						#dragging = true # We don't drag piece until cursor moves
 						board_tilemap.set_cellv(mousePosNB, TM_TILE_HIGHLIGHTED)
 					TILES_MODE:
 						selectionState = TILES_MODE
@@ -75,13 +91,34 @@ func _input(event):
 					DELETE_MODE:
 						# TODO: implement deletions
 						pass
+			if selectionState == PIECE_SEL:
+				if event.pressed and mousePosNB == selectionStart:
+					deselect()
+				elif event.pressed and mousePosNB != selectionStart:
+					# TODO: execute move
+					pass
+				elif not event.pressed:
+					if mousePosNB == selectionStart:
+						drop_dragged()
+					else:
+						# execute piece move
+						pass
+					
 	elif event is InputEventMouseMotion:
-		#print("Mouse Motion at: ", event.position)
-		#print("Mouse Motion at: ", get_viewport().get_mouse_position())
-		#print("Mouse Motion at: ", get_global_mouse_position())
-		if dragging:
-			var mousePosNB = board_tilemap.world_to_map(board_tilemap.to_local(get_global_mouse_position()))
-			selectionEnd = mousePosNB
-			# TODO: update graphics
+		if selectionState == PIECE_SEL:
+			# just started dragging a piece
+			if not dragging and Input.is_mouse_button_pressed(BUTTON_LEFT):
+				var mousePosNB = board_tilemap.world_to_map(board_tilemap.to_local(get_global_mouse_position()))
+				# TODO: remove from pieceTileMap, move to floating map
+				dragging = true
+			
+			if dragging:
+				var mousePosNB = board_tilemap.world_to_map(board_tilemap.to_local(get_global_mouse_position()))
+				selectionEnd = mousePosNB
+				# TODO: update graphics
+
+		if selectionState == TILES_SEL:
+			# TODO
+			pass
 	# Print the size of the viewport.
 	#print("Viewport Resolution is: ", get_viewport_rect().size)

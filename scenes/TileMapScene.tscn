@@ -4,8 +4,8 @@
 [ext_resource path="res://board_graphics/64carndinalTileSet.tres" type="TileSet" id=2]
 [ext_resource path="res://scripts/Camera2D.gd" type="Script" id=3]
 [ext_resource path="res://scripts/TileMapScene.gd" type="Script" id=4]
-[ext_resource path="res://parallax/base_spiral1.png" type="Texture" id=5]
-[ext_resource path="res://parallax/blue_gradtile_trans.png" type="Texture" id=6]
+[ext_resource path="res://parallax/rect113.png" type="Texture" id=5]
+[ext_resource path="res://parallax/runes.png" type="Texture" id=7]
 
 [node name="Node2D" type="Node2D"]
 script = ExtResource( 4 )
@@ -16,28 +16,30 @@ script = ExtResource( 3 )
 
 [node name="ParallaxBackground" type="ParallaxBackground" parent="."]
 
-[node name="ParallaxLayer2" type="ParallaxLayer" parent="ParallaxBackground"]
-motion_scale = Vector2( 0, 0 )
-motion_mirroring = Vector2( 1920, 1080 )
+[node name="ParallaxLayer4" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_scale = Vector2( 0.5, 0.5 )
+motion_mirroring = Vector2( 4096, 4096 )
 
-[node name="Sprite" type="Sprite" parent="ParallaxBackground/ParallaxLayer2"]
-position = Vector2( 8.00001, -88.0001 )
-scale = Vector2( 10.0833, 10.2222 )
+[node name="TextureRectTopo" type="TextureRect" parent="ParallaxBackground/ParallaxLayer4"]
+margin_left = -1936.0
+margin_top = -2128.0
+margin_right = 2160.0
+margin_bottom = 1968.0
 texture = ExtResource( 5 )
+stretch_mode = 2
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
-[node name="ParallaxLayer" type="ParallaxLayer" parent="ParallaxBackground"]
-rotation = 0.6353
-motion_scale = Vector2( 0.1, 0.1 )
-motion_mirroring = Vector2( 1000, 1000 )
+[node name="ParallaxLayer3" type="ParallaxLayer" parent="ParallaxBackground"]
+visible = false
+motion_scale = Vector2( 0.7, 0.7 )
+motion_mirroring = Vector2( 3072, 2048 )
 
-[node name="TextureRect" type="TextureRect" parent="ParallaxBackground/ParallaxLayer"]
-margin_left = -517.41
-margin_top = -513.061
-margin_right = -452.41
-margin_bottom = -449.061
-rect_scale = Vector2( 16, 16 )
-texture = ExtResource( 6 )
-expand = true
+[node name="TextureRectRunes" type="TextureRect" parent="ParallaxBackground/ParallaxLayer3"]
+margin_right = 3072.0
+margin_bottom = 2048.0
+texture = ExtResource( 7 )
 stretch_mode = 2
 __meta__ = {
 "_edit_use_anchors_": false
