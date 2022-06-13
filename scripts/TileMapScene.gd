@@ -30,7 +30,7 @@ var dragging = false
 # Constants for tilemaps
 const TM_EMPTY = -1
 # Board Tilemaps
-enum {TM_TILE = 1, TM_TILE_HIGHLIGHTED}
+enum {TM_TILE = 0, TM_TILE_HIGHLIGHTED}
 # Piece Tilemaps
 enum {TM_BB, TM_BK, TM_BN, TM_BP, TM_BQ, TM_BR, TM_WB, TM_WK, TM_WN, TM_WP, TM_WQ, TM_WR}
 
