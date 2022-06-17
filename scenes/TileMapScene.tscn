@@ -1,11 +1,13 @@
-[gd_scene load_steps=7 format=2]
+[gd_scene load_steps=9 format=2]
 
 [ext_resource path="res://board_graphics/64plainTiles.tres" type="TileSet" id=1]
 [ext_resource path="res://board_graphics/64carndinalTileSet.tres" type="TileSet" id=2]
 [ext_resource path="res://scripts/Camera2D.gd" type="Script" id=3]
 [ext_resource path="res://scripts/TileMapScene.gd" type="Script" id=4]
-[ext_resource path="res://parallax/rect113.png" type="Texture" id=5]
+[ext_resource path="res://parallax/topo3P2.png" type="Texture" id=5]
+[ext_resource path="res://board_graphics/64highlightsTiles.tres" type="TileSet" id=6]
 [ext_resource path="res://parallax/runes.png" type="Texture" id=7]
+[ext_resource path="res://parallax/topo2B.png" type="Texture" id=8]
 
 [node name="Node2D" type="Node2D"]
 script = ExtResource( 4 )
@@ -17,10 +19,25 @@ script = ExtResource( 3 )
 [node name="ParallaxBackground" type="ParallaxBackground" parent="."]
 
 [node name="ParallaxLayer4" type="ParallaxLayer" parent="ParallaxBackground"]
-motion_scale = Vector2( 0.5, 0.5 )
+motion_scale = Vector2( 0.05, 0.05 )
 motion_mirroring = Vector2( 4096, 4096 )
 
 [node name="TextureRectTopo" type="TextureRect" parent="ParallaxBackground/ParallaxLayer4"]
+margin_left = -1936.0
+margin_top = -2128.0
+margin_right = 2160.0
+margin_bottom = 1968.0
+texture = ExtResource( 8 )
+stretch_mode = 2
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ParallaxLayer5" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_scale = Vector2( 0.1, 0.1 )
+motion_mirroring = Vector2( 4096, 4096 )
+
+[node name="TextureRectTopo" type="TextureRect" parent="ParallaxBackground/ParallaxLayer5"]
 margin_left = -1936.0
 margin_top = -2128.0
 margin_right = 2160.0
@@ -52,6 +69,11 @@ scale = Vector2( 0.5, 0.5 )
 tile_set = ExtResource( 1 )
 format = 1
 tile_data = PoolIntArray( -262147, 0, 0, -262146, 0, 0, -262145, 0, 0, -327680, 0, 0, -327679, 0, 0, -327678, 0, 0, -196611, 0, 0, -262142, 0, 0, -131075, 0, 0, -131074, 0, 0, -131073, 0, 0, -196608, 0, 0, -196607, 0, 0, -196606, 0, 0, -65539, 0, 0, -65538, 0, 0, -65537, 0, 0, -131072, 0, 0, -131071, 0, 0, -131070, 0, 0, -3, 0, 0, -2, 0, 0, -1, 0, 0, -65536, 0, 0, -65535, 0, 0, -65534, 0, 0, 65533, 0, 0, 65534, 1, 0, 65535, 0, 0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 131069, 0, 0, 131070, 0, 0, 131071, 0, 0, 65536, 0, 0, 65537, 0, 0, 65538, 0, 0 )
+
+[node name="HighlightsTileMap" type="TileMap" parent="NodeBoard"]
+scale = Vector2( 0.5, 0.5 )
+tile_set = ExtResource( 6 )
+format = 1
 
 [node name="PieceTileMap" type="TileMap" parent="NodeBoard"]
 scale = Vector2( 0.5, 0.5 )

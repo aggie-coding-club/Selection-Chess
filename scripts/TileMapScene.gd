@@ -14,8 +14,8 @@ enum {NO_SEL, PIECE_SEL, TILES_SEL}
 var selectionState = NO_SEL
 
 # as integer board coords
-var selectionStart = Vector2.ZERO
-var selectionEnd = Vector2.ZERO
+var selectionStartPos = Vector2.ZERO
+var selectionEndPos = Vector2.ZERO
 
 enum {PIECE_MODE, TILES_MODE, DELETE_MODE}
 # Which 'tool' is selected, defines what clicking does
@@ -52,7 +52,7 @@ func drop_dragged():
 	if not dragging:
 		return
 	if selectionState == PIECE_SEL:
-		#piece_tilemap.set_cellv(selectionStart, [PIECE])
+		#piece_tilemap.set_cellv(selectionStartPos, [PIECE])
 		# TODO: get piece back from whatever is carrying it
 		pass
 	if selectionState == TILES_SEL:
@@ -79,26 +79,26 @@ func _input(event):
 			var mousePosNB = board_tilemap.world_to_map(board_tilemap.to_local(get_global_mouse_position()))
 			print("Mouse Click/Unclick at: ", get_global_mouse_position(), "\t which is: ", mousePosNB)
 			if selectionState == NO_SEL and event.pressed:
-				selectionStart = mousePosNB
+				selectionStartPos = mousePosNB
 				match cursorMode:
 					PIECE_MODE:
 						selectionState = PIECE_SEL
 						#dragging = true # We don't drag piece until cursor moves
 						board_tilemap.set_cellv(mousePosNB, TM_TILE_HIGHLIGHTED)
 					TILES_MODE:
-						selectionState = TILES_MODE
+						selectionState = TILES_SEL
 						dragging = true
 					DELETE_MODE:
 						# TODO: implement deletions
 						pass
 			if selectionState == PIECE_SEL:
-				if event.pressed and mousePosNB == selectionStart:
+				if event.pressed and mousePosNB == selectionStartPos:
 					deselect()
-				elif event.pressed and mousePosNB != selectionStart:
+				elif event.pressed and mousePosNB != selectionStartPos:
 					# TODO: execute move
 					pass
 				elif not event.pressed:
-					if mousePosNB == selectionStart:
+					if mousePosNB == selectionStartPos:
 						drop_dragged()
 					else:
 						# execute piece move
@@ -114,7 +114,7 @@ func _input(event):
 			
 			if dragging:
 				var mousePosNB = board_tilemap.world_to_map(board_tilemap.to_local(get_global_mouse_position()))
-				selectionEnd = mousePosNB
+				selectionEndPos = mousePosNB
 				# TODO: update graphics
 
 		if selectionState == TILES_SEL:
