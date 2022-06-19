@@ -82,6 +82,7 @@ func _input(event):
 				selectionStartPos = mousePosNB
 				match cursorMode:
 					PIECE_MODE:
+						# TODO: check if valid selectable piece
 						selectionState = PIECE_SEL
 						#dragging = true # We don't drag piece until cursor moves
 						board_tilemap.set_cellv(mousePosNB, TM_TILE_HIGHLIGHTED)

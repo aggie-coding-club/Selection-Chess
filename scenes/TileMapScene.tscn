@@ -1,15 +1,16 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=10 format=2]
 
 [ext_resource path="res://board_graphics/64plainTiles.tres" type="TileSet" id=1]
 [ext_resource path="res://board_graphics/64carndinalTileSet.tres" type="TileSet" id=2]
 [ext_resource path="res://scripts/Camera2D.gd" type="Script" id=3]
-[ext_resource path="res://scripts/TileMapScene.gd" type="Script" id=4]
+[ext_resource path="res://scripts/GridSystem.gd" type="Script" id=4]
 [ext_resource path="res://parallax/topo3P2.png" type="Texture" id=5]
 [ext_resource path="res://board_graphics/64highlightsTiles.tres" type="TileSet" id=6]
 [ext_resource path="res://parallax/runes.png" type="Texture" id=7]
 [ext_resource path="res://parallax/topo2B.png" type="Texture" id=8]
+[ext_resource path="res://scenes/FloatingNodeBoard.gd" type="Script" id=9]
 
-[node name="Node2D" type="Node2D"]
+[node name="GridSystem" type="Node2D"]
 script = ExtResource( 4 )
 
 [node name="Camera2D" type="Camera2D" parent="."]
@@ -82,7 +83,8 @@ format = 1
 tile_data = PoolIntArray( -327680, 0, 0, -262142, 2, 0, -131075, 3, 0, -131074, 10, 0, -131073, 1, 0, -196608, 9, 0, -196606, 6, 0, -65539, 3, 0, -65538, 3, 0, -131071, 9, 0, -131070, 11, 0, -2, 2, 0, -65536, 2, 0, -65534, 3, 0, 65533, 7, 0, 65534, 3, 0, 65535, 2, 0, 0, 3, 0, 2, 5, 0, 131069, 3, 0, 131070, 11, 0, 65538, 4, 0 )
 
 [node name="FloatingNodeBoard" type="Node2D" parent="."]
-position = Vector2( 0, -8 )
+position = Vector2( 0, -4 )
+script = ExtResource( 9 )
 
 [node name="BoardTileMap" type="TileMap" parent="FloatingNodeBoard"]
 scale = Vector2( 0.5, 0.5 )
