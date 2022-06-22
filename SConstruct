@@ -91,5 +91,5 @@ else:
 
     library = env.SharedLibrary(target=env['target_path'] + env['target_name'] , source=sources)
 
-    Default(library)
+    #Default(library)
 
