@@ -23,3 +23,8 @@ Hippocrene
 SelChessGui
 UnitTest
 
+# shared/library files
+
+*.dll
+*.exp
+*.lib
