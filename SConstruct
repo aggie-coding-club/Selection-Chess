@@ -25,6 +25,9 @@ bits = 64
 # Updates the environment with the option variables.
 opts.Update(env)
 
+# Generates help for the -h scons option.
+Help(opts.GenerateHelpText(env))
+
 # Process some arguments
 if env['use_llvm']:
     env['CC'] = 'clang'
@@ -34,60 +37,59 @@ if env['p'] != '':
     env['platform'] = env['p']
 
 if env['platform'] == '':
-    print("No valid target platform selected.")
-    quit();
+    print("\nNo valid target platform selected.\n")
+    # Put everything into big if-else because doing quit() doesn't allow help menu to show
 
-# Check our platform specifics
-if env['platform'] == "osx":
-    env['target_path'] += 'osx/'
-    cpp_library += '.osx'
-    if env['target'] in ('debug', 'd'):
-        env.Append(CCFLAGS = ['-g','-O2', '-arch', 'x86_64', '-std=c++17'])
-        env.Append(LINKFLAGS = ['-arch', 'x86_64'])
-    else:
-        env.Append(CCFLAGS = ['-g','-O3', '-arch', 'x86_64', '-std=c++17'])
-        env.Append(LINKFLAGS = ['-arch', 'x86_64'])
-
-elif env['platform'] in ('x11', 'linux'):
-    env['target_path'] += 'x11/'
-    cpp_library += '.linux'
-    if env['target'] in ('debug', 'd'):
-        env.Append(CCFLAGS = ['-fPIC', '-g3','-Og', '-std=c++17'])
-    else:
-        env.Append(CCFLAGS = ['-fPIC', '-g','-O3', '-std=c++17'])
-
-elif env['platform'] == "windows":
-    env['target_path'] += 'win64/'
-    cpp_library += '.windows'
-    # This makes sure to keep the session environment variables on windows,
-    # that way you can run scons in a vs 2017 prompt and it will find all the required tools
-    env.Append(ENV = os.environ)
-
-    env.Append(CCFLAGS = ['-DWIN32', '-D_WIN32', '-D_WINDOWS', '-W3', '-GR', '-D_CRT_SECURE_NO_WARNINGS'])
-    if env['target'] in ('debug', 'd'):
-        env.Append(CCFLAGS = ['-EHsc', '-D_DEBUG', '-MDd'])
-    else:
-        env.Append(CCFLAGS = ['-O2', '-EHsc', '-DNDEBUG', '-MD'])
-
-if env['target'] in ('debug', 'd'):
-    cpp_library += '.debug'
 else:
-    cpp_library += '.release'
+    # Check our platform specifics
+    if env['platform'] == "osx":
+        env['target_path'] += 'osx/'
+        cpp_library += '.osx'
+        if env['target'] in ('debug', 'd'):
+            env.Append(CCFLAGS = ['-g','-O2', '-arch', 'x86_64', '-std=c++17'])
+            env.Append(LINKFLAGS = ['-arch', 'x86_64'])
+        else:
+            env.Append(CCFLAGS = ['-g','-O3', '-arch', 'x86_64', '-std=c++17'])
+            env.Append(LINKFLAGS = ['-arch', 'x86_64'])
 
-cpp_library += '.' + str(bits)
+    elif env['platform'] in ('x11', 'linux'):
+        env['target_path'] += 'x11/'
+        cpp_library += '.linux'
+        if env['target'] in ('debug', 'd'):
+            env.Append(CCFLAGS = ['-fPIC', '-g3','-Og', '-std=c++17'])
+        else:
+            env.Append(CCFLAGS = ['-fPIC', '-g','-O3', '-std=c++17'])
 
-# make sure our binding library is properly includes
-env.Append(CPPPATH=['.', godot_headers_path, cpp_bindings_path + 'include/', cpp_bindings_path + 'include/core/', cpp_bindings_path + 'include/gen/'])
-env.Append(LIBPATH=[cpp_bindings_path + 'bin/'])
-env.Append(LIBS=[cpp_library])
+    elif env['platform'] == "windows":
+        env['target_path'] += 'win64/'
+        cpp_library += '.windows'
+        # This makes sure to keep the session environment variables on windows,
+        # that way you can run scons in a vs 2017 prompt and it will find all the required tools
+        env.Append(ENV = os.environ)
 
-# tweak this if you want to use different folders, or more folders, to store your source code in.
-env.Append(CPPPATH=['src/godot/'])
-sources = Glob('src/godot/*.cpp')
+        env.Append(CCFLAGS = ['-DWIN32', '-D_WIN32', '-D_WINDOWS', '-W3', '-GR', '-D_CRT_SECURE_NO_WARNINGS'])
+        if env['target'] in ('debug', 'd'):
+            env.Append(CCFLAGS = ['-EHsc', '-D_DEBUG', '-MDd'])
+        else:
+            env.Append(CCFLAGS = ['-O2', '-EHsc', '-DNDEBUG', '-MD'])
 
-library = env.SharedLibrary(target=env['target_path'] + env['target_name'] , source=sources)
+    if env['target'] in ('debug', 'd'):
+        cpp_library += '.debug'
+    else:
+        cpp_library += '.release'
 
-Default(library)
+    cpp_library += '.' + str(bits)
 
-# Generates help for the -h scons option.
-Help(opts.GenerateHelpText(env))
+    # make sure our binding library is properly includes
+    env.Append(CPPPATH=['.', godot_headers_path, cpp_bindings_path + 'include/', cpp_bindings_path + 'include/core/', cpp_bindings_path + 'include/gen/'])
+    env.Append(LIBPATH=[cpp_bindings_path + 'bin/'])
+    env.Append(LIBS=[cpp_library])
+
+    # tweak this if you want to use different folders, or more folders, to store your source code in.
+    env.Append(CPPPATH=['src/godot/'])
+    sources = Glob('src/godot/*.cpp')
+
+    library = env.SharedLibrary(target=env['target_path'] + env['target_name'] , source=sources)
+
+    Default(library)
+

@@ -22,6 +22,8 @@ If you have multiple compilers you want to use, compile with `scons compiler="[c
 
 If you want to compile without the Boost library, use the `noboost=1` flag. Note that this will disable dependent features of the code.
 
+Run `scons --help` for complete list of flags and what they do.
+
 ## Standards
 
 Two space indentation. [The One True Brace Style](https://en.wikipedia.org/wiki/Indentation_style#Variant:_1TBS_(OTBS)) is used for bracing, as shown below:
