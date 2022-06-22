@@ -23,6 +23,3 @@ Hippocrene
 SelChessGui
 UnitTest
 
-# GDNative ignores
-gdnative_cpp_example/
-godot-cpp/
