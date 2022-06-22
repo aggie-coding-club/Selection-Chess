@@ -1,0 +1,99 @@
+[gd_scene load_steps=10 format=2]
+
+[ext_resource path="res://board_graphics/64plainTiles.tres" type="TileSet" id=1]
+[ext_resource path="res://board_graphics/64carndinalTileSet.tres" type="TileSet" id=2]
+[ext_resource path="res://scripts/Camera2D.gd" type="Script" id=3]
+[ext_resource path="res://scripts/GridSystem.gd" type="Script" id=4]
+[ext_resource path="res://parallax/topo3P2.png" type="Texture" id=5]
+[ext_resource path="res://board_graphics/64highlightsTiles.tres" type="TileSet" id=6]
+[ext_resource path="res://parallax/runes.png" type="Texture" id=7]
+[ext_resource path="res://parallax/topo2B.png" type="Texture" id=8]
+[ext_resource path="res://scenes/FloatingNodeBoard.gd" type="Script" id=9]
+
+[node name="GridSystem" type="Node2D"]
+script = ExtResource( 4 )
+
+[node name="Camera2D" type="Camera2D" parent="."]
+current = true
+script = ExtResource( 3 )
+
+[node name="ParallaxBackground" type="ParallaxBackground" parent="."]
+
+[node name="ParallaxLayer4" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_scale = Vector2( 0.05, 0.05 )
+motion_mirroring = Vector2( 4096, 4096 )
+
+[node name="TextureRectTopo" type="TextureRect" parent="ParallaxBackground/ParallaxLayer4"]
+margin_left = -1936.0
+margin_top = -2128.0
+margin_right = 2160.0
+margin_bottom = 1968.0
+texture = ExtResource( 8 )
+stretch_mode = 2
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ParallaxLayer5" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_scale = Vector2( 0.1, 0.1 )
+motion_mirroring = Vector2( 4096, 4096 )
+
+[node name="TextureRectTopo" type="TextureRect" parent="ParallaxBackground/ParallaxLayer5"]
+margin_left = -1936.0
+margin_top = -2128.0
+margin_right = 2160.0
+margin_bottom = 1968.0
+texture = ExtResource( 5 )
+stretch_mode = 2
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ParallaxLayer3" type="ParallaxLayer" parent="ParallaxBackground"]
+visible = false
+motion_scale = Vector2( 0.7, 0.7 )
+motion_mirroring = Vector2( 3072, 2048 )
+
+[node name="TextureRectRunes" type="TextureRect" parent="ParallaxBackground/ParallaxLayer3"]
+margin_right = 3072.0
+margin_bottom = 2048.0
+texture = ExtResource( 7 )
+stretch_mode = 2
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="NodeBoard" type="Node2D" parent="."]
+
+[node name="BoardTileMap" type="TileMap" parent="NodeBoard"]
+scale = Vector2( 0.5, 0.5 )
+tile_set = ExtResource( 1 )
+format = 1
+tile_data = PoolIntArray( -262147, 0, 0, -262146, 0, 0, -262145, 0, 0, -327680, 0, 0, -327679, 0, 0, -327678, 0, 0, -196611, 0, 0, -262142, 0, 0, -131075, 0, 0, -131074, 0, 0, -131073, 0, 0, -196608, 0, 0, -196607, 0, 0, -196606, 0, 0, -65539, 0, 0, -65538, 0, 0, -65537, 0, 0, -131072, 0, 0, -131071, 0, 0, -131070, 0, 0, -3, 0, 0, -2, 0, 0, -1, 0, 0, -65536, 0, 0, -65535, 0, 0, -65534, 0, 0, 65533, 0, 0, 65534, 1, 0, 65535, 0, 0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 131069, 0, 0, 131070, 0, 0, 131071, 0, 0, 65536, 0, 0, 65537, 0, 0, 65538, 0, 0 )
+
+[node name="HighlightsTileMap" type="TileMap" parent="NodeBoard"]
+scale = Vector2( 0.5, 0.5 )
+tile_set = ExtResource( 6 )
+format = 1
+
+[node name="PieceTileMap" type="TileMap" parent="NodeBoard"]
+scale = Vector2( 0.5, 0.5 )
+tile_set = ExtResource( 2 )
+format = 1
+tile_data = PoolIntArray( -327680, 0, 0, -262142, 2, 0, -131075, 3, 0, -131074, 10, 0, -131073, 1, 0, -196608, 9, 0, -196606, 6, 0, -65539, 3, 0, -65538, 3, 0, -131071, 9, 0, -131070, 11, 0, -2, 2, 0, -65536, 2, 0, -65534, 3, 0, 65533, 7, 0, 65534, 3, 0, 65535, 2, 0, 0, 3, 0, 2, 5, 0, 131069, 3, 0, 131070, 11, 0, 65538, 4, 0 )
+
+[node name="FloatingNodeBoard" type="Node2D" parent="."]
+position = Vector2( 0, -4 )
+script = ExtResource( 9 )
+
+[node name="BoardTileMap" type="TileMap" parent="FloatingNodeBoard"]
+scale = Vector2( 0.5, 0.5 )
+tile_set = ExtResource( 1 )
+format = 1
+tile_data = PoolIntArray( -196610, 1, 0, -196609, 1, 0, -262144, 1, 0, -262143, 1, 0 )
+
+[node name="PieceTileMap" type="TileMap" parent="FloatingNodeBoard"]
+scale = Vector2( 0.5, 0.5 )
+tile_set = ExtResource( 2 )
+format = 1
+tile_data = PoolIntArray( -196610, 11, 0, -262143, 2, 0 )
