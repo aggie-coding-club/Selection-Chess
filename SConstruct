@@ -1,5 +1,17 @@
 #!python
-import os, subprocess
+import os, subprocess, configparser
+
+configPath = "scons.config"
+compiled_path = "./compiled/" # This folder is where final products goes (excluding GDScript library files)
+
+print("Reading config file '", configPath, "'", sep='')
+config = configparser.RawConfigParser()
+config.read(configPath)
+
+defaultPlatform = config.get("default", "platform").strip('"')
+defaultUseLLVM = 'no'
+if defaultPlatform == 'linux':
+    defaultUseLLVM = config.get("linux", "use_llvm").strip('"')
 
 opts = Variables([], ARGUMENTS)
 
@@ -8,16 +20,17 @@ env = DefaultEnvironment()
 
 # Define our options
 opts.Add(EnumVariable('target', "Compilation target", 'debug', ['d', 'debug', 'r', 'release']))
-opts.Add(EnumVariable('platform', "Compilation platform", '', ['', 'windows', 'x11', 'linux', 'osx']))
-opts.Add(EnumVariable('p', "Compilation target, alias for 'platform'", '', ['', 'windows', 'x11', 'linux', 'osx']))
-opts.Add(BoolVariable('use_llvm', "Use the LLVM / Clang compiler", 'no'))
-opts.Add(PathVariable('target_path', 'The path where the lib is installed.', 'godot_project/bin/'))
-opts.Add(PathVariable('target_name', 'The library name.', 'libselchess', PathVariable.PathAccept))
+opts.Add(EnumVariable('platform', "Compilation platform", defaultPlatform, ['', 'windows', 'linux', 'osx']))
+opts.Add(EnumVariable('p', "Compilation target, alias for 'platform'", '', ['', 'windows', 'linux', 'osx']))
+opts.Add(BoolVariable('use_llvm', "Use the LLVM / Clang compiler", defaultUseLLVM))
+opts.Add(BoolVariable('use_boost', "Enable/disable functionality that depends on Boost library", 'yes'))
+opts.Add(PathVariable('gdnl_path', "The path where the interface's GDNative lib is output.", 'godot_project/bin/'))
+opts.Add(PathVariable('gdnl_name', "Output name of interface's GDNative library.", 'libselchess', PathVariable.PathAccept))
 
 # Local dependency paths, adapt them to your setup
 godot_headers_path = "godot-cpp/godot-headers/"
-cpp_bindings_path = "godot-cpp/"
-cpp_library = "libgodot-cpp"
+godot_cpp_bindings_path = "godot-cpp/"
+godot_cpp_lib = "libgodot-cpp"
 
 # only support 64 at this time..
 bits = 64
@@ -41,10 +54,11 @@ if env['platform'] == '':
     # Put everything into big if-else because doing quit() doesn't allow help menu to show
 
 else:
+    print("Platform =",  env['platform'], ("(llvm)" if  env['use_llvm'] else ''))
     # Check our platform specifics
     if env['platform'] == "osx":
-        env['target_path'] += 'osx/'
-        cpp_library += '.osx'
+        env['gdnl_path'] += 'osx/'
+        godot_cpp_lib += '.osx'
         if env['target'] in ('debug', 'd'):
             env.Append(CCFLAGS = ['-g','-O2', '-arch', 'x86_64', '-std=c++17'])
             env.Append(LINKFLAGS = ['-arch', 'x86_64'])
@@ -52,17 +66,17 @@ else:
             env.Append(CCFLAGS = ['-g','-O3', '-arch', 'x86_64', '-std=c++17'])
             env.Append(LINKFLAGS = ['-arch', 'x86_64'])
 
-    elif env['platform'] in ('x11', 'linux'):
-        env['target_path'] += 'x11/'
-        cpp_library += '.linux'
+    elif env['platform'] == "linux":
+        env['gdnl_path'] += 'x11/'
+        godot_cpp_lib += '.linux'
         if env['target'] in ('debug', 'd'):
             env.Append(CCFLAGS = ['-fPIC', '-g3','-Og', '-std=c++17'])
         else:
             env.Append(CCFLAGS = ['-fPIC', '-g','-O3', '-std=c++17'])
 
     elif env['platform'] == "windows":
-        env['target_path'] += 'win64/'
-        cpp_library += '.windows'
+        env['gdnl_path'] += 'win64/'
+        godot_cpp_lib += '.windows'
         # This makes sure to keep the session environment variables on windows,
         # that way you can run scons in a vs 2017 prompt and it will find all the required tools
         env.Append(ENV = os.environ)
@@ -74,22 +88,34 @@ else:
             env.Append(CCFLAGS = ['-O2', '-EHsc', '-DNDEBUG', '-MD'])
 
     if env['target'] in ('debug', 'd'):
-        cpp_library += '.debug'
+        godot_cpp_lib += '.debug'
     else:
-        cpp_library += '.release'
+        godot_cpp_lib += '.release'
 
-    cpp_library += '.' + str(bits)
+    godot_cpp_lib += '.' + str(bits)
 
     # make sure our binding library is properly includes
-    env.Append(CPPPATH=['.', godot_headers_path, cpp_bindings_path + 'include/', cpp_bindings_path + 'include/core/', cpp_bindings_path + 'include/gen/'])
-    env.Append(LIBPATH=[cpp_bindings_path + 'bin/'])
-    env.Append(LIBS=[cpp_library])
+    env.Append(CPPPATH=['.', godot_headers_path, godot_cpp_bindings_path + 'include/', godot_cpp_bindings_path + 'include/core/', godot_cpp_bindings_path + 'include/gen/'])
+    env.Append(LIBPATH=[godot_cpp_bindings_path + 'bin/'])
+
+    if env['use_boost']:
+        boost_prefix = config.get( env['platform'], "boostIncludePath")
+        env.Append(CPPPATH = [boost_prefix])
+        boost_lib = config.get(env['platform'], "boostLibPath")
+        # note to windows users: if you are missing static library after compiling, compile again using '.\b2 runtime-link=static'
+        env.Append(LIBPATH=[os.path.join(boost_lib)])
+        if ( env['platform'] == "linux"):
+            env.Append(LIBS = "pthread") # it seems boost depends on pthread
+    env.Append(LIBS=[godot_cpp_lib])
+
+    if env['target'] in ('debug', 'd'):
+        env.Append(CPPDEFINES=['DEBUG'])
 
     # tweak this if you want to use different folders, or more folders, to store your source code in.
     env.Append(CPPPATH=['src/godot/'])
     sources = Glob('src/godot/*.cpp')
 
-    library = env.SharedLibrary(target=env['target_path'] + env['target_name'] , source=sources)
+    library = env.SharedLibrary(target=env['gdnl_path'] + env['gdnl_name'] , source=sources)
 
     #Default(library)
 
