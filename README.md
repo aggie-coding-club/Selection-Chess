@@ -25,8 +25,9 @@ If you just want to compile Hippocrene engine out of the box, run the following:
 
 You must specify which platform you are compiling with. This can be done with the `platform` parameter. Can be `windows`, `linux`, or `osx`.
 
-* WSL users should use `platform=linux`. 
+* WSL users should use `platform=linux`.
 * Linux users who want to use Clang instead of GCC can include `use_llvm=yes`.
+* MSVC users should run scons inside of a *Native Tools Command Prompt for VS*.
 
 If none is specified, it will use the default in your scons.config file.
 
