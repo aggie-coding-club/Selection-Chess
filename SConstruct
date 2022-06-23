@@ -19,9 +19,8 @@ opts = Variables([], ARGUMENTS)
 env = DefaultEnvironment()
 
 # Define our options
-opts.Add(EnumVariable('target', "Compilation target", 'debug', ['d', 'debug', 'r', 'release']))
+opts.Add(EnumVariable('target', "Compilation target", 'debug', ['debug', 'release']))
 opts.Add(EnumVariable('platform', "Compilation platform", defaultPlatform, ['', 'windows', 'linux', 'osx']))
-opts.Add(EnumVariable('p', "Compilation target, alias for 'platform'", '', ['', 'windows', 'linux', 'osx']))
 opts.Add(BoolVariable('use_llvm', "Use the LLVM / Clang compiler", defaultUseLLVM))
 opts.Add(BoolVariable('use_boost', "Enable/disable functionality that depends on Boost library", 'yes'))
 opts.Add(PathVariable('gdnl_path', "The path where the interface's GDNative lib is output.", 'godot_project/bin/'))
@@ -46,16 +45,13 @@ if env['use_llvm']:
     env['CC'] = 'clang'
     env['CXX'] = 'clang++'
 
-if env['p'] != '':
-    env['platform'] = env['p']
-
 # Main function of this script
 def compile():
 # ------- First, do the things that are common to all compiled targets ------- #
     print("Platform =",  env['platform'], ("(llvm)" if  env['use_llvm'] else ''))
     # Check our platform specifics
     if env['platform'] == "osx":
-        if env['target'] in ('debug', 'd'):
+        if env['target'] == 'debug':
             env.Append(CCFLAGS = ['-g','-O2', '-arch', 'x86_64', '-std=c++17'])
             env.Append(LINKFLAGS = ['-arch', 'x86_64'])
         else:
@@ -63,7 +59,7 @@ def compile():
             env.Append(LINKFLAGS = ['-arch', 'x86_64'])
 
     elif env['platform'] == "linux":
-        if env['target'] in ('debug', 'd'):
+        if env['target'] == 'debug':
             env.Append(CCFLAGS = ['-fPIC', '-g3','-Og', '-std=c++17'])
         else:
             env.Append(CCFLAGS = ['-fPIC', '-g','-O3', '-std=c++17'])
@@ -74,12 +70,12 @@ def compile():
         env.Append(ENV = os.environ)
 
         env.Append(CCFLAGS = ['-DWIN32', '-D_WIN32', '-D_WINDOWS', '-W3', '-GR', '-D_CRT_SECURE_NO_WARNINGS'])
-        if env['target'] in ('debug', 'd'):
+        if env['target'] == 'debug':
             env.Append(CCFLAGS = ['-EHsc', '-D_DEBUG', '-MDd'])
         else:
             env.Append(CCFLAGS = ['-O2', '-EHsc', '-DNDEBUG', '-MD'])
 
-    if env['target'] in ('debug', 'd'):
+    if env['target'] == 'debug':
         env.Append(CPPDEFINES=['DEBUG'])
 
 # ----------------------- Now do target-specific stuff ----------------------- #
@@ -124,7 +120,7 @@ def compile_godot_lib():
         env['gdnl_path'] += 'win64/'
         godot_cpp_lib += '.windows'
 
-    if env['target'] in ('debug', 'd'):
+    if env['target'] == 'debug':
         godot_cpp_lib += '.debug'
     else:
         godot_cpp_lib += '.release'
