@@ -4,14 +4,25 @@ import os, subprocess, configparser
 configPath = "scons.config"
 compiled_path = "./compiled/" # This folder is where final products goes (excluding GDScript library files)
 
-print("Reading config file '", configPath, "'", sep='')
-config = configparser.RawConfigParser()
-config.read(configPath)
-
-defaultPlatform = config.get("default", "platform").strip('"')
+# Default values to use if there is not a scons.config file 
+defaultPlatform = ''
 defaultUseLLVM = 'no'
-if defaultPlatform == 'linux':
-    defaultUseLLVM = config.get("linux", "use_llvm").strip('"')
+defaultUseBoost = 'no'
+config = None
+
+if os.path.isfile(configPath):
+    print("Reading config file '", configPath, "'", sep='')
+    config = configparser.RawConfigParser()
+    config.read(configPath)
+
+    defaultPlatform = config.get("default", "platform").strip('"')
+    if defaultPlatform == 'linux':
+        defaultUseLLVM = config.get("linux", "use_llvm").strip('"')
+
+    defaultUseBoost = 'yes'
+else:
+    print(">> No scons.config file found! Using command-line parameters only...")
+
 
 opts = Variables([], ARGUMENTS)
 
@@ -19,10 +30,10 @@ opts = Variables([], ARGUMENTS)
 env = DefaultEnvironment()
 
 # Define our options
-opts.Add(EnumVariable('target', "Compilation target", 'debug', ['debug', 'release']))
+opts.Add(EnumVariable('target', "Compile targets in debug or release mode", 'debug', ['debug', 'release']))
 opts.Add(EnumVariable('platform', "Compilation platform", defaultPlatform, ['', 'windows', 'linux', 'osx']))
 opts.Add(BoolVariable('use_llvm', "Use the LLVM / Clang compiler", defaultUseLLVM))
-opts.Add(BoolVariable('use_boost', "Enable/disable functionality that depends on Boost library", 'yes'))
+opts.Add(BoolVariable('use_boost', "Enable/disable functionality that depends on Boost library", defaultUseBoost))
 opts.Add(PathVariable('gdnl_path', "The path where the interface's GDNative lib is output.", 'godot_project/bin/'))
 opts.Add(PathVariable('gdnl_name', "Output name of interface's GDNative library.", 'libselchess', PathVariable.PathAccept))
 
@@ -38,6 +49,7 @@ bits = 64
 opts.Update(env)
 
 # Generates help for the -h scons option.
+Help("\nSel Chess Compiler Options:\n---------------------------")
 Help(opts.GenerateHelpText(env))
 
 # Process some arguments
@@ -133,6 +145,9 @@ def compile_godot_lib():
     env.Append(LIBPATH=[godot_cpp_bindings_path + 'bin/'])
 
     if env['use_boost']:
+        if config is None:
+            print("ERR: Cannot compile with Boost without a scons.config file!")
+            quit()
         boost_prefix = config.get( env['platform'], "boostIncludePath")
         env.Append(CPPPATH = [boost_prefix])
         boost_lib = config.get(env['platform'], "boostLibPath")
@@ -161,6 +176,6 @@ def compile_godot_lib():
     library = env.SharedLibrary(target=env['gdnl_path'] + env['gdnl_name'] , source=sources)
 
 if env['platform'] == '':
-    print("\nNo valid target platform selected.\n")
+    print("\nNo valid target platform selected. Try `scons platform=[platform]` or add a scons.config file.\nType `scons --help` for more parameters.\n")
 else:
     compile()
