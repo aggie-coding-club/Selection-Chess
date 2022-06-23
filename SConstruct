@@ -30,6 +30,11 @@ opts = Variables([], ARGUMENTS)
 env = DefaultEnvironment()
 
 # Define our options
+opts.Add(BoolVariable('all', "Set yes to compile all targets (unit, engine, & interface)", 'no'))
+opts.Add(BoolVariable('unit', "Set yes to compile UnitTest executable", 'no'))
+opts.Add(BoolVariable('engine', "Set yes to compile Hippocrene Engine executable", 'no'))
+opts.Add(BoolVariable('interface', "Set yes to compile GDNative library for Interface", 'no'))
+
 opts.Add(EnumVariable('target', "Compile targets in debug or release mode", 'debug', ['debug', 'release']))
 opts.Add(EnumVariable('platform', "Compilation platform", defaultPlatform, ['', 'windows', 'linux', 'osx']))
 opts.Add(BoolVariable('use_llvm', "Use the LLVM / Clang compiler", defaultUseLLVM))
@@ -56,6 +61,11 @@ Help(opts.GenerateHelpText(env))
 if env['use_llvm']:
     env['CC'] = 'clang'
     env['CXX'] = 'clang++'
+
+if env['all']:
+    env['unit'] = True
+    env['engine'] = True
+    env['interface'] = True
 
 # Main function of this script
 def compile():
@@ -91,9 +101,15 @@ def compile():
         env.Append(CPPDEFINES=['DEBUG'])
 
 # ----------------------- Now do target-specific stuff ----------------------- #
-    compile_unittest_exe()
-    compile_hippo_exe()
-    compile_godot_lib()
+    if env['unit']:
+        compile_unittest_exe()
+    if env['engine']:
+        compile_hippo_exe()
+    if env['interface']:
+        compile_godot_lib()
+    if not (env['unit'] or env['engine'] or env['interface']):
+        print("ERR: You must select at least one target to compile!\nFor example, `scons engine=yes`\n")
+        quit()
 
 def compile_unittest_exe():
     global env
