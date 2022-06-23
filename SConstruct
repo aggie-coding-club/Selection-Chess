@@ -49,16 +49,12 @@ if env['use_llvm']:
 if env['p'] != '':
     env['platform'] = env['p']
 
-if env['platform'] == '':
-    print("\nNo valid target platform selected.\n")
-    # Put everything into big if-else because doing quit() doesn't allow help menu to show
-
-else:
+# Main function of this script
+def compile():
+# ------- First, do the things that are common to all compiled targets ------- #
     print("Platform =",  env['platform'], ("(llvm)" if  env['use_llvm'] else ''))
     # Check our platform specifics
     if env['platform'] == "osx":
-        env['gdnl_path'] += 'osx/'
-        godot_cpp_lib += '.osx'
         if env['target'] in ('debug', 'd'):
             env.Append(CCFLAGS = ['-g','-O2', '-arch', 'x86_64', '-std=c++17'])
             env.Append(LINKFLAGS = ['-arch', 'x86_64'])
@@ -67,16 +63,12 @@ else:
             env.Append(LINKFLAGS = ['-arch', 'x86_64'])
 
     elif env['platform'] == "linux":
-        env['gdnl_path'] += 'x11/'
-        godot_cpp_lib += '.linux'
         if env['target'] in ('debug', 'd'):
             env.Append(CCFLAGS = ['-fPIC', '-g3','-Og', '-std=c++17'])
         else:
             env.Append(CCFLAGS = ['-fPIC', '-g','-O3', '-std=c++17'])
 
     elif env['platform'] == "windows":
-        env['gdnl_path'] += 'win64/'
-        godot_cpp_lib += '.windows'
         # This makes sure to keep the session environment variables on windows,
         # that way you can run scons in a vs 2017 prompt and it will find all the required tools
         env.Append(ENV = os.environ)
@@ -88,11 +80,57 @@ else:
             env.Append(CCFLAGS = ['-O2', '-EHsc', '-DNDEBUG', '-MD'])
 
     if env['target'] in ('debug', 'd'):
+        env.Append(CPPDEFINES=['DEBUG'])
+
+# ----------------------- Now do target-specific stuff ----------------------- #
+    compile_unittest_exe()
+    compile_hippo_exe()
+    compile_godot_lib()
+
+def compile_unittest_exe():
+    global env
+    # make sure these strings have trailing space so multiline string doesn't merge last item of this line with first item of next line
+    unittest = env.Program(compiled_path + 'UnitTest', Split(
+        'src/testing/test_macros.cpp '
+        'src/testing/unit_main.cpp src/utils/utils.cpp src/chess/chess_utils.cpp '
+        'src/chess/array_board.cpp src/chess/board.cpp '
+        'src/chess/game.cpp src/chess/move.cpp src/chess/pieces.cpp src/chess/ruleset.cpp '
+        'src/engine/min_max.cpp '
+        'src/interface/human_runner.cpp '
+        'src/chess/cmd_tokenizer.cpp'
+    ))
+
+def compile_hippo_exe():
+    global env
+    engine = env.Program(compiled_path + 'engines/Hippocrene', Split(
+        'src/engine/hippo_main.cpp src/utils/utils.cpp src/chess/chess_utils.cpp '
+        'src/chess/array_board.cpp src/chess/board.cpp '
+        'src/chess/game.cpp src/chess/move.cpp src/chess/pieces.cpp src/chess/ruleset.cpp '
+        'src/engine/min_max.cpp '
+        'src/chess/cmd_tokenizer.cpp'
+    ))
+
+
+def compile_godot_lib():
+    global env, godot_cpp_lib
+    # Check our platform specifics
+    if env['platform'] == "osx":
+        env['gdnl_path'] += 'osx/'
+        godot_cpp_lib += '.osx'
+    elif env['platform'] == "linux":
+        env['gdnl_path'] += 'x11/'
+        godot_cpp_lib += '.linux'
+    elif env['platform'] == "windows":
+        env['gdnl_path'] += 'win64/'
+        godot_cpp_lib += '.windows'
+
+    if env['target'] in ('debug', 'd'):
         godot_cpp_lib += '.debug'
     else:
         godot_cpp_lib += '.release'
 
     godot_cpp_lib += '.' + str(bits)
+    env.Append(LIBS=[godot_cpp_lib])
 
     # make sure our binding library is properly includes
     env.Append(CPPPATH=['.', godot_headers_path, godot_cpp_bindings_path + 'include/', godot_cpp_bindings_path + 'include/core/', godot_cpp_bindings_path + 'include/gen/'])
@@ -106,16 +144,27 @@ else:
         env.Append(LIBPATH=[os.path.join(boost_lib)])
         if ( env['platform'] == "linux"):
             env.Append(LIBS = "pthread") # it seems boost depends on pthread
-    env.Append(LIBS=[godot_cpp_lib])
-
-    if env['target'] in ('debug', 'd'):
-        env.Append(CPPDEFINES=['DEBUG'])
+    else:
+        # This macro is used by source to remove boost-dependent code
+        env.Append(CPPDEFINES=['NO_BOOST'])
 
     # tweak this if you want to use different folders, or more folders, to store your source code in.
     env.Append(CPPPATH=['src/godot/'])
     sources = Glob('src/godot/*.cpp')
 
+    guiCpps = '' \
+    'src/interface/gui_main.cpp src/utils/utils.cpp src/chess/chess_utils.cpp ' \
+    'src/chess/array_board.cpp src/chess/board.cpp ' \
+    'src/chess/game.cpp src/chess/move.cpp src/chess/pieces.cpp src/chess/ruleset.cpp ' \
+    'src/interface/human_runner.cpp src/chess/cmd_tokenizer.cpp '
+    if env['use_boost']:
+        guiCpps += 'src/interface/engine_runner.cpp ' # compile with engine_runner only if we can use Boost
+
+    gui = env.Program(compiled_path + 'SelChessGui', Split(guiCpps))
+
     library = env.SharedLibrary(target=env['gdnl_path'] + env['gdnl_name'] , source=sources)
 
-    #Default(library)
-
+if env['platform'] == '':
+    print("\nNo valid target platform selected.\n")
+else:
+    compile()

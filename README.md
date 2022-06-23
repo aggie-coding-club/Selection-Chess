@@ -1,6 +1,6 @@
 # Selection Chess GUI and the Hippocrene Engine
 
-Selection chess is a variant of chess where players can dynamically rearrange selections of tiles during their turn. The Hippocrene Engine is an engine that shares source code with the GUI, and is an engine which can generate moves. The GUI allows engines to play eachother or humans, and uses established conventions so other engines can be plugged in if compatible.
+Selection chess is a variant of chess where players can dynamically rearrange selections of tiles during their turn. The Hippocrene Engine is an engine that shares source code with the GUI, and is an engine which can generate moves. The GUI allows engines to play each other or humans, and uses established conventions so other engines can be plugged in if compatible.
 
 ## Contribution
 
