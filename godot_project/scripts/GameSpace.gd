@@ -2,11 +2,11 @@ extends Node2D
 
 
 # Declare member variables here. Examples:
-onready var piece_tilemap = $NodeBoard/PieceTileMap
-onready var board_tilemap = $NodeBoard/BoardTileMap
+onready var piece_tilemap = $GridSystem/NodeBoard/PieceTileMap
+onready var board_tilemap = $GridSystem/NodeBoard/BoardTileMap
 
-onready var piece_tilemap_floating = $FloatingNodeBoard/PieceTileMap
-onready var board_tilemap_floating = $FloatingNodeBoard/BoardTileMap
+onready var piece_tilemap_floating = $GridSystem/FloatingNodeBoard/PieceTileMap
+onready var board_tilemap_floating = $GridSystem/FloatingNodeBoard/BoardTileMap
 
 ################# Selection and cursor state variables ####################
 enum {NO_SEL, PIECE_SEL, TILES_SEL}
