@@ -1,13 +1,14 @@
-#ifndef GDEXAMPLE_H
-#define GDEXAMPLE_H
+#ifndef __GRID_SYSTEM_H__
+#define __GRID_SYSTEM_H__
 
 #include <Godot.hpp>
 #include <Sprite.hpp>
+#include <Node2D.hpp>
 
 namespace godot {
 
-class GDExample : public Sprite {
-	GODOT_CLASS(GDExample, Sprite)
+class GridSystem : public Node2D {
+	GODOT_CLASS(GridSystem, Node2D)
 
 private:
 	float time_passed;
@@ -18,8 +19,8 @@ private:
 public:
 	static void _register_methods();
 
-	GDExample();
-	~GDExample();
+	GridSystem();
+	~GridSystem();
 
 	void _init(); // our initializer called by Godot
 
