@@ -8,25 +8,25 @@
 namespace godot {
 
 class GridSystem : public Node2D {
-	GODOT_CLASS(GridSystem, Node2D)
+    GODOT_CLASS(GridSystem, Node2D)
 
 private:
-	float time_passed;
-	float time_emit;
-	float amplitude;
-	float speed;
+    float time_passed;
+    float time_emit;
+    float amplitude;
+    float speed;
 
 public:
-	static void _register_methods();
+    static void _register_methods();
 
-	GridSystem();
-	~GridSystem();
+    GridSystem();
+    ~GridSystem();
 
-	void _init(); // our initializer called by Godot
+    void _init(); // our initializer called by Godot
 
-	void _process(float delta);
-	void set_speed(float p_speed);
-	float get_speed();
+    void _process(float delta);
+    void set_speed(float p_speed);
+    float get_speed();
 };
 
 }
