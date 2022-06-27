@@ -1,5 +1,5 @@
-#ifndef CONSTANTS_HPP
-#define CONSTANTS_HPP
+#ifndef CHESS_CONSTANTS_HPP
+#define CHESS_CONSTANTS_HPP
 
 #include <string>
 #include <vector>

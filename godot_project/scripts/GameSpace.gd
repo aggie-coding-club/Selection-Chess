@@ -32,14 +32,14 @@ const TM_EMPTY = -1
 # Board Tilemaps
 enum {TM_TILE = 0, TM_TILE_HIGHLIGHTED}
 # Piece Tilemaps
-enum {TM_BB, TM_BK, TM_BN, TM_BP, TM_BQ, TM_BR, TM_WB, TM_WK, TM_WN, TM_WP, TM_WQ, TM_WR}
+enum {TM_B_BISHOP, TM_B_KING, TM_B_KNIGHT, TM_B_PAWN, TM_B_QUEEN, TM_B_ROOK, TM_W_BISHOP, TM_W_KING, TM_W_KNIGHT, TM_W_PAWN, TM_W_QUEEN, TM_W_ROOK}
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	for i in range(0, 10):
-		for j in range (0, 10):
-			piece_tilemap.set_cell(i, j, 0 if ((i+j) % 2 == 0) else 6)
-			board_tilemap.set_cell(i, j, 1)
+	#for i in range(0, 10):
+	#	for j in range (0, 10):
+	#		piece_tilemap.set_cell(i, j, 0 if ((i+j) % 2 == 0) else 6)
+	#		board_tilemap.set_cell(i, j, 1)
 	pass # Replace with function body.
 
 

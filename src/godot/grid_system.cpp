@@ -1,9 +1,13 @@
 #include "grid_system.h"
+#include "gdn_utils.h"
+#include <Node2D.hpp>
+#include <TileMap.hpp>
 
 using namespace godot;
 
 void GridSystem::_register_methods() {
     register_method("_process", &GridSystem::_process);
+    register_method("_ready", &GridSystem::_ready);
     // register_property<GridSystem, float>("amplitude", &GridSystem::amplitude, 10.0);
     // register_property<GridSystem, float>("speed", &GridSystem::set_speed, &GridSystem::get_speed, 1.0);
 
@@ -22,6 +26,25 @@ void GridSystem::_init() {
     time_passed = 0.0;
     amplitude = 10.0;
     speed = 1.0;
+}
+
+void GridSystem::_ready() {
+    TileMap* pieceTileMap = (TileMap*) get_node("NodeBoard/PieceTileMap");
+    TileMap* boardTileMap = (TileMap*) get_node("NodeBoard/BoardTileMap");
+    TileMap* highlightsTileMap = (TileMap*) get_node("NodeBoard/HighlightsTileMap");
+    TileMap* pieceTileMapFloating = (TileMap*) get_node("FloatingNodeBoard/PieceTileMap");
+    TileMap* boardTileMapFloating = (TileMap*) get_node("FloatingNodeBoard/BoardTileMap");
+
+    for (size_t i = 0; i < 10; i++) for (size_t j = 0; j < 10; j++) {
+        if ((i+j) % 2 == 0) {
+            boardTileMap->set_cell(i, j, TM_TILE);
+            pieceTileMap->set_cell(i, j, TM_B_QUEEN);
+            if ((i+j) % 3 == 0) highlightsTileMap->set_cell(i, j, TM_HIGHLIGHT_CIRCLE);
+        } else {
+            boardTileMapFloating->set_cell(i, j, TM_TILE_HIGHLIGHTED);
+            pieceTileMapFloating->set_cell(i, j, TM_B_QUEEN);
+        }
+    }
 }
 
 void GridSystem::_process(float delta) {

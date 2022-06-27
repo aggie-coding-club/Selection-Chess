@@ -177,7 +177,11 @@ def compile_godot_lib():
 
     # tweak this if you want to use different folders, or more folders, to store your source code in.
     env.Append(CPPPATH=['src/godot/'])
-    sources = Glob('src/godot/*.cpp')
+
+    sourcesLibrary =      Glob('src/godot/*.cpp')
+    sourcesLibrary.extend(Glob('src/chess/*.cpp'))
+    sourcesLibrary.extend(Glob('src/utils/*.cpp'))
+    # sourcesLibrary.extend(Glob('src/interface/*.cpp'))
 
     guiCpps = '' \
     'src/interface/gui_main.cpp src/utils/utils.cpp src/chess/chess_utils.cpp ' \
@@ -189,7 +193,7 @@ def compile_godot_lib():
 
     gui = env.Program(compiled_path + 'SelChessGui', Split(guiCpps))
 
-    library = env.SharedLibrary(target=env['gdnl_path'] + env['gdnl_name'] , source=sources)
+    library = env.SharedLibrary(target=env['gdnl_path'] + env['gdnl_name'] , source=sourcesLibrary)
 
 if env['platform'] == '':
     print("\nNo valid target platform selected. Try `scons platform=[platform]` or add a scons.config file.\nType `scons --help` for more parameters.\n")

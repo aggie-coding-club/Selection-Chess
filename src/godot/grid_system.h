@@ -5,6 +5,10 @@
 #include <Sprite.hpp>
 #include <Node2D.hpp>
 
+#include "../utils/utils.h"
+#include "../chess/constants.hpp"
+#include "constants.hpp"
+
 namespace godot {
 
 class GridSystem : public Node2D {
@@ -25,6 +29,7 @@ public:
     void _init(); // our initializer called by Godot
 
     void _process(float delta);
+    void _ready();
     void set_speed(float p_speed);
     float get_speed();
 };
