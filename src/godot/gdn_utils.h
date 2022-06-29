@@ -2,7 +2,6 @@
 #define GDN_UTILITYMETHODS_H
 
 #include "constants.hpp"
-#include "../utils/utils.h"
 #include "../chess/constants.hpp"
 
 // ----------- SquareEnum functions ----------- //

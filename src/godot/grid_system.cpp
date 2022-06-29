@@ -1,7 +1,9 @@
 #include "grid_system.h"
 #include "gdn_utils.h"
-#include <Node2D.hpp>
-#include <TileMap.hpp>
+#include "../chess/game.h"
+
+#include <Camera2D.hpp>
+#include <Viewport.hpp>
 
 using namespace godot;
 
@@ -35,6 +37,18 @@ void GridSystem::_ready() {
     TileMap* pieceTileMapFloating = (TileMap*) get_node("FloatingNodeBoard/PieceTileMap");
     TileMap* boardTileMapFloating = (TileMap*) get_node("FloatingNodeBoard/BoardTileMap");
 
+    Camera2D* camera = (Camera2D*) get_node("../Camera2D");
+
+    pieceTileMap->clear();
+    boardTileMap->clear();
+    highlightsTileMap->clear();
+    pieceTileMapFloating->clear();
+    boardTileMapFloating->clear();
+
+    game = std::make_unique<Game>("P2R(2)p/1p3NR/BQp1/(3)1p w 0 1", "rules/piecesOnly.rules");
+
+    dlog(game->print());
+
     for (size_t i = 0; i < 10; i++) for (size_t j = 0; j < 10; j++) {
         if ((i+j) % 2 == 0) {
             boardTileMap->set_cell(i, j, TM_TILE);
@@ -43,6 +57,42 @@ void GridSystem::_ready() {
         } else {
             boardTileMapFloating->set_cell(i, j, TM_TILE_HIGHLIGHTED);
             pieceTileMapFloating->set_cell(i, j, TM_B_QUEEN);
+        }
+    }
+}
+
+void GridSystem::set_cell(int _x, int _y, SquareEnum _squareVal, bool _isSelected, bool _isFloating, TileMapEnum _highlight) {
+    if (_squareVal == VOID) {
+        boardTileMap->set_cell(_x, _y, TM_EMPTY);
+        pieceTileMap->set_cell(_x, _y, TM_EMPTY);
+        boardTileMapFloating->set_cell(_x, _y, TM_EMPTY);
+        pieceTileMapFloating->set_cell(_x, _y, TM_EMPTY);
+        highlightsTileMap->set_cell(_x, _y, TM_EMPTY);
+
+    } else if (_isFloating) {
+        boardTileMap->set_cell(_x, _y, TM_EMPTY);
+        pieceTileMap->set_cell(_x, _y, TM_EMPTY);
+        boardTileMapFloating->set_cell(_x, _y, _isSelected? TM_TILE_HIGHLIGHTED : TM_TILE);
+        pieceTileMapFloating->set_cell(_x, _y, _squareVal);
+        highlightsTileMap->set_cell(_x, _y, TM_EMPTY); // cannot highlight floating tiles
+
+    } else {
+        boardTileMapFloating->set_cell(_x, _y, TM_EMPTY);
+        pieceTileMapFloating->set_cell(_x, _y, TM_EMPTY);
+        boardTileMap->set_cell(_x, _y, _isSelected? TM_TILE_HIGHLIGHTED : TM_TILE);
+        pieceTileMap->set_cell(_x, _y, _squareVal);
+        highlightsTileMap->set_cell(_x, _y, _highlight);
+    }
+}
+
+void GridSystem::redrawBoard() {
+    auto baseCoords = game->m_board->m_displayCoordsZero;
+    StandardArray sa = game->m_board->standardArray();
+
+    for (auto f = 0; f < sa.m_dimensions.file; ++f) {
+        for (auto r = 0; r < sa.m_dimensions.rank; ++r) {
+            // FIXME: design how TileMaps should wrap
+            // set_cell((baseCoords.file + f).m_value )
         }
     }
 }
@@ -63,6 +113,15 @@ void GridSystem::_process(float delta) {
 
         time_emit = 0.0;
     }
+
+    // FIXME left off with a bug here to go find a new debugger
+    // Godot::Godot::get_viewport().get_mouse_position()
+    // dlog(boardTileMap->world_to_map(boardTileMap->to_local(get_viewport()->get_mouse_position())).x);
+    // get_viewport()->get_mouse_position();
+    // boardTileMap->to_local(Vector2::ZERO);
+    // boardTileMap->to_local(get_viewport()->get_mouse_position());
+    // if (boardTileMap == nullptr) { dlog("ouch");}
+    // boardTileMap->world_to_map(boardTileMap->to_local(get_viewport()->get_mouse_position()));
 }
 
 void GridSystem::set_speed(float p_speed) {
