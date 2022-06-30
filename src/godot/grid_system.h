@@ -12,6 +12,7 @@
 #include <Sprite.hpp>
 #include <Node2D.hpp>
 #include <TileMap.hpp>
+#include <Camera2D.hpp>
 
 namespace godot {
 
@@ -29,7 +30,8 @@ private:
     TileMap* highlightsTileMap;
     TileMap* pieceTileMapFloating;
     TileMap* boardTileMapFloating;
-
+    Camera2D* camera;
+    
     std::unique_ptr<Game> game;
 
 public:

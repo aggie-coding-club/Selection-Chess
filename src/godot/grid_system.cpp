@@ -2,7 +2,6 @@
 #include "gdn_utils.h"
 #include "../chess/game.h"
 
-#include <Camera2D.hpp>
 #include <Viewport.hpp>
 
 using namespace godot;
@@ -31,13 +30,13 @@ void GridSystem::_init() {
 }
 
 void GridSystem::_ready() {
-    TileMap* pieceTileMap = (TileMap*) get_node("NodeBoard/PieceTileMap");
-    TileMap* boardTileMap = (TileMap*) get_node("NodeBoard/BoardTileMap");
-    TileMap* highlightsTileMap = (TileMap*) get_node("NodeBoard/HighlightsTileMap");
-    TileMap* pieceTileMapFloating = (TileMap*) get_node("FloatingNodeBoard/PieceTileMap");
-    TileMap* boardTileMapFloating = (TileMap*) get_node("FloatingNodeBoard/BoardTileMap");
+    boardTileMap = (TileMap*) get_node("NodeBoard/BoardTileMap");
+    pieceTileMap = (TileMap*) get_node("NodeBoard/PieceTileMap");
+    highlightsTileMap = (TileMap*) get_node("NodeBoard/HighlightsTileMap");
+    pieceTileMapFloating = (TileMap*) get_node("FloatingNodeBoard/PieceTileMap");
+    boardTileMapFloating = (TileMap*) get_node("FloatingNodeBoard/BoardTileMap");
 
-    Camera2D* camera = (Camera2D*) get_node("../Camera2D");
+    camera = (Camera2D*) get_node("../Camera2D");
 
     pieceTileMap->clear();
     boardTileMap->clear();
@@ -114,14 +113,7 @@ void GridSystem::_process(float delta) {
         time_emit = 0.0;
     }
 
-    // FIXME left off with a bug here to go find a new debugger
-    // Godot::Godot::get_viewport().get_mouse_position()
-    // dlog(boardTileMap->world_to_map(boardTileMap->to_local(get_viewport()->get_mouse_position())).x);
-    // get_viewport()->get_mouse_position();
-    // boardTileMap->to_local(Vector2::ZERO);
-    // boardTileMap->to_local(get_viewport()->get_mouse_position());
-    // if (boardTileMap == nullptr) { dlog("ouch");}
-    // boardTileMap->world_to_map(boardTileMap->to_local(get_viewport()->get_mouse_position()));
+    boardTileMap->world_to_map(boardTileMap->to_local(get_viewport()->get_mouse_position()));
 }
 
 void GridSystem::set_speed(float p_speed) {
