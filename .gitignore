@@ -28,3 +28,5 @@ UnitTest
 *.dll
 *.exp
 *.lib
+*.os
+*.so
