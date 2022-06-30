@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
             #ifndef NO_BOOST
                 whiteEngine = new EngineRunner(std::string(argv[1]));
             #else
-                std::cerr << "Cannot add engine without Boost. Please recompile without the 'noboost' flag to use this feature.";
+                std::cerr << "Cannot add engine without Boost. Please recompile without the 'use_boost=no' flag to use this feature.";
             #endif
         }
         if (!whiteEngine->init()) {
@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
             #ifndef NO_BOOST
                 blackEngine = new EngineRunner(std::string(argv[2]));
             #else
-                std::cerr << "Cannot add engine without Boost. Please recompile without the 'noboost' flag to use this feature.";
+                std::cerr << "Cannot add engine without Boost. Please recompile without the 'use_boost=no' flag to use this feature.";
             #endif
         }
         if (!blackEngine->init()) {

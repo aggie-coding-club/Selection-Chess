@@ -19,7 +19,7 @@ We use [SCons](https://www.scons.org/) as our build system.
 
 If you just want to compile Hippocrene engine out of the box, run the following:
 
-```scons platform=[your platform] engine=yes```
+```scons platform=<your platform> engine=yes```
 
 ### Platform
 
