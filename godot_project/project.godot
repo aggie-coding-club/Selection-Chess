@@ -14,8 +14,8 @@ _global_script_class_icons={
 
 [application]
 
-config/name="SCGDNativeInterface2D"
-run/main_scene="res://scenes/TileMapScene.tscn"
+config/name="SelectionChess Interface"
+run/main_scene="res://scenes/GameSpace.tscn"
 
 [input]
 
