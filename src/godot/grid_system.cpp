@@ -50,17 +50,17 @@ void GridSystem::_ready() {
 
     for (size_t i = 0; i < 10; i++) for (size_t j = 0; j < 10; j++) {
         if ((i+j) % 2 == 0) {
-            boardTileMap->set_cell(i, j, TM_TILE);
-            pieceTileMap->set_cell(i, j, TM_B_QUEEN);
-            if ((i+j) % 3 == 0) highlightsTileMap->set_cell(i, j, TM_HIGHLIGHT_CIRCLE);
+            boardTileMap->set_cell(i, -j, TM_TILE);
+            pieceTileMap->set_cell(i, -j, TM_B_QUEEN);
+            if ((i+j) % 3 == 0) highlightsTileMap->set_cell(i, -j, TM_HIGHLIGHT_CIRCLE);
         } else {
-            boardTileMapFloating->set_cell(i, j, TM_TILE_HIGHLIGHTED);
-            pieceTileMapFloating->set_cell(i, j, TM_B_QUEEN);
+            boardTileMapFloating->set_cell(i, -j, TM_TILE_HIGHLIGHTED);
+            pieceTileMapFloating->set_cell(i, -j, TM_B_QUEEN);
         }
     }
 }
 
-void GridSystem::set_cell(int _x, int _y, SquareEnum _squareVal, bool _isSelected, bool _isFloating, TileMapEnum _highlight) {
+void GridSystem::setCell(int _x, int _y, SquareEnum _squareVal, bool _isSelected, bool _isFloating, TileMapEnum _highlight) {
     if (_squareVal == VOID) {
         boardTileMap->set_cell(_x, _y, TM_EMPTY);
         pieceTileMap->set_cell(_x, _y, TM_EMPTY);
@@ -72,28 +72,67 @@ void GridSystem::set_cell(int _x, int _y, SquareEnum _squareVal, bool _isSelecte
         boardTileMap->set_cell(_x, _y, TM_EMPTY);
         pieceTileMap->set_cell(_x, _y, TM_EMPTY);
         boardTileMapFloating->set_cell(_x, _y, _isSelected? TM_TILE_HIGHLIGHTED : TM_TILE);
-        pieceTileMapFloating->set_cell(_x, _y, _squareVal);
+        pieceTileMapFloating->set_cell(_x, _y, getTMFromSquare(_squareVal));
         highlightsTileMap->set_cell(_x, _y, TM_EMPTY); // cannot highlight floating tiles
 
     } else {
         boardTileMapFloating->set_cell(_x, _y, TM_EMPTY);
         pieceTileMapFloating->set_cell(_x, _y, TM_EMPTY);
         boardTileMap->set_cell(_x, _y, _isSelected? TM_TILE_HIGHLIGHTED : TM_TILE);
-        pieceTileMap->set_cell(_x, _y, _squareVal);
+        pieceTileMap->set_cell(_x, _y, getTMFromSquare(_squareVal));
         highlightsTileMap->set_cell(_x, _y, _highlight);
     }
 }
 
+SignedCoords GridSystem::getCoordsFromGlobalPos(Vector2 _global) {
+    auto indicesRaw = boardTileMap->world_to_map(boardTileMap->to_local(_global));
+    // Note that y is negated so that up is increased coords
+    SignedCoords indices ((int) indicesRaw.x, (int) -indicesRaw.y);
+    return indices;
+}
+
 void GridSystem::redrawBoard() {
+
+    pieceTileMap->clear();
+    boardTileMap->clear();
+    highlightsTileMap->clear();
+    pieceTileMapFloating->clear();
+    boardTileMapFloating->clear();
+
     auto baseCoords = game->m_board->m_displayCoordsZero;
     StandardArray sa = game->m_board->standardArray();
 
-    for (auto f = 0; f < sa.m_dimensions.file; ++f) {
-        for (auto r = 0; r < sa.m_dimensions.rank; ++r) {
-            // FIXME: design how TileMaps should wrap
-            // set_cell((baseCoords.file + f).m_value )
+    // TileMap indices where center of camera currently is
+    SignedCoords cameraIndices = getCoordsFromGlobalPos(camera->get_global_position());
+    // Get chunk camera center is in. Have to convert to signed so division works as expected.
+    SignedCoords centerChunk (divFloor(cameraIndices.file, (signed) DAModulus), divFloor(cameraIndices.rank, (signed) DDModulus));
+    // dlog("centerchunk f=", centerChunk.file, " r=", centerChunk.rank);
+
+    // Draw board in each chunk
+    for (int chunkNumOffsetR = -1; chunkNumOffsetR <= 1; chunkNumOffsetR++) {
+        for (int chunkNumOffsetF = -1; chunkNumOffsetF <= 1; chunkNumOffsetF++) {
+            // Draw board
+            SignedCoords chunkOrigin (centerChunk.file + chunkNumOffsetF, centerChunk.rank + chunkNumOffsetR);
+
+            for (auto f = 0; f < sa.m_dimensions.file; ++f) {
+                for (auto r = 0; r < sa.m_dimensions.rank; ++r) {
+                    SquareEnum square = sa.at(f, r);
+                    if (square >= VOID) continue;
+
+                    // Copy and modify coords in DMod space
+                    DModCoords tileCoordsDM = baseCoords;
+                    tileCoordsDM.file += f;
+                    tileCoordsDM.rank -= r; // FIXME: why is rank already negated here?
+
+                    // Convert DMod coords into SignCoords
+                    SignedCoords tileCoords (chunkOrigin.file*DAModulus + tileCoordsDM.file.m_value, chunkOrigin.rank*DDModulus + tileCoordsDM.rank.m_value);
+                    setCell(tileCoords.file, -tileCoords.rank, square);
+                }
+            }
+            // setCell(chunkOrigin.file * DAModulus, -chunkOrigin.rank * DDModulus, B_ROOK);
         }
     }
+    // setCell(centerChunk.file * DAModulus, -centerChunk.rank * DDModulus, W_ROOK);
 }
 
 void GridSystem::_process(float delta) {
@@ -113,7 +152,13 @@ void GridSystem::_process(float delta) {
         time_emit = 0.0;
     }
 
-    boardTileMap->world_to_map(boardTileMap->to_local(get_viewport()->get_mouse_position()));
+
+    redrawBoard();
+    
+    auto mouseIndices = boardTileMap->world_to_map(boardTileMap->to_local(boardTileMap->get_global_mouse_position()));
+    // set_cell((int) mouseIndices.x, (int) -mouseIndices.y, W_KING);
+    // dlog("floating mouse x=", mouseIndices.x, " mouse y=", mouseIndices.y);
+    // dlog("mouse f=", mouseIndices.x, " mouse r=", -mouseIndices.x);
 }
 
 void GridSystem::set_speed(float p_speed) {

@@ -23,7 +23,11 @@ class BoardPrintSettings {
 // TODO: implement functionality around this object
 class StandardArray {
     public:
+    // Bounding size of array. 
+    // m_dimensions.file describes number of columns, 
+    // m_dimensions.rank describes number of rows.
     UnsignedCoords m_dimensions;
+
     std::vector<SquareEnum> m_array;
 
     StandardArray();
@@ -31,6 +35,11 @@ class StandardArray {
     StandardArray(UnsignedCoords _size);
     // Creates new array from sfen
     StandardArray(std::string _sfen);
+
+    // Get the square at given coords
+    inline SquareEnum at(unsigned int _f, unsigned int _r) { // TODO: used this in code that did it manually before
+        return m_array[m_dimensions.file*_r + _f];
+    }
 
     // Just print the entire contents of the array as-is.
     // For debugging purposes only.

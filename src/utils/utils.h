@@ -99,6 +99,17 @@ inline int positiveModulo(int i, int n) {
     return (i % n + n) % n;
 }
 
+// Division of a / b that always rounds towards negative infinity, e.g. -12 / 10 = -2
+// from https://stackoverflow.com/questions/39304681/division-with-negative-dividend-but-rounded-towards-negative-infinity
+inline int divFloor(int a, int b) {
+    int res = a / b;
+    int rem = a % b;
+    // Correct division result downwards if up-rounding happened,
+    // (for non-zero remainder of sign different than the divisor).
+    int corr = (rem != 0 && ((rem < 0) != (b < 0)));
+    return res - corr;
+}
+
 template <typename T, typename U>
 inline std::ostream& operator<<(std::ostream& _stream, const std::pair<T,U>& _coords) {
     _stream << "(" << _coords.first << ", " << _coords.second << ")";
