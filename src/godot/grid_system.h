@@ -34,6 +34,9 @@ private:
     
     std::unique_ptr<Game> game;
 
+    // Coords of the center chunk last frame.
+    SignedCoords prevChunk;
+
 public:
     static void _register_methods();
 
@@ -56,6 +59,9 @@ public:
 
     // TODO: behavior of this around decorators, when to use, etc should be clarified
     void redrawBoard();
+
+    // Get the chunk the camera is currently in
+    SignedCoords getChunk();
 
     // Get integer TileMap coords from a global float position
     SignedCoords getCoordsFromGlobalPos(Vector2 _global);

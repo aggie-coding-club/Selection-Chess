@@ -48,16 +48,8 @@ void GridSystem::_ready() {
 
     dlog(game->print());
 
-    for (size_t i = 0; i < 10; i++) for (size_t j = 0; j < 10; j++) {
-        if ((i+j) % 2 == 0) {
-            boardTileMap->set_cell(i, -j, TM_TILE);
-            pieceTileMap->set_cell(i, -j, TM_B_QUEEN);
-            if ((i+j) % 3 == 0) highlightsTileMap->set_cell(i, -j, TM_HIGHLIGHT_CIRCLE);
-        } else {
-            boardTileMapFloating->set_cell(i, -j, TM_TILE_HIGHLIGHTED);
-            pieceTileMapFloating->set_cell(i, -j, TM_B_QUEEN);
-        }
-    }
+    redrawBoard();
+    prevChunk = getChunk();
 }
 
 void GridSystem::setCell(int _x, int _y, SquareEnum _squareVal, bool _isSelected, bool _isFloating, TileMapEnum _highlight) {
@@ -91,8 +83,16 @@ SignedCoords GridSystem::getCoordsFromGlobalPos(Vector2 _global) {
     return indices;
 }
 
-void GridSystem::redrawBoard() {
+SignedCoords GridSystem::getChunk() {
+    // TileMap indices where center of camera currently is
+    SignedCoords cameraIndices = getCoordsFromGlobalPos(camera->get_global_position());
+    // Get chunk camera center is in. Have to convert to signed so division works as expected.
+    SignedCoords cameraChunk (divFloor(cameraIndices.file, (signed) DAModulus), divFloor(cameraIndices.rank, (signed) DDModulus));
+    return cameraChunk;
+}
 
+void GridSystem::redrawBoard() {
+    dlog("redrawing...");
     pieceTileMap->clear();
     boardTileMap->clear();
     highlightsTileMap->clear();
@@ -102,10 +102,7 @@ void GridSystem::redrawBoard() {
     auto baseCoords = game->m_board->m_displayCoordsZero;
     StandardArray sa = game->m_board->standardArray();
 
-    // TileMap indices where center of camera currently is
-    SignedCoords cameraIndices = getCoordsFromGlobalPos(camera->get_global_position());
-    // Get chunk camera center is in. Have to convert to signed so division works as expected.
-    SignedCoords centerChunk (divFloor(cameraIndices.file, (signed) DAModulus), divFloor(cameraIndices.rank, (signed) DDModulus));
+    SignedCoords centerChunk = getChunk();
     // dlog("centerchunk f=", centerChunk.file, " r=", centerChunk.rank);
 
     // Draw board in each chunk
@@ -136,24 +133,28 @@ void GridSystem::redrawBoard() {
 }
 
 void GridSystem::_process(float delta) {
-    time_passed += speed * delta;
+    // time_passed += speed * delta;
 
-    Vector2 new_position = Vector2(
-        amplitude + (amplitude * sin(time_passed * 2.0)),
-        amplitude + (amplitude * cos(time_passed * 1.5))
-    );
+    // Vector2 new_position = Vector2(
+    //     amplitude + (amplitude * sin(time_passed * 2.0)),
+    //     amplitude + (amplitude * cos(time_passed * 1.5))
+    // );
 
-    set_position(new_position);
+    // set_position(new_position);
 
-    time_emit += delta;
-    if (time_emit > 1.0) {
-        emit_signal("position_changed", this, new_position);
+    // time_emit += delta;
+    // if (time_emit > 1.0) {
+    //     emit_signal("position_changed", this, new_position);
 
-        time_emit = 0.0;
+    //     time_emit = 0.0;
+    // }
+
+    // Redraw board if camera has moved into a new chunk
+    auto chunk = getChunk();
+    if (prevChunk != chunk) {
+        redrawBoard();
+        prevChunk = chunk;
     }
-
-
-    redrawBoard();
     
     auto mouseIndices = boardTileMap->world_to_map(boardTileMap->to_local(boardTileMap->get_global_mouse_position()));
     // set_cell((int) mouseIndices.x, (int) -mouseIndices.y, W_KING);
