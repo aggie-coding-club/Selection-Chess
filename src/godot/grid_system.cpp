@@ -105,7 +105,10 @@ void GridSystem::redrawBoard() {
     SignedCoords centerChunk = getChunk();
     // dlog("centerchunk f=", centerChunk.file, " r=", centerChunk.rank);
 
-    // Draw board in each chunk
+    // Draw board in each chunk. This achieves the 'wrap-around' effect, as the center chunk is surrounded by other
+    // chunks, so if we are at the edge of the center chunk we see a duplicate of its other side.
+    // This can also be interpretted as there are infinite chunks in each direction, and we only load the 9 that we 
+    // might see.
     for (int chunkNumOffsetR = -1; chunkNumOffsetR <= 1; chunkNumOffsetR++) {
         for (int chunkNumOffsetF = -1; chunkNumOffsetF <= 1; chunkNumOffsetF++) {
             // Draw board
