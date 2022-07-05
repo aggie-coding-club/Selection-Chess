@@ -43,7 +43,7 @@ stretch = true
 script = ExtResource( 2 )
 
 [node name="GameSpaceViewport" type="Viewport" parent="PanelContainer/VSplitContainer/HSplitContainer/Panel/GameSpaceViewportContainer"]
-size = Vector2( 800, 800 )
+size = Vector2( 520, 520 )
 handle_input_locally = false
 render_target_update_mode = 3
 
