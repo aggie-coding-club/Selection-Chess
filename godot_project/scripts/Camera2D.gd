@@ -62,7 +62,7 @@ func _physics_process(delta: float) -> void:
 	position += camera_velocity
 
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
 		if event.button_mask == BUTTON_MASK_RIGHT: # TODO: set mouse controls
 			position -= event.relative * zoom

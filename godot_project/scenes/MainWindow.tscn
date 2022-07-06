@@ -46,6 +46,7 @@ script = ExtResource( 2 )
 size = Vector2( 520, 520 )
 handle_input_locally = false
 render_target_update_mode = 3
+gui_disable_input = true
 
 [node name="GameSpace" parent="PanelContainer/VSplitContainer/HSplitContainer/Panel/GameSpaceViewportContainer/GameSpaceViewport" instance=ExtResource( 1 )]
 position = Vector2( 500, 0 )
