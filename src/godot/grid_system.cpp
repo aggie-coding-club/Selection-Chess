@@ -12,7 +12,7 @@ void GridSystem::_register_methods() {
     // register_property<GridSystem, float>("amplitude", &GridSystem::amplitude, 10.0);
     // register_property<GridSystem, float>("speed", &GridSystem::set_speed, &GridSystem::get_speed, 1.0);
 
-    register_signal<GridSystem>((char *)"position_changed", "node", GODOT_VARIANT_TYPE_OBJECT, "new_pos", GODOT_VARIANT_TYPE_VECTOR2);
+    register_signal<GridSystem>((char *)"engine_log", "player_num", GODOT_VARIANT_TYPE_INT, "text", GODOT_VARIANT_TYPE_STRING);
 }
 
 GridSystem::GridSystem() {
@@ -93,6 +93,7 @@ SignedCoords GridSystem::getChunk() {
 
 void GridSystem::redrawBoard() {
     dlog("redrawing...");
+    emit_signal("engine_log", WHITE, ("[♜] test signal " + getUnicodeCharFromSquare(B_ROOK)).c_str());
     pieceTileMap->clear();
     boardTileMap->clear();
     highlightsTileMap->clear();

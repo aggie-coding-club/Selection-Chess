@@ -8,6 +8,9 @@ onready var board_tilemap = $GridSystem/NodeBoard/BoardTileMap
 onready var piece_tilemap_floating = $GridSystem/FloatingNodeBoard/PieceTileMap
 onready var board_tilemap_floating = $GridSystem/FloatingNodeBoard/BoardTileMap
 
+# used to relay signal
+signal engine_log(player_num, text)
+
 ################# Selection and cursor state variables ####################
 enum {NO_SEL, PIECE_SEL, TILES_SEL}
 # What type of selection is made, if any. 
@@ -124,3 +127,7 @@ func _input(event):
 			pass
 	# Print the size of the viewport.
 	#print("Viewport Resolution is: ", get_viewport_rect().size)
+
+# Relay the signal to anyone who instantiates the GameSpace.
+func _on_GridSystem_engine_log(player_num, text):
+	emit_signal("engine_log", player_num, text)

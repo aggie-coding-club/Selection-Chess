@@ -101,3 +101,5 @@ scale = Vector2( 0.5, 0.5 )
 tile_set = ExtResource( 11 )
 format = 1
 tile_data = PoolIntArray( -196610, 11, 0, -262143, 2, 0 )
+
+[connection signal="engine_log" from="GridSystem" to="." method="_on_GridSystem_engine_log"]
