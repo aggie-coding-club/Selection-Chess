@@ -128,6 +128,9 @@ func _input(event):
 	# Print the size of the viewport.
 	#print("Viewport Resolution is: ", get_viewport_rect().size)
 
+func add_engine(enginePath, player):
+	print("TODO: add engine to GDNative code. [", enginePath, "]")
+
 # Relay the signal to anyone who instantiates the GameSpace.
 func _on_GridSystem_engine_log(player_num, text):
 	emit_signal("engine_log", player_num, text)

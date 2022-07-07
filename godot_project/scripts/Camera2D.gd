@@ -41,6 +41,7 @@ func _physics_process(delta: float) -> void:
 		position = Vector2.ZERO
 		camera_velocity = Vector2.ZERO
 
+	# FIXME: takes this keyboard input too aggressively, e.g. when FileDialog is open
 	# Translate camera by panning	
 	if Input.is_action_pressed("ui_left"):
 		camera_velocity.x = lerp(camera_velocity.x, -MAX_VELOCITY, delta * PAN_ACCELERATION_KEY_INPUT * sqrt(zoom.x))
