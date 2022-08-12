@@ -94,6 +94,8 @@ SignedCoords GridSystem::getChunk() {
 void GridSystem::redrawBoard() {
     dlog("redrawing...");
     emit_signal("engine_log", WHITE, ("[♜] test signal " + getUnicodeCharFromSquare(B_ROOK)).c_str());
+    emit_signal("engine_log", WHITE, "# a white test comment\n");
+    emit_signal("engine_log", BLACK, "# a black test comment\n");
     pieceTileMap->clear();
     boardTileMap->clear();
     highlightsTileMap->clear();

@@ -13,7 +13,6 @@ onready var menuBar = $PanelContainer/VBoxContainer/MenuBar
 func _ready():
 	var engineButton = 	menuBar.get_node("EngineButton")
 	engineButton.get_popup().connect("id_pressed", self, "_on_engine_button_pressed")
-	pass
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 #func _process(delta):
