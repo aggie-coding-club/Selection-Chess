@@ -48,6 +48,21 @@ focus_mode = 2
 text = "Engines"
 items = [ "Add Engine", null, 0, false, false, 0, 0, null, "", false ]
 
+[node name="GameButton" type="MenuButton" parent="PanelContainer/VBoxContainer/MenuBar"]
+margin_left = 104.0
+margin_right = 154.0
+margin_bottom = 20.0
+focus_mode = 2
+text = "Game"
+
+[node name="RulesButton" type="MenuButton" parent="PanelContainer/VBoxContainer/MenuBar"]
+margin_left = 158.0
+margin_right = 205.0
+margin_bottom = 20.0
+focus_mode = 2
+text = "Rules"
+items = [ "Select Rules", null, 0, false, false, 0, 0, null, "", false ]
+
 [node name="VSplitContainer" type="VSplitContainer" parent="PanelContainer/VBoxContainer"]
 margin_top = 24.0
 margin_right = 1010.0
@@ -235,6 +250,52 @@ margin_right = 478.0
 margin_bottom = 254.0
 size_flags_vertical = 3
 
+[node name="TabContainer" type="TabContainer" parent="PanelContainer/VBoxContainer/VSplitContainer/HSplitContainer/VBoxContainer/Panel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+tab_align = 0
+
+[node name="Gameplay" type="Tabs" parent="PanelContainer/VBoxContainer/VSplitContainer/HSplitContainer/VBoxContainer/Panel/TabContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 32.0
+margin_right = -4.0
+margin_bottom = -4.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/VBoxContainer/VSplitContainer/HSplitContainer/VBoxContainer/Panel/TabContainer/Gameplay"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="RichTextLabel" type="RichTextLabel" parent="PanelContainer/VBoxContainer/VSplitContainer/HSplitContainer/VBoxContainer/Panel/TabContainer/Gameplay/VBoxContainer"]
+margin_right = 470.0
+margin_bottom = 160.0
+size_flags_vertical = 3
+text = "Move history"
+
+[node name="Control" type="Control" parent="PanelContainer/VBoxContainer/VSplitContainer/HSplitContainer/VBoxContainer/Panel/TabContainer/Gameplay/VBoxContainer"]
+margin_top = 164.0
+margin_right = 470.0
+margin_bottom = 164.0
+
+[node name="Set Up" type="Tabs" parent="PanelContainer/VBoxContainer/VSplitContainer/HSplitContainer/VBoxContainer/Panel/TabContainer"]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 32.0
+margin_right = -4.0
+margin_bottom = -4.0
+
+[node name="Analysis" type="Tabs" parent="PanelContainer/VBoxContainer/VSplitContainer/HSplitContainer/VBoxContainer/Panel/TabContainer"]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 32.0
+margin_right = -4.0
+margin_bottom = -4.0
+
 [node name="VBoxContainerECP" type="VBoxContainer" parent="PanelContainer/VBoxContainer/VSplitContainer"]
 margin_top = 266.0
 margin_right = 1010.0
@@ -272,4 +333,6 @@ current_path = "/"
 
 [connection signal="engine_log" from="PanelContainer/VBoxContainer/VSplitContainer/HSplitContainer/Panel/GameSpaceViewportContainer/GameSpaceViewport/GameSpace" to="PanelContainer/VBoxContainer/VSplitContainer/VBoxContainerECP" method="_on_GameSpace_engine_log"]
 [connection signal="pressed" from="PanelContainer/VBoxContainer/VSplitContainer/HSplitContainer/Panel/HBoxContainer/ButtonPieceMode" to="." method="_on_ButtonPieceMode_pressed"]
+[connection signal="pressed" from="PanelContainer/VBoxContainer/VSplitContainer/HSplitContainer/Panel/HBoxContainer/ButtonTileMode" to="." method="_on_ButtonTileMode_pressed"]
+[connection signal="pressed" from="PanelContainer/VBoxContainer/VSplitContainer/HSplitContainer/Panel/HBoxContainer/ButtonDeleteMove" to="." method="_on_ButtonDeleteMove_pressed"]
 [connection signal="file_selected" from="FileDialog" to="." method="_on_FileDialog_file_selected"]

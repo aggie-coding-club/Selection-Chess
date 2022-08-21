@@ -31,6 +31,8 @@ private:
     TileMap* pieceTileMapFloating;
     TileMap* boardTileMapFloating;
     Camera2D* camera;
+    // Root of GameSpace scene
+    Node2D* gameSpaceNode;
     
     std::unique_ptr<Game> game;
 
@@ -48,6 +50,7 @@ public:
     void _process(float delta);
     void _ready();
     void set_speed(float p_speed);
+    void _input(Variant event);
     float get_speed();
 
     // Calls set_cell on Godot boards to change the displayed cell.

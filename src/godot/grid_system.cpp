@@ -36,6 +36,9 @@ void GridSystem::_ready() {
     pieceTileMapFloating = (TileMap*) get_node("FloatingNodeBoard/PieceTileMap");
     boardTileMapFloating = (TileMap*) get_node("FloatingNodeBoard/BoardTileMap");
 
+    gameSpaceNode = (Node2D*) get_owner();
+    // dlog("got owner as: ", gameSpaceNode->get_name());
+
     camera = (Camera2D*) get_node("../Camera2D");
 
     pieceTileMap->clear();
@@ -96,6 +99,7 @@ void GridSystem::redrawBoard() {
     emit_signal("engine_log", WHITE, ("[♜] test signal " + getUnicodeCharFromSquare(B_ROOK)).c_str());
     emit_signal("engine_log", WHITE, "# a white test comment\n");
     emit_signal("engine_log", BLACK, "# a black test comment\n");
+    dlog("owner has: ", (godot_int) gameSpaceNode->get("cursorMode"));
     pieceTileMap->clear();
     boardTileMap->clear();
     highlightsTileMap->clear();
@@ -168,6 +172,9 @@ void GridSystem::_process(float delta) {
     // dlog("mouse f=", mouseIndices.x, " mouse r=", -mouseIndices.x);
 }
 
+void GridSystem::_input(Variant event) {
+    
+}
 void GridSystem::set_speed(float p_speed) {
     speed = p_speed;
 }
