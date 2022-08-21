@@ -13,34 +13,40 @@ void Game::reset(std::string _sfen) {
         ps = m_board->m_printSettings;
     }
     auto fields = split(_sfen, "\\s+");
-    m_board = new ArrayBoard(m_rules, fields[0]);
-    m_board->m_printSettings = ps;
+
     // TODO: cleanly handle all these errors
-    if (fields.size() == 4) { // whole sfen is given
-        dlog("got 4 fields");
-        if (fields[1] == "w") {
+    if (fields.size() == 5) { // whole sfen is given
+        dlog("got 5 fields");
+        m_board = new ArrayBoard(m_rules, fields[0], algebraicToCoords(fields[1]));
+        // TODO: parse minCorner
+        if (fields[2] == "w") {
             m_turn = WHITE;
-        } else if (fields[1] == "b") {
+        } else if (fields[2] == "b") {
             m_turn = BLACK;
         } else {
-            dlog("ERROR! unknown color [",fields[1],"] in SFEN [", _sfen,"]");
+            dlog("ERROR! unknown color [",fields[2],"] in SFEN [", _sfen,"]");
         }
 
         // TODO: check these are actually numbers
-        m_50Count = std::stoi(fields[2]);
-        m_moveCount = std::stoi(fields[3]);
+        m_50Count = std::stoi(fields[3]);
+        m_moveCount = std::stoi(fields[4]);
     } else if (fields.size() == 1) { // if given just position, we'll just assume this is start of new game
+        m_board = new ArrayBoard(m_rules, fields[0], DModCoords(0, 0)); // default to a0
         m_turn = WHITE;
         m_50Count = 0;
         m_moveCount = 1;
     } else { 
         dlog("ERROR! invalid number of fields in SFEN [", _sfen, "]");
     }
+
+    m_board->m_printSettings = ps;
+
     dlog("Game Constructed board");
 }
 
 std::string Game::toSfen() const {
     return m_board->toSfen() + " " + 
+    // minCorner already included in Board->toSfen.
     (m_turn == WHITE? "w" : "b") + " " +
     std::to_string(m_50Count) + " " +
     std::to_string(m_moveCount);

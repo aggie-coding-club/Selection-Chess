@@ -58,7 +58,7 @@ int main() {
     TestMacros::numTestsPassed = 0;
 
     TEST("StandardArray object", {
-        StandardArray sa ("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1");
+        StandardArray sa ("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR a0 w 0 1");
         // std::cout << sa.dumpAsciiArray() << std::endl;
         // TODO: low priority: idk, i feel like something may be flipped?
         REQ_CASE("sfen ctor dim", sa.m_dimensions == UnsignedCoords(18, 8));
@@ -84,7 +84,7 @@ int main() {
         OPT_CASE("completed/EOF", t.next().front() == EOF);
     });
 
-    Game game = Game("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR w 0 1", "rules/test1.rules");
+    Game game = Game("rnbqkbnr/pppppppp/8/2(4)2/(2)4/18/PPPPPPPP/RNBQKBNR ca100 w 0 1", "rules/test1.rules");
 
     // Change display settings like this:
     game.m_board->m_printSettings.m_tileFillChar = '-';
@@ -95,16 +95,16 @@ int main() {
     // std::cout << game.print() << std::endl;
 
     TEST("Overriding initialization of game state", {
-        DModCoords sampleCoords = algebraicToCoords("b6");
+        DModCoords sampleCoords = algebraicToCoords("cb106");
         REQ_CASE("orig sample", game.m_board->getPiece(sampleCoords) == B_PAWN);
         OPT_CASE("init full sfen", MULTI_CHECK(
-            game.reset("rnbqkbnr/p6p/8/2(4)2/(2)4/18/P6P/RNBQKBNR b 10 4");
-            // std::cout << game.m_board->toSfen() << std::endl;
+            game.reset("rnbqkbnr/p6p/8/2(4)2/(2)4/18/P6P/RNBQKBNR ca100 b 10 4");
+            std::cout << game.m_board->toSfen() << std::endl;
             CHECK("sampled piece", game.m_board->getPiece(sampleCoords) == EMPTY);
             dlog(game.toSfen());
-            CHECK("sfen position out", game.m_board->toSfen() == "rnbqkbnr/p6p/8/2(4)2/(2)4/18/P6P/RNBQKBNR");
+            CHECK("sfen position out", game.m_board->toSfen() == "rnbqkbnr/p6p/8/2(4)2/(2)4/18/P6P/RNBQKBNR ca100");
             dlog(game.toSfen());
-            CHECK("sfen full out", game.toSfen() == "rnbqkbnr/p6p/8/2(4)2/(2)4/18/P6P/RNBQKBNR b 10 4");
+            CHECK("sfen full out", game.toSfen() == "rnbqkbnr/p6p/8/2(4)2/(2)4/18/P6P/RNBQKBNR ca100 b 10 4");
         ));
         OPT_CASE("init part sfen", MULTI_CHECK(
             game.reset("rkb/3/1(1)1/3/BKR");
@@ -112,8 +112,8 @@ int main() {
             sampleCoords = algebraicToCoords("b0");
             dlog(game.toSfen());
             CHECK("sampled piece", game.m_board->getPiece(sampleCoords) == W_KING);
-            CHECK("sfen position out", game.m_board->toSfen() == "rkb/3/1(1)1/3/BKR");
-            CHECK("sfen full out", game.toSfen() == "rkb/3/1(1)1/3/BKR w 0 1");
+            CHECK("sfen position out", game.m_board->toSfen() == "rkb/3/1(1)1/3/BKR a0");
+            CHECK("sfen full out", game.toSfen() == "rkb/3/1(1)1/3/BKR a0 w 0 1");
         ));
     });
     TEST("Int wrapping comparison", {
@@ -194,120 +194,120 @@ int main() {
         OPT_CASE("tileM RF type", readMove->m_type == TILE_MOVE);
     });
 
-    game.reset("rnbqkbnr/pp1ppppp/8/8(4)4/2p5(6)2/18/PPPPPPPP/RNBQKBNR w 0 1");
+    game.reset("rnbqkbnr/pp1ppppp/8/8(4)4/2p5(6)2/18/PPPPPPPP/RNBQKBNR a0 w 0 1");
     // std::cout << game.print() << std::endl;
 
     TEST("apply/undo PieceMoves", {
         // TODO: the additional fen info, e.g. "w 0 1", should not be truncated. Would be nice in the future to have a separate function for just truncated sfen, and call that here
-        REQ_CASE("init sfen", game.m_board->toSfen() == "rnbqkbnr/pp1ppppp/8/8(4)4/2p5(6)2/18/PPPPPPPP/RNBQKBNR");
+        REQ_CASE("init sfen", game.m_board->toSfen() == "rnbqkbnr/pp1ppppp/8/8(4)4/2p5(6)2/18/PPPPPPPP/RNBQKBNR a0");
         REQ_CASE("applyMove()->true", game.applyMove(readAlgebraic("b0a2")));
-        REQ_CASE("apply", game.m_board->toSfen() == "rnbqkbnr/pp1ppppp/8/8(4)4/2p5(6)2/N17/PPPPPPPP/R1BQKBNR");
+        REQ_CASE("apply", game.m_board->toSfen() == "rnbqkbnr/pp1ppppp/8/8(4)4/2p5(6)2/N17/PPPPPPPP/R1BQKBNR a0");
         // std::cout << game.print() << std::endl;
         // std::cout << game.m_board->printPieces() << std::endl;
 
         std::unique_ptr<PieceMove> m2(new PieceMove(algebraicToCoords("a2"), algebraicToCoords("c3")));
         m2->m_capture = B_PAWN;
         game.applyMove(std::move(m2));
-        REQ_CASE("apply capture", game.m_board->toSfen() == "rnbqkbnr/pp1ppppp/8/8(4)4/2N5(6)2/18/PPPPPPPP/R1BQKBNR");
+        REQ_CASE("apply capture", game.m_board->toSfen() == "rnbqkbnr/pp1ppppp/8/8(4)4/2N5(6)2/18/PPPPPPPP/R1BQKBNR a0");
 
         game.undoMove();
-        REQ_CASE("undo", game.m_board->toSfen() == "rnbqkbnr/pp1ppppp/8/8(4)4/2p5(6)2/N17/PPPPPPPP/R1BQKBNR");
+        REQ_CASE("undo", game.m_board->toSfen() == "rnbqkbnr/pp1ppppp/8/8(4)4/2p5(6)2/N17/PPPPPPPP/R1BQKBNR a0");
         game.undoMove();
-        REQ_CASE("undo capture", game.m_board->toSfen() == "rnbqkbnr/pp1ppppp/8/8(4)4/2p5(6)2/18/PPPPPPPP/RNBQKBNR");
+        REQ_CASE("undo capture", game.m_board->toSfen() == "rnbqkbnr/pp1ppppp/8/8(4)4/2p5(6)2/18/PPPPPPPP/RNBQKBNR a0");
     });
 
     TEST("apply/undo TileMoves", {
 
         // from right extrema to bottom extrema
         OPT_CASE("apply ERED", MULTI_CHECK(
-            game.reset("rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR w 0 1");
+            game.reset("rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR a0 w 0 1");
             CHECK("returned true", game.applyMove(readAlgebraic("Sp2r4g997")));
             std::cout << game.print() << std::endl;
-            CHECK("applied board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(4)3/8(6)1/15/PPPPPPPP/RNBQKBNR/(6)1/(6)1/(6)3");
+            CHECK("applied board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(4)3/8(6)1/15/PPPPPPPP/RNBQKBNR/(6)1/(6)1/(6)3 a997");
             game.undoMove();
-            CHECK("undone board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR");
+            CHECK("undone board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR a0");
         ));
 
         // from right extrema to left extrema
         OPT_CASE("apply EREL", MULTI_CHECK(
-            game.reset("rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR w 0 1");
+            game.reset("rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR a0 w 0 1");
             CHECK("returned true", game.applyMove(readAlgebraic("Sp2r4zx2")));
-            CHECK("applied board state", game.m_board->toSfen() == "(3)rnbqkbnr/(3)pppppppp/(3)8/1(2)8(4)3/1(2)8(6)1/18/(3)PPPPPPPP/(3)RNBQKBNR");
+            CHECK("applied board state", game.m_board->toSfen() == "(3)rnbqkbnr/(3)pppppppp/(3)8/1(2)8(4)3/1(2)8(6)1/18/(3)PPPPPPPP/(3)RNBQKBNR zx0");
             game.undoMove();
-            CHECK("undone board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR");
+            CHECK("undone board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR a0");
         ));
         std::cout << "\n\n" << std::endl;
 
         // from left extrema to right extrema
         OPT_CASE("apply ELER", MULTI_CHECK(
-            game.reset("rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR w 0 1");
+            game.reset("rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR a0 w 0 1");
             CHECK("returned true", game.applyMove(readAlgebraic("Sa0a7s0")));
-            CHECK("applied board state", game.m_board->toSfen() == "nbqkbnr(10)r/ppppppp(10)p/7(10)1/7(4)4(2)1/7(6)2(2)1/18/PPPPPPP(10)P/NBQKBNR(10)R");
+            CHECK("applied board state", game.m_board->toSfen() == "nbqkbnr(10)r/ppppppp(10)p/7(10)1/7(4)4(2)1/7(6)2(2)1/18/PPPPPPP(10)P/NBQKBNR(10)R b0");
             game.undoMove();
-            CHECK("undone board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR");
+            CHECK("undone board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR a0");
         ));
         std::cout << "\n\n" << std::endl;
 
         // from left extrema to bottom left extrema
         OPT_CASE("apply ELEBL", MULTI_CHECK(
-            game.reset("rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR w 0 1");
+            game.reset("rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR a0 w 0 1");
             CHECK("returned true", game.applyMove(readAlgebraic("Sa0a7a994")));
-            CHECK("applied board state", game.m_board->toSfen() == "(1)nbqkbnr/(1)ppppppp/(1)7/(1)7(4)4/(1)7(6)2/(1)17/rPPPPPPP/pNBQKBNR/1/1/1/1/P/R");
+            CHECK("applied board state", game.m_board->toSfen() == "(1)nbqkbnr/(1)ppppppp/(1)7/(1)7(4)4/(1)7(6)2/(1)17/rPPPPPPP/pNBQKBNR/1/1/1/1/P/R a994");
             game.undoMove();
-            CHECK("undone board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR");
+            CHECK("undone board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR a0");
         ));
         std::cout << "\n\n" << std::endl;
 
         // from mid to top extrema
         OPT_CASE("apply mEU", MULTI_CHECK(
-            game.reset("rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR w 0 1");
+            game.reset("rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR a0 w 0 1");
             CHECK("returned true", game.applyMove(readAlgebraic("Se1f3c8")));
-            CHECK("applied board state", game.m_board->toSfen() == "(2)2/(2)2/(2)PP/rnbqkbnr/pppppppp/8/8(4)4/4(2)2(6)2/4(2)12/PPPP(2)PP/RNBQKBNR");
+            CHECK("applied board state", game.m_board->toSfen() == "(2)2/(2)2/(2)PP/rnbqkbnr/pppppppp/8/8(4)4/4(2)2(6)2/4(2)12/PPPP(2)PP/RNBQKBNR a0");
             game.undoMove();
-            CHECK("undone board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR");
+            CHECK("undone board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR a0");
         ));
 
         // from right extrema to top extrema
         OPT_CASE("apply EREU", MULTI_CHECK(
-            game.reset("rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR w 0 1");
+            game.reset("rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR a0 w 0 1");
             CHECK("returned true", game.applyMove(readAlgebraic("Sp2r4c8")));
-            CHECK("applied board state", game.m_board->toSfen() == "(2)1/(2)1/(2)3/rnbqkbnr/pppppppp/8/8(4)3/8(6)1/15/PPPPPPPP/RNBQKBNR");
+            CHECK("applied board state", game.m_board->toSfen() == "(2)1/(2)1/(2)3/rnbqkbnr/pppppppp/8/8(4)3/8(6)1/15/PPPPPPPP/RNBQKBNR a0");
             game.undoMove();
-            CHECK("undone board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR");
+            CHECK("undone board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR a0");
         ));
 
         OPT_CASE("apply EREUL", MULTI_CHECK(
-            game.reset("rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR w 0 1");
+            game.reset("rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR a0 w 0 1");
             CHECK("returned true", game.applyMove(readAlgebraic("Sp2r4zy8")));
-            CHECK("applied board state", game.m_board->toSfen() == "1/1/3/(2)rnbqkbnr/(2)pppppppp/(2)8/(2)8(4)3/(2)8(6)1/(2)15/(2)PPPPPPPP/(2)RNBQKBNR");
+            CHECK("applied board state", game.m_board->toSfen() == "1/1/3/(2)rnbqkbnr/(2)pppppppp/(2)8/(2)8(4)3/(2)8(6)1/(2)15/(2)PPPPPPPP/(2)RNBQKBNR zy0");
             game.undoMove();
-            CHECK("undone board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR");
+            CHECK("undone board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR a0");
         ));
         std::cout << "\n\n" << std::endl;
 
         OPT_CASE("apply EUm", MULTI_CHECK(
-            game.reset("rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR w 0 1");
+            game.reset("rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR a0 w 0 1");
             CHECK("returned true", game.applyMove(readAlgebraic("Sa7h7i1")));
-            CHECK("applied board state", game.m_board->toSfen() == "pppppppp/8/8(4)4/8(6)2/18/PPPPPPPPrnbqkbnr/RNBQKBNR");
+            CHECK("applied board state", game.m_board->toSfen() == "pppppppp/8/8(4)4/8(6)2/18/PPPPPPPPrnbqkbnr/RNBQKBNR a0");
             game.undoMove();
-            CHECK("undone board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR");
+            CHECK("undone board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR a0");
         ));
 
         OPT_CASE("bad apply 1", MULTI_CHECK(
-            game.reset("rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR w 0 1");
+            game.reset("rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR a0 w 0 1");
             CHECK("returned false", game.applyMove(readAlgebraic("Sp2r4zy2")) == false); // illegal move that would corrupt board //TODO: maybe should be left up to isLegal checker, and not tested here?
-            CHECK("board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR"); // make sure board is in tact after failed apply
+            CHECK("board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR a0"); // make sure board is in tact after failed apply
         ));
         // The following two were corner cases generated by getMoves() that were problematic.
         OPT_CASE("bad apply 2", MULTI_CHECK(
-            game.reset("P1n5 w 0 1");
+            game.reset("P1n5 a0 w 0 1");
             CHECK("returned false", game.applyMove(readAlgebraic("Sa0a0zz999")) == false);
-            CHECK("board state", game.m_board->toSfen() == "P1n5");
+            CHECK("board state", game.m_board->toSfen() == "P1n5 a0");
         ));
         OPT_CASE("bad apply 3", MULTI_CHECK(
-            game.reset("P1n w 0 1");
+            game.reset("P1n a0 w 0 1");
             CHECK("returned false", game.applyMove(readAlgebraic("Sa0a0zz999")) == false);
-            CHECK("board state", game.m_board->toSfen() == "P1n");
+            CHECK("board state", game.m_board->toSfen() == "P1n a0");
         ));
         // TileMove destination into the middle of nowhere, breaking continuity. // TODO: maybe this should be handled by isLegal?
         // OPT_CASE("bad apply 2", MULTI_CHECK(
@@ -321,35 +321,35 @@ int main() {
     TEST("apply/undo TileDeletions", {
         // As in 'walking the plank', these tiles depend on previous ones to connect them back to the rest of the board.
         OPT_CASE("plank 1", MULTI_CHECK(
-            game.reset("rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR w 0 1");
+            game.reset("rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR a0 w 0 1");
             CHECK("returned true", game.applyMove(readAlgebraic("Dm4n4o4")));
-            CHECK("applied board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(7)1/8(6)2/18/PPPPPPPP/RNBQKBNR");
+            CHECK("applied board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(7)1/8(6)2/18/PPPPPPPP/RNBQKBNR a0");
             game.undoMove();
-            CHECK("undone board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR");
+            CHECK("undone board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR a0");
         ));
         // Test opposite read direction, in case anything funny happening with continuity checks.
         OPT_CASE("plank 2", MULTI_CHECK(
-            game.reset("rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR w 0 1");
+            game.reset("rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR a0 w 0 1");
             CHECK("returned true", game.applyMove(readAlgebraic("Do4n4m4")));
-            CHECK("applied board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(7)1/8(6)2/18/PPPPPPPP/RNBQKBNR");
+            CHECK("applied board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(7)1/8(6)2/18/PPPPPPPP/RNBQKBNR a0");
             game.undoMove();
-            CHECK("undone board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR");
+            CHECK("undone board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR a0");
         ));
         // plank, but also is maximum
         OPT_CASE("max plank 1", MULTI_CHECK(
-            game.reset("rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR w 0 1");
+            game.reset("rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR a0 w 0 1");
             CHECK("returned true", game.applyMove(readAlgebraic("Dp2q2r2")));
-            CHECK("applied board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(4)4/8(6)2/15/PPPPPPPP/RNBQKBNR");
+            CHECK("applied board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(4)4/8(6)2/15/PPPPPPPP/RNBQKBNR a0");
             game.undoMove();
-            CHECK("undone board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR");
+            CHECK("undone board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR a0");
         ));
         // Test opposite read direction, in case anything funny happening with extrema updates.
         OPT_CASE("max plank 2", MULTI_CHECK(
-            game.reset("rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR w 0 1");
+            game.reset("rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR a0 w 0 1");
             CHECK("returned true", game.applyMove(readAlgebraic("Dr2q2p2")));
-            CHECK("applied board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(4)4/8(6)2/15/PPPPPPPP/RNBQKBNR");
+            CHECK("applied board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(4)4/8(6)2/15/PPPPPPPP/RNBQKBNR a0");
             game.undoMove();
-            CHECK("undone board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR");
+            CHECK("undone board state", game.m_board->toSfen() == "rnbqkbnr/pppppppp/8/8(4)4/8(6)2/18/PPPPPPPP/RNBQKBNR a0");
         ));
     });
 
@@ -358,22 +358,22 @@ int main() {
         // Game game = Game("2 w 0 1", "rules/tileMove1.rules");
         Ruleset rules ("rules/tileMove1.rules");
         OPT_CASE("2 cont", MULTI_CHECK(
-            ArrayBoard ab(rules, "2 w 0 1");
+            ArrayBoard ab(rules, "2 a0 w 0 1");
             std::cout << ab.getAsciiBoard();
             CHECK("isContinuous", ab.isContiguous());
         ));
         OPT_CASE("2 non cont", MULTI_CHECK(
-            ArrayBoard ab(rules, "1/(1)1 w 0 1");
+            ArrayBoard ab(rules, "1/(1)1 a0 w 0 1");
             std::cout << ab.getAsciiBoard();
             CHECK("isContinuous", ab.isContiguous()==false);
         ));
         OPT_CASE("cont w pieces", MULTI_CHECK(
-            ArrayBoard ab(rules, "(2)3/(2)1(1)1/(2)3/1k1(1)1/pQ1(1)1/1(3)1/(1)K3 w 0 1");
+            ArrayBoard ab(rules, "(2)3/(2)1(1)1/(2)3/1k1(1)1/pQ1(1)1/1(3)1/(1)K3 a0 w 0 1");
             std::cout << ab.getAsciiBoard();
             CHECK("isContinuous", ab.isContiguous());
         ));
         OPT_CASE("noncont w pieces", MULTI_CHECK(
-            ArrayBoard ab(rules, "(2)3/(2)1(1)1/(3)2/1k1(1)1/pQ1(1)1/1(3)1/(1)K3 w 0 1");
+            ArrayBoard ab(rules, "(2)3/(2)1(1)1/(3)2/1k1(1)1/pQ1(1)1/1(3)1/(1)K3 a0 w 0 1");
             std::cout << ab.getAsciiBoard();
             CHECK("isContinuous", ab.isContiguous()==false);
         ));
@@ -381,18 +381,18 @@ int main() {
 
     TEST("apply/undo handles nonContiguous moves", {
         OPT_CASE("two tiles", MULTI_CHECK(
-            game.reset("1P w 0 1");
+            game.reset("1P a0 w 0 1");
             std::cout << game.m_board->getAsciiBoard() << std::endl;
             CHECK("returned false", game.applyMove(readAlgebraic("Sa0a0a1")) == false);
             std::cout << game.m_board->getAsciiBoard() << std::endl;
-            CHECK("board state after", game.m_board->toSfen() == "1P");
+            CHECK("board state after", game.m_board->toSfen() == "1P a0");
         ));
         OPT_CASE("T", MULTI_CHECK(
-            game.reset("nkP/(1)Q w 0 1");
+            game.reset("nkP/(1)Q a0 w 0 1");
             std::cout << game.m_board->getAsciiBoard() << std::endl;
             CHECK("returned false", game.applyMove(readAlgebraic("Sb1b1b2")) == false);
             std::cout << game.m_board->getAsciiBoard() << std::endl;
-            CHECK("board state after", game.m_board->toSfen() == "nkP/(1)Q");
+            CHECK("board state after", game.m_board->toSfen() == "nkP/(1)Q a0");
         ));
         //TODO: when multiple tile moves are supported, add test cases for them here too
     });
@@ -400,9 +400,9 @@ int main() {
 
     TEST("TileMove generation", { // TODO: remove or improve
         // CAUTION: overshadowing of game variable!
-        Game game = Game("1P w 0 1", "rules/tileMove1.rules");
+        Game game = Game("1P a0 w 0 1", "rules/tileMove1.rules");
         OPT_CASE("simplest", MULTI_CHECK(
-            game.reset("1P w 0 1");
+            game.reset("1P a0 w 0 1");
             std::cout << game.print() << std::endl;
 
             std::cout << "Maybe moves: [" << std::flush;
@@ -422,8 +422,8 @@ int main() {
     });
 
     std::cout << "Resetting to a simpler board" << std::endl;
-    // game.reset("P2/1K1/1pk w 0 1"); // simple case to play with
-    game.reset("P1n w 0 1"); // simpler case to play with
+    // game.reset("P2/1K1/1pk a0 w 0 1"); // simple case to play with
+    game.reset("P1n a0 w 0 1"); // simpler case to play with
     std::cout << game.print() << std::endl;
 
     std::cout << "Possible moves: [" << std::flush;
@@ -492,7 +492,7 @@ int main() {
 
     TEST("PieceMove generation", {
         // TODO: implement tests, using different rulesets, etc.
-        Game game ("P2R(2)p/1p3NR/BQp1/(3)1p w 0 1", "rules/piecesOnly.rules"); // simple case to play with
+        Game game ("P2R(2)p/1p3NR/BQp1/(3)1p a0 w 0 1", "rules/piecesOnly.rules"); // simple case to play with
         // game.reset("k1K2/n(2)p1/1(1)1(1)1/RQ1B1");
         dlog(game.print());
         dlogStart("Possible moves: [");
@@ -510,7 +510,7 @@ int main() {
 
     TEST("IsLegal(PieceMove)", {
         // TODO: implement tests, using different rulesets, etc.
-        Game game ("P2R(2)p/1p3NR/BQp1/(3)1p w 0 1", "rules/piecesOnly.rules");
+        Game game ("P2R(2)p/1p3NR/BQp1/(3)1p a0 w 0 1", "rules/piecesOnly.rules");
         dlog(game.print());
         // Assuming move generation is working properly, this will test all legal moves.
         OPT_CASE("vs generated", MULTI_CHECK(

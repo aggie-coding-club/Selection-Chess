@@ -50,7 +50,7 @@ class Board {
     public:
         BoardPrintSettings m_printSettings;
 
-        Board(Ruleset& _ruleset) : m_displayCoordsZero(DModCoords(0,0)), m_rules(_ruleset) { }
+        Board(Ruleset& _ruleset, DModCoords _minCorner=DModCoords(0,0)) : m_displayCoordsZero(_minCorner), m_rules(_ruleset) { }
 
         // Resets board from SFEN.
         virtual void init(const std::string _sfen) = 0;
@@ -64,7 +64,9 @@ class Board {
 
         const Ruleset& m_rules;
 
-        virtual std::string toSfen();
+        // Returns the placement component of the SFEN of the current state of the board.
+        // Will also include minCorner if specified.
+        virtual std::string toSfen(bool _includeMinCorner=true);
 
         /**
          * Boards are equal if all independent fields except moveHistory are equal. 

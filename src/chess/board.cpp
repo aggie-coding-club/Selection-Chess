@@ -1,7 +1,7 @@
 #include "board.h"
 #include <algorithm>
 
-std::string Board::toSfen() {
+std::string Board::toSfen(bool _includeMinCorner) {
     // Convert into a standard array representation
     StandardArray sa = standardArray();
 
@@ -54,6 +54,9 @@ std::string Board::toSfen() {
         }
     }
     endEmptySequence();
+    if (_includeMinCorner) {
+        sfen += " " + coordsToAlgebraic(m_displayCoordsZero);
+    }
     return sfen;
 };
 
