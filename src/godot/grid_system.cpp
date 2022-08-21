@@ -47,7 +47,7 @@ void GridSystem::_ready() {
     pieceTileMapFloating->clear();
     boardTileMapFloating->clear();
 
-    game = std::make_unique<Game>("P2R(2)p/1p3NR/BQp1/(3)1p w 0 1", "rules/piecesOnly.rules");
+    game = std::make_unique<Game>("P2R(2)p/1p3NR/BQp1/(3)1p a0 w 0 1", "rules/piecesOnly.rules");
 
     dlog(game->print());
 

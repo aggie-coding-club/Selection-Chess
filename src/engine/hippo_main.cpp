@@ -11,7 +11,7 @@
 // TODO: how should board be initialized if no setboard is given?
 // TODO: how to specify rules file?
 int xboardLoop() {
-    Game game("2 w 0 1", "rules/test1.rules"); // TODO: not sure what default board config should be, or if there should even be one.
+    Game game("2 a0 w 0 1", "rules/test1.rules"); // TODO: not sure what default board config should be, or if there should even be one.
 
     std::string line;
 

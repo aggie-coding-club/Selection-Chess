@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    std::string sfen = "rkr3/6/6/6/6/3RKR w 0 1";
+    std::string sfen = "rkr3/6/6/6/6/3RKR a0 w 0 1";
     Game game(sfen, "rules/default.rules");
     whiteEngine->setBoard(sfen);
     blackEngine->setBoard(sfen);
