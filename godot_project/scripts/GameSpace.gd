@@ -2,6 +2,8 @@ extends Node2D
 
 
 # Declare member variables here. Examples:
+onready var grid_system = $GridSystem
+
 onready var piece_tilemap = $GridSystem/NodeBoard/PieceTileMap
 onready var board_tilemap = $GridSystem/NodeBoard/BoardTileMap
 
@@ -10,8 +12,9 @@ onready var board_tilemap_floating = $GridSystem/FloatingNodeBoard/BoardTileMap
 
 const constants = preload("res://scripts/Constants.gd")
 
-# used to relay signal
+# used to relay signals
 signal engine_log(player_num, text)
+signal sfen_update(text)
 
 ################# Selection and cursor state variables ####################
 # What type of selection is made, if any. 
@@ -43,6 +46,9 @@ func _ready():
 #func _process(delta):
 #	pass
 
+func reset_sfen(rawSfen):
+	grid_system.reset_sfen(rawSfen)
+	
 # drops the thing currently being dragged, RESETTING to original position
 func drop_dragged():
 	if not dragging:
@@ -122,8 +128,11 @@ func _input(event):
 	#print("Viewport Resolution is: ", get_viewport_rect().size)
 
 func add_engine(enginePath, player):
-	print("TODO: add engine to GDNative code. [", enginePath, "]")
+	grid_system.add_engine(enginePath, player)
 
-# Relay the signal to anyone who instantiates the GameSpace.
+######## Relay these signals to anyone who instantiates the GameSpace ##########
 func _on_GridSystem_engine_log(player_num, text):
 	emit_signal("engine_log", player_num, text)
+
+func _on_GridSystem_sfen_update(sfen):
+	emit_signal("sfen_update", sfen)

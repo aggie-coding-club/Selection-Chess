@@ -191,6 +191,8 @@ def compile_godot_lib():
     if env['use_boost']:
         guiCpps += 'src/interface/engine_runner.cpp ' # compile with engine_runner only if we can use Boost
 
+    sourcesLibrary.extend(Split(guiCpps))
+
     gui = env.Program(compiled_path + 'SelChessGui', Split(guiCpps))
 
     library = env.SharedLibrary(target=env['gdnl_path'] + env['gdnl_name'] , source=sourcesLibrary)

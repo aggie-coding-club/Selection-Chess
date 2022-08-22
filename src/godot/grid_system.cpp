@@ -9,10 +9,13 @@ using namespace godot;
 void GridSystem::_register_methods() {
     register_method("_process", &GridSystem::_process);
     register_method("_ready", &GridSystem::_ready);
+    register_method("reset_sfen", &GridSystem::reset_sfen);
+    register_method("add_engine", &GridSystem::add_engine);
     // register_property<GridSystem, float>("amplitude", &GridSystem::amplitude, 10.0);
     // register_property<GridSystem, float>("speed", &GridSystem::set_speed, &GridSystem::get_speed, 1.0);
 
     register_signal<GridSystem>((char *)"engine_log", "player_num", GODOT_VARIANT_TYPE_INT, "text", GODOT_VARIANT_TYPE_STRING);
+    register_signal<GridSystem>((char *)"sfen_update", "sfen", GODOT_VARIANT_TYPE_STRING);
 }
 
 GridSystem::GridSystem() {
@@ -47,9 +50,9 @@ void GridSystem::_ready() {
     pieceTileMapFloating->clear();
     boardTileMapFloating->clear();
 
-    game = std::make_unique<Game>("P2R(2)p/1p3NR/BQp1/(3)1p a0 w 0 1", "rules/piecesOnly.rules");
+    m_game = std::make_unique<Game>("P2R(2)p/1p3NR/BQp1/(3)1p a0 w 0 1", "rules/piecesOnly.rules");
 
-    dlog(game->print());
+    dlog(m_game->print());
 
     redrawBoard();
     prevChunk = getChunk();
@@ -106,8 +109,8 @@ void GridSystem::redrawBoard() {
     pieceTileMapFloating->clear();
     boardTileMapFloating->clear();
 
-    auto baseCoords = game->m_board->m_displayCoordsZero;
-    StandardArray sa = game->m_board->standardArray();
+    auto baseCoords = m_game->m_board->m_displayCoordsZero;
+    StandardArray sa = m_game->m_board->standardArray();
 
     SignedCoords centerChunk = getChunk();
     // dlog("centerchunk f=", centerChunk.file, " r=", centerChunk.rank);
@@ -175,10 +178,21 @@ void GridSystem::_process(float delta) {
 void GridSystem::_input(Variant event) {
     
 }
-void GridSystem::set_speed(float p_speed) {
-    speed = p_speed;
+void GridSystem::reset_sfen(Variant _sfen) {
+    std::string sfen = variantToStdString(_sfen);
+    m_game->reset(sfen);
+    // TODO: handle invalid sfen
+    emit_signal("sfen_update", m_game->toSfen().c_str());
 }
+void GridSystem::add_engine(Variant _path, PieceColor _player) {
+    std::string path = variantToStdString(_path);
+    std::unique_ptr<EngineRunner> engine = std::make_unique<EngineRunner>(path);
 
-float GridSystem::get_speed() {
-    return speed;
+    if (_player == WHITE) {
+        m_whiteEngine = std::move(engine);
+        dlog("added white engine [", path, "]");
+    } else {
+        m_blackEngine = std::move(engine);
+        dlog("added black engine [", path, "]");
+    }
 }

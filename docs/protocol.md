@@ -35,7 +35,7 @@ the old position and the new position:
 ```
 For example, `zz0a2` describes the piece at `zz0` moving to `a2`.
 
-We do not use castling notation or any other notation from chess to describe moves.
+This is simpler than SAN, as we do not use special notation for captures, castling, or enpassant, and never omit the `from` field.
 
 #### Tile Moves
 

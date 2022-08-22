@@ -1,10 +1,11 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=10 format=2]
 
 [ext_resource path="res://scenes/GameSpace.tscn" type="PackedScene" id=1]
 [ext_resource path="res://scripts/GameSpaceViewportContainer.gd" type="Script" id=2]
 [ext_resource path="res://button_graphics/selection.png" type="Texture" id=3]
 [ext_resource path="res://button_graphics/trash.png" type="Texture" id=4]
 [ext_resource path="res://button_graphics/pawn.png" type="Texture" id=5]
+[ext_resource path="res://scenes/AlertDialog.gd" type="Script" id=6]
 [ext_resource path="res://scripts/MainWindow.gd" type="Script" id=7]
 [ext_resource path="res://scenes/EngineConsolePanel.tscn" type="PackedScene" id=8]
 [ext_resource path="res://scripts/VBoxContainerECP.gd" type="Script" id=9]
@@ -38,7 +39,7 @@ size_flags_horizontal = 3
 margin_right = 35.0
 margin_bottom = 20.0
 text = "File"
-items = [ "Import PGN", null, 0, false, false, 0, 0, null, "", false, "Export PGN", null, 0, false, false, 1, 0, null, "", false ]
+items = [ "Import PGN", null, 0, false, false, 0, 0, null, "", false, "Export PGN", null, 0, false, false, 1, 0, null, "", false, "Import SFEN", null, 0, false, false, 2, 0, null, "", false, "Export SFEN to clipboard", null, 0, false, false, 3, 0, null, "", false ]
 
 [node name="EngineButton" type="MenuButton" parent="PanelContainer/VBoxContainer/MenuBar"]
 margin_left = 39.0
@@ -331,8 +332,31 @@ access = 2
 current_dir = "/"
 current_path = "/"
 
+[node name="ImportSfenDialog" type="ConfirmationDialog" parent="."]
+margin_right = 555.0
+margin_bottom = 70.0
+size_flags_vertical = 0
+window_title = "Enter SFEN"
+
+[node name="LineEdit" type="LineEdit" parent="ImportSfenDialog"]
+anchor_left = 0.5
+anchor_right = 0.5
+margin_left = -269.5
+margin_top = 8.0
+margin_right = 269.5
+margin_bottom = 34.0
+size_flags_vertical = 0
+
+[node name="AlertDialog" type="AcceptDialog" parent="."]
+margin_right = 83.0
+margin_bottom = 58.0
+window_title = ""
+script = ExtResource( 6 )
+
 [connection signal="engine_log" from="PanelContainer/VBoxContainer/VSplitContainer/HSplitContainer/Panel/GameSpaceViewportContainer/GameSpaceViewport/GameSpace" to="PanelContainer/VBoxContainer/VSplitContainer/VBoxContainerECP" method="_on_GameSpace_engine_log"]
+[connection signal="sfen_update" from="PanelContainer/VBoxContainer/VSplitContainer/HSplitContainer/Panel/GameSpaceViewportContainer/GameSpaceViewport/GameSpace" to="." method="_on_GameSpace_sfen_update"]
 [connection signal="pressed" from="PanelContainer/VBoxContainer/VSplitContainer/HSplitContainer/Panel/HBoxContainer/ButtonPieceMode" to="." method="_on_ButtonPieceMode_pressed"]
 [connection signal="pressed" from="PanelContainer/VBoxContainer/VSplitContainer/HSplitContainer/Panel/HBoxContainer/ButtonTileMode" to="." method="_on_ButtonTileMode_pressed"]
 [connection signal="pressed" from="PanelContainer/VBoxContainer/VSplitContainer/HSplitContainer/Panel/HBoxContainer/ButtonDeleteMove" to="." method="_on_ButtonDeleteMove_pressed"]
 [connection signal="file_selected" from="FileDialog" to="." method="_on_FileDialog_file_selected"]
+[connection signal="confirmed" from="ImportSfenDialog" to="." method="_on_ImportSfenDialog_confirmed"]

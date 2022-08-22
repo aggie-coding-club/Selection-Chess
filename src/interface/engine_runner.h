@@ -54,4 +54,10 @@ class EngineRunner : public PlayerRunner {
 
 };
 
+// Boost has some preprocessor macros that conflict with Godot, so we have to undefine them in any header 
+// which directly includes a Boost lib.
+#undef constant
+#undef CONNECT_DEFERRED
+#undef VOID
+
 #endif
