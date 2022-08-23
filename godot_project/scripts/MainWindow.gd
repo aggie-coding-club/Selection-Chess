@@ -1,5 +1,6 @@
 extends Control
 
+const constants = preload("res://scripts/Constants.gd")
 
 # Declare member variables here. Examples:
 # var a = 2
@@ -17,8 +18,6 @@ onready var pieceModeButton = modeButtonContainer.get_node("ButtonPieceMode")
 onready var tileModeButton = modeButtonContainer.get_node("ButtonTileMode")
 onready var deleteModeButton = modeButtonContainer.get_node("ButtonDeleteMove")
 var modeButtonList = []
-
-const constants = preload("res://scripts/Constants.gd")
 
 # Called when the node enters the scene tree for the first time.
 func _ready():

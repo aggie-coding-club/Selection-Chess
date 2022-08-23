@@ -116,6 +116,7 @@ std::unique_ptr<Move> readAlgebraic(std::string _algebra) {
     return std::make_unique<PieceMove>(f, s);
 }
 
+// FIXME: now that these functions are exposed to user-input, it is critical that they failsafe.
 std::string coordsToAlgebraic(DModCoords _coords, DModCoords _offset) {
     //TODO: implement _offset if its needed
     return intToLetters(_coords.file) + std::to_string(_coords.rank.m_value);

@@ -8,8 +8,14 @@
 
 config_version=4
 
-_global_script_classes=[  ]
+_global_script_classes=[ {
+"base": "Reference",
+"class": "Vector2i",
+"language": "GDScript",
+"path": "res://scripts/Vector2i.gd"
+} ]
 _global_script_class_icons={
+"Vector2i": ""
 }
 
 [application]
