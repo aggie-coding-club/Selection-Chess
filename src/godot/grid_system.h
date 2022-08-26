@@ -63,23 +63,6 @@ public:
     void reset_sfen(Variant _sfen);
     void add_engine(Variant _path, PieceColor _player);
     // std::string get_sfen();
-
-private:
-    // Calls set_cell on Godot boards to change the displayed cell.
-    // Use _isSelected, _isFloating, and _highlight to change decorators.
-    // Valid values for _highlight are TM_HIGHLIGHT_DOT or TM_HIGHLIGHT_CIRCLE.
-    // Behavior for invalid combinations of decorators is undefined.
-    // WARNING: uses TileMaps' xy coordinates system. To convert to file-rank, negate _y value.
-    void setCell(int _x, int _y, SquareEnum _squareVal, bool _isSelected=false, bool _isFloating=false, TileMapEnum _highlight=TM_EMPTY);
-
-    // TODO: behavior of this around decorators, when to use, etc should be clarified
-    void redrawBoard();
-
-    // Get the chunk the camera is currently in
-    SignedCoords getChunk();
-
-    // Get integer TileMap coords from a global float position
-    SignedCoords getCoordsFromGlobalPos(Vector2 _global);
 };
 
 }

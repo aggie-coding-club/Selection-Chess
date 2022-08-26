@@ -33,6 +33,7 @@ void GridSystem::_init() {
 }
 
 void GridSystem::_ready() {
+    // TODO: figure out which of these are being used
     boardTileMap = (TileMap*) get_node("NodeBoard/BoardTileMap");
     pieceTileMap = (TileMap*) get_node("NodeBoard/PieceTileMap");
     highlightsTileMap = (TileMap*) get_node("NodeBoard/HighlightsTileMap");
@@ -44,105 +45,9 @@ void GridSystem::_ready() {
 
     camera = (Camera2D*) get_node("../Camera2D");
 
-    pieceTileMap->clear();
-    boardTileMap->clear();
-    highlightsTileMap->clear();
-    pieceTileMapFloating->clear();
-    boardTileMapFloating->clear();
 
     m_game = std::make_unique<Game>("P2R(2)p/1p3NR/BQp1/(3)1p a0 w 0 1", "rules/piecesOnly.rules");
-
-    dlog(m_game->print());
-
-    redrawBoard();
-    prevChunk = getChunk();
-}
-
-void GridSystem::setCell(int _x, int _y, SquareEnum _squareVal, bool _isSelected, bool _isFloating, TileMapEnum _highlight) {
-    if (_squareVal == VOID) {
-        boardTileMap->set_cell(_x, _y, TM_EMPTY);
-        pieceTileMap->set_cell(_x, _y, TM_EMPTY);
-        boardTileMapFloating->set_cell(_x, _y, TM_EMPTY);
-        pieceTileMapFloating->set_cell(_x, _y, TM_EMPTY);
-        highlightsTileMap->set_cell(_x, _y, TM_EMPTY);
-
-    } else if (_isFloating) {
-        boardTileMap->set_cell(_x, _y, TM_EMPTY);
-        pieceTileMap->set_cell(_x, _y, TM_EMPTY);
-        boardTileMapFloating->set_cell(_x, _y, _isSelected? TM_TILE_HIGHLIGHTED : TM_TILE);
-        pieceTileMapFloating->set_cell(_x, _y, getTMFromSquare(_squareVal));
-        highlightsTileMap->set_cell(_x, _y, TM_EMPTY); // cannot highlight floating tiles
-
-    } else {
-        boardTileMapFloating->set_cell(_x, _y, TM_EMPTY);
-        pieceTileMapFloating->set_cell(_x, _y, TM_EMPTY);
-        boardTileMap->set_cell(_x, _y, _isSelected? TM_TILE_HIGHLIGHTED : TM_TILE);
-        pieceTileMap->set_cell(_x, _y, getTMFromSquare(_squareVal));
-        highlightsTileMap->set_cell(_x, _y, _highlight);
-    }
-}
-
-SignedCoords GridSystem::getCoordsFromGlobalPos(Vector2 _global) {
-    auto indicesRaw = boardTileMap->world_to_map(boardTileMap->to_local(_global));
-    // Note that y is negated so that up is increased coords
-    SignedCoords indices ((int) indicesRaw.x, (int) -indicesRaw.y);
-    return indices;
-}
-
-SignedCoords GridSystem::getChunk() {
-    // TileMap indices where center of camera currently is
-    SignedCoords cameraIndices = getCoordsFromGlobalPos(camera->get_global_position());
-    // Get chunk camera center is in. Have to convert to signed so division works as expected.
-    SignedCoords cameraChunk (divFloor(cameraIndices.file, (signed) DAModulus), divFloor(cameraIndices.rank, (signed) DDModulus));
-    return cameraChunk;
-}
-
-void GridSystem::redrawBoard() {
-    dlog("redrawing...");
-    emit_signal("engine_log", WHITE, ("[♜] test signal " + getUnicodeCharFromSquare(B_ROOK)).c_str());
-    emit_signal("engine_log", WHITE, "# a white test comment\n");
-    emit_signal("engine_log", BLACK, "# a black test comment\n");
-    dlog("owner has: ", (godot_int) gameSpaceNode->get("cursorMode"));
-    pieceTileMap->clear();
-    boardTileMap->clear();
-    highlightsTileMap->clear();
-    pieceTileMapFloating->clear();
-    boardTileMapFloating->clear();
-
-    auto baseCoords = m_game->m_board->m_displayCoordsZero;
-    StandardArray sa = m_game->m_board->standardArray();
-
-    SignedCoords centerChunk = getChunk();
-    // dlog("centerchunk f=", centerChunk.file, " r=", centerChunk.rank);
-
-    // Draw board in each chunk. This achieves the 'wrap-around' effect, as the center chunk is surrounded by other
-    // chunks, so if we are at the edge of the center chunk we see a duplicate of its other side.
-    // This can also be interpretted as there are infinite chunks in each direction, and we only load the 9 that we 
-    // might see.
-    for (int chunkNumOffsetR = -1; chunkNumOffsetR <= 1; chunkNumOffsetR++) {
-        for (int chunkNumOffsetF = -1; chunkNumOffsetF <= 1; chunkNumOffsetF++) {
-            // Draw board
-            SignedCoords chunkOrigin (centerChunk.file + chunkNumOffsetF, centerChunk.rank + chunkNumOffsetR);
-
-            for (auto f = 0; f < sa.m_dimensions.file; ++f) {
-                for (auto r = 0; r < sa.m_dimensions.rank; ++r) {
-                    SquareEnum square = sa.at(f, r);
-                    if (square >= VOID) continue;
-
-                    // Copy and modify coords in DMod space
-                    DModCoords tileCoordsDM = baseCoords;
-                    tileCoordsDM.file += f;
-                    tileCoordsDM.rank -= r; // FIXME: why is rank already negated here?
-
-                    // Convert DMod coords into SignCoords
-                    SignedCoords tileCoords (chunkOrigin.file*DAModulus + tileCoordsDM.file.m_value, chunkOrigin.rank*DDModulus + tileCoordsDM.rank.m_value);
-                    setCell(tileCoords.file, -tileCoords.rank, square);
-                }
-            }
-            // setCell(chunkOrigin.file * DAModulus, -chunkOrigin.rank * DDModulus, B_ROOK);
-        }
-    }
-    // setCell(centerChunk.file * DAModulus, -centerChunk.rank * DDModulus, W_ROOK);
+    emit_signal("sfen_update", m_game->toSfen().c_str());
 }
 
 void GridSystem::_process(float delta) {
@@ -162,13 +67,6 @@ void GridSystem::_process(float delta) {
     //     time_emit = 0.0;
     // }
 
-    // Redraw board if camera has moved into a new chunk
-    auto chunk = getChunk();
-    if (prevChunk != chunk) {
-        redrawBoard();
-        prevChunk = chunk;
-    }
-    
     auto mouseIndices = boardTileMap->world_to_map(boardTileMap->to_local(boardTileMap->get_global_mouse_position()));
     // set_cell((int) mouseIndices.x, (int) -mouseIndices.y, W_KING);
     // dlog("floating mouse x=", mouseIndices.x, " mouse y=", mouseIndices.y);
