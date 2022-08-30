@@ -3,6 +3,7 @@ extends Node2D
 const constants = preload("res://scripts/Constants.gd")
 const util = preload("res://scripts/Utils.gd")
 const sutilClass = preload("res://StaticUtils.gdns")
+const styleAddon = preload("res://scripts/TMModifiers.gd")
 var sutil = sutilClass.new()
 
 # Declare member variables here. Examples:
@@ -37,9 +38,11 @@ var mod_printhead : util.Vector2i
 var printhead_chunk_origin : util.Vector2i
 var mod_printhead_reset : util.Vector2i
 
+var style_addons = []
+
 ################# Selection and cursor state variables ####################
 # What type of selection is made, if any. 
-var selectionState = constants.NO_SEL
+var selectionState = constants.SEL.NONE
 
 # as integer board coords
 var selectionStartPos = util.Vector2i.new(0,0)
@@ -48,7 +51,7 @@ var selectionEndPos = util.Vector2i.new(0,0)
 # Which 'tool' is selected, defines what clicking does
 var cursorMode = constants.PIECE_MODE
 
-# Stores state of whether cursor is pressed or not.
+# Stores state of whether cursor is is_pressed() or not.
 # In the case of piece_sel, means piece is actively following cursor.
 # In the case of tile_sel, means rectangle is being drawn.
 var dragging = false
@@ -67,65 +70,172 @@ func _process(delta):
 		chunk = currentChunk
 		redraw_board()
 
+# Calls set_cell on Godot boards to change the displayed cell.
+# Use _isSelected, _isFloating, and _highlight to change decorators.
+# _squareEnum is of enum constants.SquareEnum, or false to preserve current piece.
+# _highlight is of enum constants.HighlightTM.
+# Behavior for invalid combinations of decorators is undefined.
+# CAUTION: just like set_cell on individual boards, the y needs to be negated
+func set_cell_formatted(_x:int,_y:int, _squareEnum, _isSelected:bool=false, _isFloating:bool=false, _highlight=constants.HighlightsTM.EMPTY):
+	var preserve_piece = typeof(_squareEnum) == TYPE_BOOL
+	var square_tm_value
+	if preserve_piece:
+		# Set _squareEnum from existing board data, either regular or floating
+		square_tm_value = piece_tilemap.get_cell(_x, _y) if piece_tilemap.get_cell(_x, _y) != constants.TM_ENUM_NULL else piece_tilemap_floating.get_cell(_x, _y)
+	else: 
+		square_tm_value = util.getTMFromSquare(_squareEnum)
+
+	if typeof(_squareEnum) == TYPE_INT and _squareEnum == constants.SquareEnum.VOID:
+		board_tilemap.set_cell(_x, _y, constants.BoardTM.EMPTY);
+		piece_tilemap.set_cell(_x, _y, constants.PieceTM.EMPTY);
+		board_tilemap_floating.set_cell(_x, _y, constants.BoardTM.EMPTY);
+		piece_tilemap_floating.set_cell(_x, _y, constants.PieceTM.EMPTY);
+		highlights_tilemap.set_cell(_x, _y, constants.HighlightsTM.EMPTY);
+
+	elif _isFloating:
+		board_tilemap.set_cell(_x, _y, constants.BoardTM.EMPTY);
+		piece_tilemap.set_cell(_x, _y, constants.PieceTM.EMPTY);
+		board_tilemap_floating.set_cell(_x, _y, constants.BoardTM.TILE_HIGHLIGHTED if _isSelected else constants.BoardTM.TILE);
+		piece_tilemap_floating.set_cell(_x, _y, square_tm_value)
+		highlights_tilemap.set_cell(_x, _y, constants.HighlightsTM.EMPTY); # cannot highlight floating tiles
+
+	else:
+		board_tilemap_floating.set_cell(_x, _y, constants.BoardTM.EMPTY);
+		piece_tilemap_floating.set_cell(_x, _y, constants.PieceTM.EMPTY);
+		board_tilemap.set_cell(_x, _y, constants.BoardTM.TILE_HIGHLIGHTED if _isSelected else constants.BoardTM.TILE);
+		piece_tilemap.set_cell(_x, _y, square_tm_value);
+		highlights_tilemap.set_cell(_x, _y, _highlight);
+
+# drops the thing currently being dragged, RESETTING to original position
+func drop_dragged():
+	if not dragging:
+		return
+	if selectionState == constants.SEL.FROM:
+		#piece_tilemap.set_cellv(selectionStartPos, [PIECE])
+		# TODO: get piece back from whatever is carrying it
+		pass
+	if selectionState == constants.SEL.FROM:
+		# TODO: 
+		pass
+
+# remove highlight and other stuff
+func deselect():
+	if dragging:
+		drop_dragged()
+	match selectionState:
+		constants.SEL.FROM:
+			# TODO
+			pass
+		constants.SEL.FROM:
+			# TODO
+			pass
+	selectionState = constants.SEL.NONE
+	style_addons.clear()
+	redraw_board()
+
+################################################################################
+
 func _input(event):
 #func _unhandled_input(event):
 	# Mouse in viewport coordinates.
 	if event is InputEventMouseButton:
 		if event.button_index == BUTTON_LEFT:
 			# position of mouse as NodeBoard indices 
-			var mousePosNB = board_tilemap.world_to_map(board_tilemap.to_local(get_global_mouse_position()))
-			mousePosNB.y = - mousePosNB.y # Godot TileMap y is reverse of chess standard
+			var mousePosNB = getCoordsFromGlobalPos(get_global_mouse_position())
 			print("Mouse Click/Unclick at: ", get_global_mouse_position(), "\t which is: ", mousePosNB)
-			if selectionState == constants.NO_SEL and event.pressed:
-				selectionStartPos = mousePosNB
-				match cursorMode:
-					constants.PIECE_MODE:
+			print("state is ", selectionState)
+			match cursorMode:
+				constants.PIECE_MODE:
+					if selectionState == constants.SEL.NONE and event.is_pressed():
+						selectionStartPos = mousePosNB.clone()
 						# TODO: check if valid selectable piece
-						selectionState = constants.PIECE_SEL
-						#dragging = true # We don't drag piece until cursor moves
-						mousePosNB.y = - mousePosNB.y # Godot TileMap y is reverse of chess standard
-						board_tilemap.set_cellv(mousePosNB, constants.BoardTM.TILE_HIGHLIGHTED)
-					constants.TILES_MODE:
-						selectionState = constants.TILES_SEL
+
+						selectionState = constants.SEL.FROM
+						# We don't drag piece until cursor moves
+						# Godot TileMap y is reverse of chess standard
+						style_addons.append(styleAddon.StyleAddon.new(mousePosNB.x, -mousePosNB.y, false, true))
+						redraw_board()
+					elif selectionState == constants.SEL.FROM:
+						if event.is_pressed() and mousePosNB.equals(selectionStartPos):
+							deselect()
+						elif event.is_pressed() and not mousePosNB.equals(selectionStartPos):
+							print(mousePosNB, selectionStartPos, "..")
+							# TODO: execute move. Make sure this works whether move is execute immediately, or it sits in the SEL.TO stage until submit button pressed.
+							deselect() # TODO: temporary til move implemented
+						elif not event.is_pressed():
+							if mousePosNB.equals(selectionStartPos):
+								drop_dragged()
+							else:
+								# execute piece move
+								pass
+				constants.TILES_MODE:
+					if selectionState == constants.SEL.NONE and event.is_pressed():
+						selectionStartPos = mousePosNB.clone()
 						dragging = true
-					constants.DELETE_MODE:
-						# TODO: implement deletions
-						pass
-			elif selectionState == constants.PIECE_SEL:
-				if event.pressed and mousePosNB == selectionStartPos:
-					deselect()
-				elif event.pressed and mousePosNB != selectionStartPos:
-					# TODO: execute move
-					pass
-				elif not event.pressed:
-					if mousePosNB == selectionStartPos:
-						drop_dragged()
-					else:
-						# execute piece move
-						pass
+					elif selectionState == constants.SEL.NONE and dragging and not event.is_pressed():
+						selectionEndPos = mousePosNB.clone()
+						dragging = false
+						# TODO: check if valid selection
+						if true:
+							selectionState = constants.SEL.FROM
+							# Godot TileMap y is reverse of chess standard
+							var sa = styleAddon.StyleAddon.new(selectionStartPos.x, -selectionStartPos.y,
+								false, true, true, constants.HighlightsTM.EMPTY,
+								true, selectionEndPos.x, -selectionEndPos.y)
+							style_addons.append(sa)
+							redraw_board()
+						else:
+							pass
+					if selectionState == constants.SEL.FROM and event.is_pressed():
+						# TODO: check if pressed down on tile within selection
+						if true:
+							# TODO: calculate where to offset floating selection based on this click
+							dragging = true
+						else:
+							deselect()
+					elif selectionState == constants.SEL.FROM and dragging and not event.is_pressed():
+						# TODO: check if destination is legal
+						if false:
+							# drop selection onto the board, set corresponding variables about move info
+							pass
+						else:
+							# otherwise, reset back to when we first made selection
+							drop_dragged()
+							dragging = false
+				constants.DELETE_MODE:
+					if event.is_pressed():
+#						var tileClick = mousePosNB.clone()
+						# TODO: check if clicked tile is already marked for deletion
+						if true:
+							# TODO: deselect just that tile
+							pass
+						else:
+							# TODO: add that tile to deletion list
+							pass
+						# TODO: update selectionState if necessary (tile deletions might not even need this!)
 					
 	elif event is InputEventMouseMotion:
-		if selectionState == constants.PIECE_SEL:
-			# just started dragging a piece
-			if not dragging and Input.is_mouse_button_pressed(BUTTON_LEFT):
-				var mousePosNB = board_tilemap.world_to_map(board_tilemap.to_local(get_global_mouse_position()))
-				mousePosNB.y = - mousePosNB.y # Godot TileMap y is reverse of chess standard
-				# TODO: remove from pieceTileMap, move to floating map
-				dragging = true
-			
-			if dragging:
-				var mousePosNB = board_tilemap.world_to_map(board_tilemap.to_local(get_global_mouse_position()))
-				mousePosNB.y = - mousePosNB.y # Godot TileMap y is reverse of chess standard
-				selectionEndPos = mousePosNB
-				# TODO: update graphics
-
-		if selectionState == constants.TILES_SEL:
-			# TODO
+#		if selectionState == constants.SEL.FROM:
+#			# just started dragging a piece
+#			if not dragging and Input.is_mouse_button_pressed(BUTTON_LEFT):
+#				var mousePosNB = getCoordsFromGlobalPos(get_global_mouse_position())
+#				# TODO: remove from pieceTileMap, move to floating map
+#				dragging = true
+#
+#			if dragging:
+#				var mousePosNB = getCoordsFromGlobalPos(get_global_mouse_position())
+#				selectionEndPos = mousePosNB.clone()
+#				# TODO: update graphics
+#
+#		if selectionState == constants.SEL.FROM:
+#			# TODO
 			pass
 	# Print the size of the viewport.
 	#print("Viewport Resolution is: ", get_viewport_rect().size)
 
-# Get the tilemap coords from a global position (already crossed negation barrier)
+########### Math helper functions for coordinate conversion stuff ##############
+
+# Get the gamespace coords from a global position (already crossed negation barrier)
 func getCoordsFromGlobalPos(var p_global)->util.Vector2i:
 	var indicesRaw = board_tilemap.world_to_map(board_tilemap.to_local(p_global));
 	# Note that y is negated so that up is increased coords
@@ -141,15 +251,18 @@ func get_chunk()->util.Vector2i:
 		util.div_floor(cameraIndices.y, constants.DDModulus))
 	return cameraChunk;
 
+########## functions for redraw_board, since lambdas not allowed ###############
 func forPiece(c):
 	var sqr_enum = util.getSquareFromChar(c)
 	var print_coords = util.add_vectors2i(mod_printhead, printhead_chunk_origin)
 #	print("writing ", c, " to ", print_coords, ", which is enum: ", sqr_enum)
 	set_cell_formatted(print_coords.x, -print_coords.y, sqr_enum)
 	mod_printhead.x = posmod(mod_printhead.x + 1, constants.DAModulus)
+
 func forVoid(count):
 #	print("V[", count, "] ", " to ", mod_printhead)
 	mod_printhead.x = posmod(mod_printhead.x + count, constants.DAModulus)
+
 func forEmpty(count):
 #	print("emp[", count,"] ", " to ", mod_printhead)
 	for _i in range(count):
@@ -161,15 +274,15 @@ func forNewline():
 #	print("/ ", " to ", mod_printhead)
 	mod_printhead.y = posmod(mod_printhead.y + 1, constants.DDModulus)
 	mod_printhead.x = mod_printhead_reset.x
+################################################################################
 
 func redraw_board():
-	var x = constants.PIECE_SEL
 	var why = sutil.letters_to_int("ac")
-	print("sutils: ", why, " <-> ", sutil.int_to_letters(why))
+#	print("sutils: ", why, " <-> ", sutil.int_to_letters(why))
 	var vec2i = util.Vector2iFromArray(sutil.algebraic_to_coords("ac98"))
-	print("sutils array: ", vec2i)
-	print("<-> ", sutil.coords_to_algebraic(vec2i.x, vec2i.y))
-	print("redrawing using sfen [", sfen, "]")
+#	print("sutils array: ", vec2i)
+#	print("<-> ", sutil.coords_to_algebraic(vec2i.x, vec2i.y))
+#	print("redrawing using sfen [", sfen, "]")
 	piece_tilemap.clear()
 	board_tilemap.clear()
 	highlights_tilemap.clear()
@@ -180,12 +293,12 @@ func redraw_board():
 	mod_printhead_reset = mod_printhead.clone()
 
 	var sfen_placement = util.get_slice(sfen, " ", sfen_index_placement)
-	print("before: ", sfen_placement)
+#	print("before: ", sfen_placement)
 	sfen_placement = util.reverse_sfen(sfen_placement)
-	print("after: ", sfen_placement)
-#
+#	print("after: ", sfen_placement)
+
 	var centerChunk = chunk
-	print("centerchunk f=", centerChunk.x, " r=", centerChunk.y)
+#	print("centerchunk f=", centerChunk.x, " r=", centerChunk.y)
 
 	# Draw board in each chunk. This achieves the 'wrap-around' effect, as the center chunk is surrounded by other
 	# chunks, so if we are at the edge of the center chunk we see a duplicate of its other side.
@@ -208,65 +321,19 @@ func redraw_board():
 #			// setCell(chunkOrigin.file * DAModulus, -chunkOrigin.rank * DDModulus, B_ROOK);
 #	// setCell(centerChunk.file * DAModulus, -centerChunk.rank * DDModulus, W_ROOK);
 
-func reset_sfen(rawSfen):
-	grid_system.reset_sfen(rawSfen)
-	
-# drops the thing currently being dragged, RESETTING to original position
-func drop_dragged():
-	if not dragging:
-		return
-	if selectionState == constants.PIECE_SEL:
-		#piece_tilemap.set_cellv(selectionStartPos, [PIECE])
-		# TODO: get piece back from whatever is carrying it
-		pass
-	if selectionState == constants.TILES_SEL:
-		# TODO: 
-		pass
-
-# remove highlight and other stuff
-func deselect():
-	if dragging:
-		drop_dragged()
-	match selectionState:
-		constants.PIECE_SEL:
-			# TODO
-			pass
-		constants.TILES_SEL:
-			# TODO
-			pass
-
-# Calls set_cell on Godot boards to change the displayed cell.
-# Use _isSelected, _isFloating, and _highlight to change decorators.
-# _squareEnum is of enum constants.SquareEnum.
-# _highlight is of enum constants.HighlightTM.
-# Behavior for invalid combinations of decorators is undefined.
-# CAUTION: just like set_cell on individual boards, the y needs to be negated
-func set_cell_formatted(_x:int,_y:int, _squareEnum, _isSelected:bool=false, _isFloating:bool=false, _highlight=constants.HighlightsTM.EMPTY):
-	if _squareEnum == constants.SquareEnum.VOID:
-		board_tilemap.set_cell(_x, _y, constants.BoardTM.EMPTY);
-		piece_tilemap.set_cell(_x, _y, constants.PieceTM.EMPTY);
-		board_tilemap_floating.set_cell(_x, _y, constants.BoardTM.EMPTY);
-		piece_tilemap_floating.set_cell(_x, _y, constants.PieceTM.EMPTY);
-		highlights_tilemap.set_cell(_x, _y, constants.HighlightsTM.EMPTY);
-
-	elif _isFloating:
-		board_tilemap.set_cell(_x, _y, constants.BoardTM.EMPTY);
-		piece_tilemap.set_cell(_x, _y, constants.PieceTM.EMPTY);
-		board_tilemap_floating.set_cell(_x, _y, constants.BoardTM.TILE_HIGHLIGHTED if _isSelected else constants.BoardTM.TILE);
-		piece_tilemap_floating.set_cell(_x, _y, util.getTMFromSquare(_squareEnum))
-		highlights_tilemap.set_cell(_x, _y, constants.HighlightsTM.EMPTY); # cannot highlight floating tiles
-
-	else:
-		board_tilemap_floating.set_cell(_x, _y, constants.BoardTM.EMPTY);
-		piece_tilemap_floating.set_cell(_x, _y, constants.PieceTM.EMPTY);
-		board_tilemap.set_cell(_x, _y, constants.BoardTM.TILE_HIGHLIGHTED if _isSelected else constants.BoardTM.TILE);
-		piece_tilemap.set_cell(_x, _y, util.getTMFromSquare(_squareEnum));
-		highlights_tilemap.set_cell(_x, _y, _highlight);
+	# Apply addons
+	for addon in style_addons:
+		for x_i in range(addon.sel_first_x, addon.sel_second_x+1):
+			for y_i in range(addon.sel_first_y, addon.sel_second_y+1):
+				set_cell_formatted(x_i, y_i, addon.squareEnum, addon.isSelected, addon.isFloating, addon.highlight)	
 
 ###################### Relay these function calls down #########################
 func add_engine(enginePath, player):
 	grid_system.add_engine(enginePath, player)
 
+func reset_sfen(rawSfen):
+	grid_system.reset_sfen(rawSfen)
+	
 ######################### Relay these signals up ###############################
 func _on_GridSystem_engine_log(player_num, text):
 	emit_signal("engine_log", player_num, text)

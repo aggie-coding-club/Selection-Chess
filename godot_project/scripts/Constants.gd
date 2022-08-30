@@ -1,6 +1,6 @@
 ######### CAUTION: these must match the constants in the cpp source! ###########
 
-enum {NO_SEL, PIECE_SEL, TILES_SEL}
+enum SEL {NONE, FROM, TO}
 enum {PIECE_MODE, TILES_MODE, DELETE_MODE}
 
 # Constants for tilemaps

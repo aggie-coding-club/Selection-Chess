@@ -80,6 +80,8 @@ func _on_ImportSfenDialog_confirmed():
 # TODO: Button section probably should be moved to Button's HBox container. 
 
 func deselectModeButtons():
+	# Strong assumption: only deselect() needs to be called before cursorMode is changed
+	gameSpace.deselect()
 	for btn in modeButtonList:
 		btn.pressed = false
 

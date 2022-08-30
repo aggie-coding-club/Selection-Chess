@@ -1,4 +1,4 @@
-extends Reference
+extends Resource
 
 const constants = preload("res://scripts/Constants.gd")
 
